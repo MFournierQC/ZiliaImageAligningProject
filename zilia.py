@@ -2,7 +2,7 @@ from dcclab.database import *
 import numpy as np
 
 class ZiliaDB(Database):
-    statementFromAllJoin = "from spectra as s, spectralFiles as f, monkeys as m where s.md5 = f.md5 and f.monkeyId = m.id"
+    statementFromAllJoin = "from spectra as s, spectralfiles as f, monkeys as m where s.md5 = f.md5 and f.monkeyId = m.monkeyId"
     statementFromSpectra = "from spectra as s"
 
     def __init__(self, ziliaDbPath='zilia.db'):
@@ -43,16 +43,16 @@ class ZiliaDB(Database):
 
         return wavelengths
 
-    def getAcquisitionType(self):
-        self.execute(r"select distinct(acquisition) from spectralFiles order by acquisition")
+    def getTimelines(self):
+        self.execute(r"select distinct(timeline) from spectralfiles order by timeline")
         rows = self.fetchAll()
         nTotal = len(rows)
 
         types = set()
         for row in rows:
-            acquisition = row['acquisition']
-            if acquisition is not None:
-                types.add(acquisition)
+            timeline = row['timeline']
+            if timeline is not None:
+                types.add(timeline)
 
         return sorted(types)
 
@@ -70,12 +70,12 @@ class ZiliaDB(Database):
 
         return sorted(types)
 
-    def getTargets(self):
-        self.execute(r"select distinct(target) from spectralFiles order by target")
+    def getRegions(self):
+        self.execute(r"select distinct(region) from spectralfiles order by region")
         rows = self.fetchAll()
         targets = []
         for row in rows:
-            target = row['target']
+            target = row['region']
             if target is not None:
                 targets.append(target)
         return targets
@@ -88,20 +88,20 @@ class ZiliaDB(Database):
             names.append(row['name'])
         return names
 
-    def getRawIntensities(self, monkey=None, type=None ,target=None, column=None):
+    def getRawIntensities(self, monkey=None, timeline=None ,region=None, column=None):
         stmnt = r"select s.wavelength, s.intensity, s.md5, s.column {0} ".format(self.statementFromAllJoin)
 
         if monkey is not None:
-            stmnt += " and (m.id = '{0}' or m.name = '{0}')".format(monkey)
+            stmnt += " and (m.monkeyId = '{0}' or m.name = '{0}')".format(monkey)
 
         if column is not None:
             stmnt += " and s.column like '{0}%'".format(column)
 
-        if target is not None:
-            stmnt += " and f.target = '{0}'".format(target)
+        if region is not None:
+            stmnt += " and f.region = '{0}'".format(region)
 
-        if type is not None:
-            stmnt += " and f.acquisition = '{0}'".format(type)
+        if timeline is not None:
+            stmnt += " and f.timeline = '{0}'".format(timeline)
 
         self.execute(stmnt)
         rows = self.fetchAll()

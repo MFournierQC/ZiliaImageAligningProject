@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 dbPath = 'test.db'
-ziliaDb = '/tmp/zilia.db'
+ziliaDb = '/tmp/zilia-new.db'
 
 class TestZilia(env.DCCLabTestCase):
     def testZiliaDBCreation(self):
@@ -33,28 +33,29 @@ class TestZilia(env.DCCLabTestCase):
         wavelengths = db.getWavelengths()
         self.assertTrue(wavelengths.shape == (512,))
 
-    def testGetAcquisitionType(self):
+    def testGetTimelines(self):
         db=ZiliaDB(ziliaDb)
         self.assertIsNotNone(db)
-        types = db.getAcquisitionType()
-        self.assertEqual(types, ['baseline'])
+        types = db.getTimelines()
+        self.assertEqual(types, ['background','baseline'])
 
     def testGetColumns(self):
         db=ZiliaDB(ziliaDb)
         self.assertIsNotNone(db)
         cols = db.getColumns()
-        self.assertEqual(cols, ['bg','raw','ref'])
+        # self.assertEqual(cols, ['bg','raw','ref'])
+        self.assertEqual(cols, ['raw'])
 
-    def testGetTargets(self):
+    def testGetRegions(self):
         db=ZiliaDB(ziliaDb)
         self.assertIsNotNone(db)
-        targets = db.getTargets()
-        self.assertEqual(targets, ['mac','onh'])
+        regions = db.getRegions()
+        self.assertEqual(regions, ['mac','onh'])
 
     def testGetSpectra(self):
         db=ZiliaDB(ziliaDb)
         self.assertIsNotNone(db)
-        spectra = db.getRawIntensities(monkey='Rwanda', target='onh', type='baseline', column='raw')
+        spectra = db.getRawIntensities(monkey='Rwanda', region='onh', timeline='baseline', column='raw')
         self.assertIsNotNone(spectra)
         print(spectra.shape)
 
