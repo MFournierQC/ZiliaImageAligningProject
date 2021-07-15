@@ -27,6 +27,17 @@ class ZiliaDB(Database):
 
         return wavelengths
 
+    def getBloodWavelengths(self):
+        self.execute(r"select distinct(wavelength) from bloodspectra order by wavelength")
+        rows = self.fetchAll()
+        nTotal = len(rows)
+
+        wavelengths = np.zeros(shape=(nTotal))
+        for i,row in enumerate(rows):
+            wavelengths[i] = row['wavelength']
+
+        return wavelengths
+
     def getAcquisitionType(self):
         self.execute(r"select distinct(acquisition) from spectralFiles order by acquisition")
         rows = self.fetchAll()
@@ -96,3 +107,26 @@ class ZiliaDB(Database):
             spectra[i%nWavelengths, i//nWavelengths] = float(row['intensity'])
 
         return spectra
+
+    def getBloodIntensities(self):
+        stmnt = r"select s.wavelength, s.intensity,s.column, f.saturation from bloodspectra as s, bloodfiles as f where f.md5 = s.md5 and s.column like '%raw%' and f.saturation is not null order by s.md5, s.column, f.saturation, s.wavelength"
+
+        self.execute(stmnt)
+        rows = self.fetchAll()
+        nWavelengths = len(self.getBloodWavelengths())
+        nSamples = len(rows)//nWavelengths
+        if nSamples*nWavelengths != len(rows):
+            raise LogicalError("Wavelength field appears incorrect")
+
+        spectra = np.zeros(shape=(nWavelengths, nSamples))
+        for i,row in enumerate(rows):
+            spectra[i%nWavelengths, i//nWavelengths] = float(row['intensity'])
+
+        stmnt = r"select s.wavelength, s.intensity,s.column, f.saturation,f.path from bloodspectra as s, bloodfiles as f where f.md5 = s.md5 and s.column like '%raw%' and f.saturation is not null group by s.md5 order by s.md5, s.column, f.saturation, s.wavelength"
+        self.execute(stmnt)
+        rows = self.fetchAll()
+        saturation = []
+        for i,row in enumerate(rows):
+            saturation.append(float(row['saturation']))
+
+        return spectra, saturation

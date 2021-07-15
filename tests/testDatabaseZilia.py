@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 dbPath = 'test.db'
-ziliaDb = '/tmp/zilia.db'
+ziliaDb = 'zilia.db'
 
 class TestZilia(env.DCCLabTestCase):
     def testZiliaDBCreation(self):
@@ -57,6 +57,19 @@ class TestZilia(env.DCCLabTestCase):
         spectra = db.getRawIntensities(monkey='Rwanda', target='onh', type='baseline', column='raw')
         self.assertIsNotNone(spectra)
         print(spectra.shape)
+
+    def testGetSaturatedSpectralRAnge(self):
+        db=ZiliaDB(ziliaDb)
+        self.assertIsNotNone(db)
+        db.execute('select min(wavelength), max(wavelength), f.path from bloodspectra as s, bloodfiles as f where s.intensity == 65535 and s.wavelength > 530  and f.md5 = s.md5 group by s.md5;')
+        rows = db.fetchAll()
+        print(rows)
+
+    def testGetBloodSpectra(self):
+        db=ZiliaDB(ziliaDb)
+        self.assertIsNotNone(db)
+        spectra, saturation = db.getBloodIntensities()
+        print(spectra, saturation)
 
 if __name__ == '__main__':
     unittest.main()

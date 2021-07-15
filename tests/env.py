@@ -43,4 +43,4 @@ class DCCLabTestCase(unittest.TestCase):
         return os.path.join(cls.tmpDir, filename)
 
 # Very important:  append module root directory to sys.path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
