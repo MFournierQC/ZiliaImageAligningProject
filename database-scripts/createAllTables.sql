@@ -1,3 +1,5 @@
+# Do this one first then ziliaTableMetadataExtraction.sql
+
 CREATE TABLE spectralfiles (path text, md5 text, fileId integer primary key autoincrement, 
 	monkeyId text, date text, region text, 
 	eye text, timeline text, comments text);
