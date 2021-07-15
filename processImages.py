@@ -43,10 +43,10 @@ def removeBadImages(dataDictionary) -> dict:
     # Threshold = np.mean(ii) - np.std(ii) # have to test if better than the previous line
     index = np.where(ii > Threshold)
 
-    if len(index[0]) == 0:
+    if len(index[0]) != 0:
         # Some images are too blurry, let's remove them
-        print("Removing images because they are too blurry.")
         cleanDataDictionary = removeImagesFromIndex(dataDictionary, index)
+        print("Removed some images because they were too blurry.")
     else:
         cleanDataDictionary = dataDictionary
 
@@ -233,12 +233,6 @@ def findImageShift(Image: np.ndarray, Margin=250, N=100) -> np.ndarray:
             totalShift = np.vstack((totalShift, np.sum(indexShift, axis=0)))
     return totalShift
 
-def newFindImageShift():
-    """
-    Find the image shift with the new ellipse finding algorithm parameters.
-    """
-    pass
-
 def applyShift(xLaser: np.ndarray, yLaser:np.ndarray, shift:np.ndarray) -> tuple:
     """
     Apply the shift value on the x and y of the rosa
@@ -354,6 +348,54 @@ def defineGrid(Image) -> tuple:
     return onhCenterHorizontalCoords, onhCenterVerticalCoords, length
     # return xCenterGrid, yCenterGrid, length
 
+def findReferenceImage(images):
+    """
+    Find the image in which the ONH is closest to the middle of the image.
+    """
+    xCenters = []
+    yCenters = []
+    gridLengths = []
+    binaryImages = np.zeros(images.shape)
+    binaryImages[np.where(images >= np.mean(images)*1.9)] = 1
+    xImageShape = binaryImages[0,:,:].shape[1]
+    print(xImageShape)
+    yImageShape = binaryImages[0,:,:].shape[0]
+    print(yImageShape)
+
+    for i in range(binaryImages.shape[0]):
+        kernel = np.ones((5,5), np.uint8)
+        cleanBinaryIm = cv2.morphologyEx(binaryImages[i,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
+        nonZero = np.nonzero(cleanBinaryIm)
+        onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
+        onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
+        xCenter = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
+        yCenter = int((np.max(nonZero[0]) + np.min(nonZero[0]))/2 - (onhHeight-onhWidth))
+        tempGridLength = int((np.min([onhHeight, onhWidth]))/2)
+        xCenters.append(xCenter)
+        yCenters.append(yCenter)
+        gridLengths.append(tempGridLength)
+
+    xCenters = np.array(xCenters)
+    yCenters = np.array(yCenters)
+    distances = []
+
+    for x in xCenters:
+        for y in yCenters:
+            x = xCenters - xImageShape/2
+            y = yCenters - yImageShape/2
+            distance = (x**2 + y**2)**.5
+            distances.append(distance)
+            # closeToCenterX = np.argmin( abs(xCenters - xImageShape/2 ))
+            # closeToCenterY = np.argmin( abs(yCenters - yImageShape/2 ))
+
+    minDistIndex = np.argmin(distance)
+
+    xCenterGrid = xCenters[minDistIndex]
+    yCenterGrid = yCenters[minDistIndex]
+    gridLength = gridLengths[minDistIndex]
+
+    return xCenterGrid, yCenterGrid, gridLength
+
 def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     xCenterGrid = gridParameters[0]
     yCenterGrid = gridParameters[1]
@@ -372,7 +414,7 @@ def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     left = np.max([xCenterGrid - (length*5), 0])
     up = np.max([yCenterGrid - (length*5), 0])
     right = np.min([(5*length), (Image.shape[1] - xCenterGrid)]) + xCenterGrid
-    down = right = np.min([(5*length), (Image.shape[2] - yCenterGrid)]) + yCenterGrid
+    down = np.min([(5*length), (Image.shape[2] - yCenterGrid)]) + yCenterGrid
     temp = Image[0,up:down, left:right]
     xNewCenter = xCenterGrid - left
     yNewCenter = yCenterGrid - up
@@ -396,12 +438,14 @@ def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     plt.imsave('Result_old.jpg', img)
 
 def plotResult(image, shiftParameters, gridParameters, rosaRadius=30, thickness=5):
+    print("Preparing plot of the result")
     refImage = image[0,:,:]
     imageRGB = makeImageRGB(refImage)
     rescaledImage, LowSliceX, LowSliceY = rescaleImage(imageRGB, gridParameters)
     rescaledImageWithCircles = drawRosaCircles(rescaledImage, shiftParameters,
-                                LowSliceX, LowSliceY, rosaRadius=rosaRadius,
-                                thickness=thickness)
+                                                LowSliceX, LowSliceY,
+                                                rosaRadius=rosaRadius,
+                                                thickness=thickness)
     resultImageWithGrid = drawGrid(rescaledImageWithCircles, gridParameters)
     plt.imsave('Result.jpg', resultImageWithGrid)
 
@@ -415,7 +459,7 @@ def drawRosaCircles(rescaledImage, shiftParameters, LowSliceX, LowSliceY, rosaRa
     for j in range(xRosa.shape[0]):
         print(j)
         centerCoordinates = (int(xRosa[j]) + LowSliceX, int(yRosa[j]) + LowSliceY)
-        cv2.circle(rescaledImage, centerCoordinates, rosaRadius, color, thickness)
+        image = cv2.circle(rescaledImage, centerCoordinates, rosaRadius, color, thickness)
     return rescaledImage
 
 def rescaleImage(imageRGB, gridParameters):
@@ -425,7 +469,7 @@ def rescaleImage(imageRGB, gridParameters):
     left = np.max([xCenterGrid - (length*5), 0])
     up = np.max([yCenterGrid - (length*5), 0])
     right = np.min([(5*length), (imageRGB.shape[0] - xCenterGrid)]) + xCenterGrid
-    down = right = np.min([(5*length), (imageRGB.shape[1] - yCenterGrid)]) + yCenterGrid
+    down = np.min([(5*length), (imageRGB.shape[1] - yCenterGrid)]) + yCenterGrid
 
     temp = imageRGB[up:down, left:right,:]
     xNewCenter = xCenterGrid - left

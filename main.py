@@ -22,7 +22,7 @@ collectionDir = r"./tests/TestImages/miniTestSampleNewData"
 # collectionDir = r"C:\Users\elm77\OneDrive\Documents\ULaval\2021_2_Ete\CERVO\Projet\code\20210316-144549-kenya-os-onh-rlp6"
 
 # Broken test dir:
-# collectionDir = r"C:\Users\elm77\OneDrive\Documents\ULaval\2021_2_Ete\CERVO\Projet\code\brokenTest"
+collectionDir = r"C:\Users\elm77\OneDrive\Documents\ULaval\2021_2_Ete\CERVO\Projet\code\brokenTest"
 
 
 leftEye = False
@@ -51,4 +51,4 @@ Label, dataDictionary, indexesToRemove = placeRosa(gridParameters, shiftParamete
 shiftParameters = cleanShiftParameters(shiftParameters, indexesToRemove)
 
 plotResult(image, shiftParameters, gridParameters)
-# oldPlotResult(image, shiftParameters, gridParameters)
+oldPlotResult(image, shiftParameters, gridParameters)
