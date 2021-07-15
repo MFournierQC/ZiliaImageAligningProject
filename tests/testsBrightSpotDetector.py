@@ -3,6 +3,7 @@ from skimage.io import imread
 from skimage.filters import threshold_otsu as otsu
 from analyzeBrightSpot import BrightSpotDetector
 import matplotlib.pyplot as plt
+import numpy as np
 
 skipPlots = True
 skipPlots = False
@@ -132,9 +133,39 @@ class TestBrightSpotDetector(envtest.ZiliaTestCase):
         # plt.show()
         self.plotBrightSpotOnImage(image, brightSpotParams)
 
+    @envtest.skipIf(skipPlots, "skip plots")
+    def testPlotThresholdedImage(self):
+        testDir = self.testCannyDirectory
+        image = imread(testDir+"/150-150-150-50_psr__091.jpg", as_gray=True)
+        midIntensity = np.amax(image)/2
+        indexes = np.where(image < midIntensity)
+        image[indexes] = 0
+        plt.imshow(image, cmap="gray")
+        plt.show()
 
+    @envtest.skipIf(skipPlots, "skip plots")
+    def testBrightSpotDetectorOnPartiallyCut(self):
+        testDir = self.testCannyDirectory
+        image = imread(testDir+"/150-150-150-50_psr__091.jpg")
+        # image[:,:,2] = 0
+        detector = BrightSpotDetector(image)
+        brightSpotParams = detector.getBrightSpot()
+        print(brightSpotParams)
+        # plt.hist(image.ravel(), bins=256)
+        # plt.show()
+        self.plotBrightSpotOnImage(image, brightSpotParams)
 
-
+    @envtest.skip(skipPlots, "requires modifying the bright spot detector")
+    def testBrightSpotDetectorOnPartiallyCut(self):
+        testDir = self.testCannyDirectory
+        image = imread(testDir+"/Figure_2.png")
+        # image[:,:,2] = 0
+        detector = BrightSpotDetector(image)
+        brightSpotParams = detector.getBrightSpot()
+        print(brightSpotParams)
+        # plt.hist(image.ravel(), bins=256)
+        # plt.show()
+        self.plotBrightSpotOnImage(image, brightSpotParams)
 
 if __name__ == "__main__":
     envtest.main()
