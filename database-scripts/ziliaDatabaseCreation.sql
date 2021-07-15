@@ -4,7 +4,7 @@ update spectralFiles set date= substr(path, instr(path, '2021'),4) || '-' || sub
 # Add monkeyId
 update spectralFiles set monkeyId='1511184' where path like '%bresil%';
 update spectralFiles set monkeyId='1512692' where path like '%kenya%';
-update spectralFiles set monkeyId='1508202' where path like '%1508202%';
+update spectralFiles set monkeyId='1512436' where path like '%rwanda%';
 update spectralFiles set monkeyId='1508202' where path like '%somalie%';
 
 # Add target

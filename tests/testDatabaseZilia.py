@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 dbPath = 'test.db'
-ziliaDb = 'zilia.db'
+ziliaDb = '/tmp/zilia.db'
 
 class TestZilia(env.DCCLabTestCase):
     def testZiliaDBCreation(self):
@@ -68,7 +68,7 @@ class TestZilia(env.DCCLabTestCase):
     def testGetBloodSpectra(self):
         db=ZiliaDB(ziliaDb)
         self.assertIsNotNone(db)
-        spectra, saturation = db.getBloodIntensities()
+        wavelengths, spectra, saturation = db.getBloodIntensities()
         print(spectra, saturation)
         
 if __name__ == '__main__':

@@ -27,8 +27,13 @@ class ZiliaDB(Database):
 
         return wavelengths
 
-    def getBloodWavelengths(self):
-        self.execute(r"select distinct(wavelength) from bloodspectra order by wavelength")
+    def getBloodWavelengths(self, range=(None,None)):
+        if range[0] is None:
+            min = 0
+        if range[1] is None:
+            max = 10000
+
+        self.execute(r"select distinct(wavelength) from bloodspectra where wavelength >= {0} and wavelength <= {1} order by wavelength".format(min, max))
         rows = self.fetchAll()
         nTotal = len(rows)
 
@@ -108,12 +113,18 @@ class ZiliaDB(Database):
 
         return spectra
 
-    def getBloodIntensities(self):
-        stmnt = r"select s.wavelength, s.intensity,s.column, f.saturation from bloodspectra as s, bloodfiles as f where f.md5 = s.md5 and s.column like '%raw%' and f.saturation is not null order by s.md5, s.column, f.saturation, s.wavelength"
+    def getBloodIntensities(self, range=(None,None)):
+        if range[0] is None:
+            min = 0
+        if range[1] is None:
+            max = 10000
+
+
+        stmnt = r"select s.wavelength, s.intensity,s.column, f.saturation from bloodspectra as s, bloodfiles as f where s.wavelength >= {0} and s.wavelength <= {1} and f.md5 = s.md5 and s.column like '%raw%' and f.saturation is not null order by s.md5, s.column, f.saturation, s.wavelength".format(min, max)
 
         self.execute(stmnt)
         rows = self.fetchAll()
-        nWavelengths = len(self.getBloodWavelengths())
+        nWavelengths = len(self.getBloodWavelengths(range=(None,None)))
         nSamples = len(rows)//nWavelengths
         if nSamples*nWavelengths != len(rows):
             raise LogicalError("Wavelength field appears incorrect")
@@ -122,11 +133,11 @@ class ZiliaDB(Database):
         for i,row in enumerate(rows):
             spectra[i%nWavelengths, i//nWavelengths] = float(row['intensity'])
 
-        stmnt = r"select s.wavelength, s.intensity,s.column, f.saturation,f.path from bloodspectra as s, bloodfiles as f where f.md5 = s.md5 and s.column like '%raw%' and f.saturation is not null group by s.md5 order by s.md5, s.column, f.saturation, s.wavelength"
+        stmnt = r"select s.wavelength, s.intensity,s.column, f.saturation,f.path from bloodspectra as s, bloodfiles as f where s.wavelength >= {0} and s.wavelength <= {1} and f.md5 = s.md5 and s.column like '%raw%' and f.saturation is not null group by s.md5 order by s.md5, s.column, f.saturation, s.wavelength".format(min, max)
         self.execute(stmnt)
         rows = self.fetchAll()
         saturation = []
         for i,row in enumerate(rows):
             saturation.append(float(row['saturation']))
 
-        return spectra, saturation
+        return self.getBloodWavelengths(), spectra, saturation
