@@ -39,9 +39,9 @@ def removeBadImages(dataDictionary) -> dict:
         resLap = cv2.Laplacian(d1, cv2.CV_64F)
         score = resLap.var()
         ii = np.hstack((ii, score))
-    Threshold = np.mean(ii) # have to test if better than the next line
-    # Threshold = np.mean(ii) - np.std(ii) # have to test if better than the previous line
-    index = np.where(ii > Threshold)
+    # Threshold = np.mean(ii) # have to test if better than the next line
+    Threshold = np.mean(ii) - np.std(ii) # have to test if better than the previous line
+    index = np.where(ii < Threshold)
 
     if len(index[0]) != 0:
         # Some images are too blurry, let's remove them
@@ -347,6 +347,54 @@ def defineGrid(Image) -> tuple:
     length = int((np.min([onhHeight, onhWidth]))/2)
     return xCenterGrid, yCenterGrid, length
 
+def SlowdefineGrid(images, resizeFactor=5, minMajorAxis=1/6, maxMinorAxis=1/3, accuracy=5):
+    """
+    Finds the reference image, and applies a hough transform to it to get
+    more accurate dimensions of the ONH for grid parameters.
+    """
+    plotImageIndex = findReferenceImage(images)
+    plotImage = images[plotImageIndex,:,:]
+    gridLength = max(minorAxis, majorAxis)
+    return xCenterGrid, yCenterGrid, gridLength
+
+def findReferenceImage(images):
+    """
+    Find the image in which the ONH is closest to the middle of the image.
+    """
+    xCenters = []
+    yCenters = []
+    binaryImages = np.zeros(images.shape)
+    binaryImages[np.where(images >= np.mean(images)*1.9)] = 1
+    xImageShape = binaryImages[0,:,:].shape[1]
+    # print(xImageShape)
+    yImageShape = binaryImages[0,:,:].shape[0]
+    # print(yImageShape)
+
+    for i in range(binaryImages.shape[0]):
+        # Clean the images and find the middle
+        kernel = np.ones((5,5), np.uint8)
+        cleanBinaryIm = cv2.morphologyEx(binaryImages[i,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
+        nonZero = np.nonzero(cleanBinaryIm)
+        onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
+        onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
+        xCenter = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
+        yCenter = int((np.max(nonZero[0]) + np.min(nonZero[0]))/2 - (onhHeight-onhWidth))
+
+        xCenters.append(xCenter)
+        yCenters.append(yCenter)
+
+    x = np.array(xCenters) - xImageShape/2
+    y = np.array(yCenters) - yImageShape/2
+
+    distance = (x**2 + y**2)**.5
+    plotImageIndex = np.argmin(distance)
+
+    # Then do graphs in both axis to find "width".
+    # Find normalized thresh, by looking for relationship between thresh and max (like 0.1*max or whatever)
+    # Find threshs for both axis
+
+    return plotImageIndex
+
 def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     xCenterGrid = gridParameters[0]
     yCenterGrid = gridParameters[1]
@@ -385,7 +433,7 @@ def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     # Modify the image to include the grid
     img[:,::dy] = gridColor
     img[::dx,:] = gridColor
-    plt.imsave('Result_old.jpg', img)
+    plt.imsave('Result_old.jpg', img, cmap="gray")
 
 def plotResult(image, shiftParameters, gridParameters, rosaRadius=30, thickness=5):
     print("Preparing plot of the result")
