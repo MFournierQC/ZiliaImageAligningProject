@@ -39,8 +39,7 @@ def removeBadImages(dataDictionary) -> dict:
         resLap = cv2.Laplacian(d1, cv2.CV_64F)
         score = resLap.var()
         ii = np.hstack((ii, score))
-    # Threshold = np.mean(ii) # have to test if better than the next line
-    Threshold = np.mean(ii) - np.std(ii) # have to test if better than the previous line
+    Threshold = np.mean(ii) - np.std(ii)
     index = np.where(ii < Threshold)
 
     if len(index[0]) != 0:
@@ -333,10 +332,10 @@ def cleanShiftParameters(shiftParameters, indexesToRemove):
     yShift = np.delete(yShift, indexesToRemove)
     return xShift, yShift
 
-def defineGrid(Image) -> tuple:
-    # onh = optic nerve head
-    temp = np.zeros(Image.shape)
-    temp[np.where(Image >= np.mean(Image)*1.9)] = 1
+"""
+def defineGrid(images) -> tuple:
+    temp = np.zeros(images.shape)
+    temp[np.where(images >= np.mean(images)*1.9)] = 1
     kernel = np.ones((5,5), np.uint8)
     openingTemp = cv2.morphologyEx(temp[0,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
     nonZero = np.nonzero(openingTemp)
@@ -346,16 +345,29 @@ def defineGrid(Image) -> tuple:
     xCenterGrid = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
     length = int((np.min([onhHeight, onhWidth]))/2)
     return xCenterGrid, yCenterGrid, length
+"""
 
-def SlowdefineGrid(images, resizeFactor=5, minMajorAxis=1/6, maxMinorAxis=1/3, accuracy=5):
-    """
-    Finds the reference image, and applies a hough transform to it to get
-    more accurate dimensions of the ONH for grid parameters.
-    """
+def defineGrid(images):
     plotImageIndex = findReferenceImage(images)
-    plotImage = images[plotImageIndex,:,:]
-    gridLength = max(minorAxis, majorAxis)
-    return xCenterGrid, yCenterGrid, gridLength
+    plotImage = image[plotImageIndex,:,:]
+    plotImage = normalizeImage(plotImage)
+    sumHoriz = []
+    sumVertic = []
+    indexes0 = range(plotImage.shape[0])
+    indexes1 = range(plotImage.shape[1])
+    for i in indexes0:
+        sumHoriz.append(sum(plotImage[i,:]))
+    for j in indexes1:
+        sumVertic.append(sum(plotImage[:,j]))
+    sumHoriz = np.array(sumHoriz)
+    sumVertic = np.array(sumVertic)
+    maxSumVertic = max(sumVertic)
+    minSumVertic = min(sumVertic)
+    maxSumHoriz = max(sumHoriz)
+    minSumHoriz = min(sumHoriz)
+
+    return  xCenterGrid, yCenterGrid, gridLength
+
 
 def findReferenceImage(images):
     """
@@ -389,11 +401,11 @@ def findReferenceImage(images):
     distance = (x**2 + y**2)**.5
     plotImageIndex = np.argmin(distance)
 
+    return plotImageIndex
+
     # Then do graphs in both axis to find "width".
     # Find normalized thresh, by looking for relationship between thresh and max (like 0.1*max or whatever)
     # Find threshs for both axis
-
-    return plotImageIndex
 
 def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     xCenterGrid = gridParameters[0]
