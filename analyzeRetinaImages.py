@@ -162,13 +162,8 @@ class EllipseDetector:
     def getBestEllipseParameters(self, bestHoughEllipse):
         if bestHoughEllipse is None:
             return None
-        yc, xc, a, b = [int(round(x)) for x in bestHoughEllipse[1:5]]
-        orientation = bestHoughEllipse[5]
-        yCenter = yc
-        xCenter = xc
-        minorAxis = a
-        majorAxis = b
-        orientation = np.pi - orientation
+        yCenter, xCenter, minorAxis, majorAxis = [int(round(x)) for x in bestHoughEllipse[1:5]]
+        orientation = np.pi - bestHoughEllipse[5]
         return (int(xCenter), int(yCenter)), int(minorAxis), int(majorAxis), orientation
 
 
@@ -272,8 +267,8 @@ class ZiliaONHDetector(EllipseDetector):
 
     def upscaleResult(self, smallScaleResult):
         (xCenter, yCenter), minAxis, majAxis, orientation = smallScaleResult
-        xCenter = self.scaleFactor*xCenter
-        yCenter = self.scaleFactor*yCenter
-        minAxis = self.scaleFactor*minAxis
-        majAxis = self.scaleFactor*majAxis
+        xCenter *= self.scaleFactor
+        yCenter *= self.scaleFactor
+        minAxis *= self.scaleFactor
+        majAxis *= self.scaleFactor
         return (xCenter, yCenter), minAxis, majAxis, orientation

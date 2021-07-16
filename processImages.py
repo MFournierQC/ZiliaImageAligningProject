@@ -2,11 +2,11 @@ from analyzeRosaImages import analyzeRosa
 
 from skimage.io import imread_collection
 from skimage.color import rgb2gray
+from skimage.feature import canny
+from skimage.transform import resize, hough_ellipse
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-#from scipy.ndimage import gaussian_filter
-#import scipy.fftpack as fp
 from matplotlib import pyplot
 from scipy.signal import find_peaks
 from scipy import ndimage
@@ -333,7 +333,7 @@ def cleanShiftParameters(shiftParameters, indexesToRemove):
     yShift = np.delete(yShift, indexesToRemove)
     return xShift, yShift
 
-def defineGrid(Image) -> tuple:
+def oldDefineGrid(Image) -> tuple:
     # onh = optic nerve head
     temp = np.zeros(Image.shape)
     temp[np.where(Image >= np.mean(Image)*1.9)] = 1
@@ -347,12 +347,40 @@ def defineGrid(Image) -> tuple:
     length = int((np.min([onhHeight, onhWidth]))/2)
     return xCenterGrid, yCenterGrid, length
 
-def newDefineGrid():
+def defineGrid(images, resizeFactor=5, minMajorAxis=1/6, maxMinorAxis=1/3, accuracy=5):
     """
     Finds the reference image, and applies a hough transform to it to get
     more accurate dimensions of the ONH for grid parameters.
     """
-    pass
+    print("Looking for the reference plot image.")
+    plotImageIndex = findReferenceImage(images)
+    plotImage = images[plotImageIndex,:,:]
+    xCenter, yCenter, minorAxis, majorAxis = doHoughTransform(image, resizeFactor=resizeFactor,
+                                minMajorAxis=minMajorAxis, maxMinorAxis=maxMinorAxis, accuracy=accuracy)
+    print("Reference plot image found.")
+    gridLength = max(minorAxis, majorAxis)
+    return xCenterGrid, yCenterGrid, gridLength
+
+def doHoughTransform(image, resizeFactor=5, minMajorAxis=1/6, maxMinorAxis=1/3, accuracy=5):
+    # Resize image to reduce computing time
+    smallImageShape = image.shape[0]//resizeFactor, image.shape[1]//resizeFactor
+    smallScaleImage = resize(image, smallImageShape)
+    minMajorAxis = int(minMajorAxis*smallScaleImage.shape[1])
+    maxMinorAxis = int(maxMinorAxis*smallScaleImage.shape[1])
+    # contours = canny(smallScaleImage)
+    houghResult = hough_ellipse(smallScaleImage,
+                                    min_size=minMajorAxis,
+                                    max_size=maxMinorAxis,
+                                    accuracy=accuracy)
+    houghResult.sort(order='accumulator')
+    bestEll = list(houghResult[-1])
+    yCenter, xCenter, minorAxis, majorAxis = [int(round(x)) for x in bestEll[1:5]]
+    orientation = np.pi - bestHoughEllipse[5]
+    yCenter *= resizeFactor
+    xCenter *= resizeFactor
+    minorAxis *= resizeFactor
+    majorAxis *= resizeFactor
+    return xCenter, yCenter, minorAxis, majorAxis
 
 def findReferenceImage(images):
     """
@@ -360,15 +388,15 @@ def findReferenceImage(images):
     """
     xCenters = []
     yCenters = []
-    gridLengths = []
     binaryImages = np.zeros(images.shape)
     binaryImages[np.where(images >= np.mean(images)*1.9)] = 1
     xImageShape = binaryImages[0,:,:].shape[1]
-    print(xImageShape)
+    # print(xImageShape)
     yImageShape = binaryImages[0,:,:].shape[0]
-    print(yImageShape)
+    # print(yImageShape)
 
     for i in range(binaryImages.shape[0]):
+        # Clean the images and find the middle
         kernel = np.ones((5,5), np.uint8)
         cleanBinaryIm = cv2.morphologyEx(binaryImages[i,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
         nonZero = np.nonzero(cleanBinaryIm)
@@ -376,23 +404,17 @@ def findReferenceImage(images):
         onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
         xCenter = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
         yCenter = int((np.max(nonZero[0]) + np.min(nonZero[0]))/2 - (onhHeight-onhWidth))
-        tempGridLength = int((np.min([onhHeight, onhWidth]))/2)
 
         xCenters.append(xCenter)
         yCenters.append(yCenter)
-        gridLengths.append(tempGridLength)
 
     x = np.array(xCenters) - xImageShape/2
     y = np.array(yCenters) - yImageShape/2
 
     distance = (x**2 + y**2)**.5
-    minDistIndex = np.argmin(distance)
+    plotImageIndex = np.argmin(distance)
 
-    xCenterGrid = xCenters[minDistIndex]
-    yCenterGrid = yCenters[minDistIndex]
-    gridLength = gridLengths[minDistIndex]
-
-    return xCenterGrid, yCenterGrid, gridLength, minDistIndex
+    return plotImageIndex
 
 def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     xCenterGrid = gridParameters[0]
@@ -425,7 +447,6 @@ def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     # Slicing:
     gridImage[LOW_SLICE_Y:HIGH_SLICE_Y, LOW_SLICE_X:HIGH_SLICE_X] = temp
 
-    plt.figure()
     img = gridImage.copy()
     dx, dy = length, length
     # Custom (rgb) grid color:
