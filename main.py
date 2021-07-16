@@ -42,7 +42,7 @@ imageNumber = dataDictionary["imageNumber"]
 
 indexShift = findImageShift(image)
 shiftParameters = applyShift(xLaser, yLaser, indexShift)
-gridParameters = defineGrid(image)
+gridParameters = defineGridParams(image)
 
 Label, dataDictionary, indexesToRemove = placeRosa(gridParameters, shiftParameters, dataDictionary)
 # print(Label)

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 skipPlots = True
-skipPlots = False
+# skipPlots = False
 
 class TestBrightSpotDetector(envtest.ZiliaTestCase):
 
@@ -28,7 +28,7 @@ class TestBrightSpotDetector(envtest.ZiliaTestCase):
     def plotBrightSpotOnImage(self, image, brightSpotParams):
         xSpot = brightSpotParams[1]
         ySpot = brightSpotParams[0]
-        implot = plt.imshow(image)
+        plt.imshow(image)
         plt.plot([xSpot],[ySpot],'o')
         plt.show()
 

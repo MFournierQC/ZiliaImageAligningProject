@@ -332,8 +332,7 @@ def cleanShiftParameters(shiftParameters, indexesToRemove):
     yShift = np.delete(yShift, indexesToRemove)
     return xShift, yShift
 
-"""
-def defineGrid(images) -> tuple:
+def oldDefineGrid(images) -> tuple:
     temp = np.zeros(images.shape)
     temp[np.where(images >= np.mean(images)*1.9)] = 1
     kernel = np.ones((5,5), np.uint8)
@@ -345,42 +344,61 @@ def defineGrid(images) -> tuple:
     xCenterGrid = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
     length = int((np.min([onhHeight, onhWidth]))/2)
     return xCenterGrid, yCenterGrid, length
+
+def defineGridParams(images, xThreshConst=.7, yThreshConst=.7):
+    if len(images.shape) == 2:
+        # for testing purposes
+        plotImage = images
+    else:
+        plotImage = images[0,:,:]
+    sumX = []
+    sumY = []
+    yIndexes = range(plotImage.shape[0])
+    xIndexes = range(plotImage.shape[1])
+    for i in yIndexes:
+        sumY.append(sum(plotImage[i,:]))
+    for j in xIndexes:
+        sumX.append(sum(plotImage[:,j]))
+
+    xWidth, xCenterGrid = findONHParamsFromAxisSums(sumX, xIndexes, xThreshConst)
+    yWidth, yCenterGrid = findONHParamsFromAxisSums(sumY, yIndexes, yThreshConst)
+
+    gridLength = max(xWidth, yWidth)
+    return xCenterGrid, yCenterGrid, gridLength
+
+def findONHParamsFromAxisSums(sumAx, axIndexes, axThreshConst):
+    sumAx = np.array(sumAx)
+    sumAxNorm = (sumAx - min(sumAx))/(max(sumAx) - min(sumAx))
+
+    plt.plot(axIndexes, sumAxNorm)
+    plt.plot([0, 900], [axThreshConst, axThreshConst])
+    plt.show()
+
+    maxAxIndex = np.argmax(sumAxNorm)
+    leftAxPointIdx = findNearest(sumAxNorm[:maxAxIndex], max(sumAx)*axThreshConst)
+    rightAxPointIdx = findNearest(sumAxNorm[maxAxIndex:], max(sumAx)*axThreshConst) + maxAxIndex
+    axWidth = int(abs(rightAxPointIdx - leftAxPointIdx))
+    axCenterGrid = int((rightAxPointIdx + leftAxPointIdx)/2)
+    return axWidth, axCenterGrid
+
+# get middle of both
+# Find normalized thresh, by looking for relationship between thresh and max (like 0.1*max or whatever)
+# Find threshs for both axis
+
+def findNearest(array, value):
+    idx = (np.abs(array - value)).argmin()
+    return idx
+
 """
-
-def defineGrid(images):
-    plotImageIndex = findReferenceImage(images)
-    plotImage = image[plotImageIndex,:,:]
-    plotImage = normalizeImage(plotImage)
-    sumHoriz = []
-    sumVertic = []
-    indexes0 = range(plotImage.shape[0])
-    indexes1 = range(plotImage.shape[1])
-    for i in indexes0:
-        sumHoriz.append(sum(plotImage[i,:]))
-    for j in indexes1:
-        sumVertic.append(sum(plotImage[:,j]))
-    sumHoriz = np.array(sumHoriz)
-    sumVertic = np.array(sumVertic)
-    maxSumVertic = max(sumVertic)
-    minSumVertic = min(sumVertic)
-    maxSumHoriz = max(sumHoriz)
-    minSumHoriz = min(sumHoriz)
-
-    return  xCenterGrid, yCenterGrid, gridLength
-
-
-def findReferenceImage(images):
-    """
-    Find the image in which the ONH is closest to the middle of the image.
-    """
+# Maybe we'll use a modified version of this later.
+def findPlotImage(images, constant=1.9):
+    #Find the image in which the ONH is closest to the middle of the image.
     xCenters = []
     yCenters = []
     binaryImages = np.zeros(images.shape)
-    binaryImages[np.where(images >= np.mean(images)*1.9)] = 1
+    binaryImages[np.where(images >= np.mean(images)*constant)] = 1
     xImageShape = binaryImages[0,:,:].shape[1]
-    # print(xImageShape)
     yImageShape = binaryImages[0,:,:].shape[0]
-    # print(yImageShape)
 
     for i in range(binaryImages.shape[0]):
         # Clean the images and find the middle
@@ -402,10 +420,7 @@ def findReferenceImage(images):
     plotImageIndex = np.argmin(distance)
 
     return plotImageIndex
-
-    # Then do graphs in both axis to find "width".
-    # Find normalized thresh, by looking for relationship between thresh and max (like 0.1*max or whatever)
-    # Find threshs for both axis
+"""
 
 def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     xCenterGrid = gridParameters[0]
