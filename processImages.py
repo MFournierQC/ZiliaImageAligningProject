@@ -377,8 +377,8 @@ def findONHParamsFromAxisSums(sumAx, axIndexes, axThreshConst):
     maxAxIndex = np.argmax(sumAxNorm)
     leftAxPointIdx = findNearest(sumAxNorm[:maxAxIndex], max(sumAx)*axThreshConst)
     rightAxPointIdx = findNearest(sumAxNorm[maxAxIndex:], max(sumAx)*axThreshConst) + maxAxIndex
-    axWidth = int(abs(rightAxPointIdx - leftAxPointIdx))
-    axCenterGrid = int((rightAxPointIdx + leftAxPointIdx)/2)
+    axWidth = int(abs(rightAxPointIdx - leftAxPointIdx)) # always gives 4???
+    axCenterGrid = int((rightAxPointIdx + leftAxPointIdx)/2) # doesn't change with tresh... why???
     return axWidth, axCenterGrid
 
 # get middle of both

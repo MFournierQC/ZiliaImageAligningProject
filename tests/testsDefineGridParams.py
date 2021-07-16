@@ -33,7 +33,7 @@ class TestDefineGridParams(envtest.ZiliaTestCase):
         plt.plot([xCenterGrid], [yCenterGrid], "o")
         plt.show()
 
-    # @envtest.skipIf(skipPlots, "skipPlots")
+    @envtest.skipIf(skipPlots, "skipPlots")
     def testShowGraphsOnBresilHigh(self):
         image = imread(self.testCannyDirectory+"/bresilHigh.jpg")
         image[:,:,2] = 0
