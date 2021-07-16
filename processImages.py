@@ -333,7 +333,7 @@ def cleanShiftParameters(shiftParameters, indexesToRemove):
     yShift = np.delete(yShift, indexesToRemove)
     return xShift, yShift
 
-def oldDefineGrid(Image) -> tuple:
+def defineGrid(Image) -> tuple:
     # onh = optic nerve head
     temp = np.zeros(Image.shape)
     temp[np.where(Image >= np.mean(Image)*1.9)] = 1
@@ -347,7 +347,7 @@ def oldDefineGrid(Image) -> tuple:
     length = int((np.min([onhHeight, onhWidth]))/2)
     return xCenterGrid, yCenterGrid, length
 
-def defineGrid(images, resizeFactor=5, minMajorAxis=1/6, maxMinorAxis=1/3, accuracy=5):
+def SlowdefineGrid(images, resizeFactor=5, minMajorAxis=1/6, maxMinorAxis=1/3, accuracy=5):
     """
     Finds the reference image, and applies a hough transform to it to get
     more accurate dimensions of the ONH for grid parameters.
