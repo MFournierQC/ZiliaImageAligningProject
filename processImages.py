@@ -342,11 +342,17 @@ def defineGrid(Image) -> tuple:
     nonZero = np.nonzero(openingTemp)
     onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
     onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
-    onhCenterVerticalCoords = int(((np.max(nonZero[0]) + np.min(nonZero[0]))/2) - (onhHeight-onhWidth))
-    onhCenterHorizontalCoords = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
+    yCenterGrid = int(((np.max(nonZero[0]) + np.min(nonZero[0]))/2) - (onhHeight-onhWidth))
+    xCenterGrid = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
     length = int((np.min([onhHeight, onhWidth]))/2)
-    return onhCenterHorizontalCoords, onhCenterVerticalCoords, length
-    # return xCenterGrid, yCenterGrid, length
+    return xCenterGrid, yCenterGrid, length
+
+def newDefineGrid():
+    """
+    Finds the reference image, and applies a hough transform to it to get
+    more accurate dimensions of the ONH for grid parameters.
+    """
+    pass
 
 def findReferenceImage(images):
     """
@@ -371,30 +377,22 @@ def findReferenceImage(images):
         xCenter = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
         yCenter = int((np.max(nonZero[0]) + np.min(nonZero[0]))/2 - (onhHeight-onhWidth))
         tempGridLength = int((np.min([onhHeight, onhWidth]))/2)
+
         xCenters.append(xCenter)
         yCenters.append(yCenter)
         gridLengths.append(tempGridLength)
 
-    xCenters = np.array(xCenters)
-    yCenters = np.array(yCenters)
-    distances = []
+    x = np.array(xCenters) - xImageShape/2
+    y = np.array(yCenters) - yImageShape/2
 
-    for x in xCenters:
-        for y in yCenters:
-            x = xCenters - xImageShape/2
-            y = yCenters - yImageShape/2
-            distance = (x**2 + y**2)**.5
-            distances.append(distance)
-            # closeToCenterX = np.argmin( abs(xCenters - xImageShape/2 ))
-            # closeToCenterY = np.argmin( abs(yCenters - yImageShape/2 ))
-
+    distance = (x**2 + y**2)**.5
     minDistIndex = np.argmin(distance)
 
     xCenterGrid = xCenters[minDistIndex]
     yCenterGrid = yCenters[minDistIndex]
     gridLength = gridLengths[minDistIndex]
 
-    return xCenterGrid, yCenterGrid, gridLength
+    return xCenterGrid, yCenterGrid, gridLength, minDistIndex
 
 def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     xCenterGrid = gridParameters[0]
