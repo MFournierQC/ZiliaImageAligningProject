@@ -40,7 +40,7 @@ def removeBadImages(dataDictionary) -> dict:
         score = resLap.var()
         ii = np.hstack((ii, score))
     Threshold = np.mean(ii)
-    index = np.where(ii > Threshold)
+    index = np.where(ii < Threshold)
 
     if len(index[0]) == 0:
         # Some images are too blurry, let's remove them

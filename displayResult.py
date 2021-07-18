@@ -28,6 +28,25 @@ def colorMapRange (firstImage,secondImage):
     maxValue = np.max(np.array([np.max(firstImage), np.max(secondImage)]))
     return minValue,maxValue
 
+def matrixSO2(labels,saturationValues,leftEye=False):
+    if leftEye==False :
+        xLabel = np.array(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])
+        yLabel = np.array(['A', 'B', 'C', 'D', 'E', 'F', 'J', 'K', 'L', 'M'])
+    if leftEye==True :
+        xLabel = np.array(['10', '9', '8', '7', '6', '5', '4', '3', '2', '1'])
+        yLabel = np.array(['M', 'L', 'K', 'J', 'F', 'E', 'D', 'C', 'B', 'A'])
+        
+    concentrationMatrix = np.zeros([10, 10])
+
+    for i in range(saturationValues.shape[0]):
+        splitLabel = np.array(list(labels[i]))
+
+
+        concentrationMatrix[int(np.where(np.array(splitLabel[0]) == xLabel)[0]),
+                            int(np.where(np.array(splitLabel[1]) == yLabel)[0])] =saturationValues[i]
+    
+    return concentrationMatrix
+
 
 def testPlot():
     eye1=np.random.rand(1000,1000)
@@ -37,4 +56,9 @@ def testPlot():
     display(eye1,eye2,SO1,SO2)
     return None
 
-testPlot()
+# xLabel = np.array(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])
+# a= np.array(['4B'])
+# k=np.array(list(a[0]))
+# print(list(a[0]))
+#
+# print(  (np.where(k[0] == xLabel)[0]) )
