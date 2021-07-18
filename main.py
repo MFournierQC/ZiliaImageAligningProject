@@ -1,7 +1,9 @@
 from processImages import *
+from spectrumAnalysis import *
 
 # New data:
-collectionDir = r"./tests/TestImages/miniTestSampleNewData"
+# collectionDir = r"./tests/TestImages/miniTestSampleNewData"
+collectionDir="/Users/elahe/Documents/Bresil 1511184-20210525T145240Z-001/Bresil 1511184/20210316-095955-bresil-od-onh-rlp2"
 
 # Test plot directory
 # collectionDir = r"./tests/TestImages/testPlot"
@@ -24,6 +26,7 @@ collectionDir = r"./tests/TestImages/miniTestSampleNewData"
 # Broken test dir:
 # collectionDir = r"C:\Users\elm77\OneDrive\Documents\ULaval\2021_2_Ete\CERVO\Projet\code\brokenTest"
 
+## right eye image analysis
 
 leftEye = False
 newImages = True
@@ -45,10 +48,19 @@ shiftParameters = applyShift(xLaser, yLaser, indexShift)
 gridParameters = defineGrid(image)
 
 Label, dataDictionary, indexesToRemove = placeRosa(gridParameters, shiftParameters, dataDictionary)
+print(Label)
 # print(Label)
 # print(dataDictionary["imageNumber"])
 
 shiftParameters = cleanShiftParameters(shiftParameters, indexesToRemove)
 
-plotResult(image, shiftParameters, gridParameters)
+a= plotResult(image, shiftParameters, gridParameters)
 # oldPlotResult(image, shiftParameters, gridParameters)
+
+# so2 analysis
+
+concentration, saturationFlag = mainAnalysis()
+SO2Dictionary=saveData(saturationFlag, concentration , imageNumber , Label)
+
+print(concentration)
+

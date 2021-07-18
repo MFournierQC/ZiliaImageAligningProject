@@ -401,6 +401,7 @@ def plotResult(image, shiftParameters, gridParameters, rosaRadius=30, thickness=
                                 thickness=thickness)
     resultImageWithGrid = drawGrid(rescaledImageWithCircles, gridParameters)
     plt.imsave('Result.jpg', resultImageWithGrid)
+    return resultImageWithGrid
 
 def makeImageRGB(grayImage):
     imageRGB = np.dstack((grayImage, grayImage, grayImage))
