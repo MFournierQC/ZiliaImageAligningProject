@@ -115,7 +115,7 @@ def listFileNames(directory: str, extension="jpg") -> list:
             foundFiles.append(file)
     return foundFiles
 
-def getFiles(directory: str, extension="jpg", newImages=True, listFileNames=False) -> list:
+def getFiles(directory: str, extension="jpg", newImages=True, listNames=False) -> list:
     sortedListOfFiles = np.sort(listFileNames(directory, extension))
     filteredFilePaths = []
     filteredFileNames = []
@@ -131,11 +131,11 @@ def getFiles(directory: str, extension="jpg", newImages=True, listFileNames=Fals
         else:
             filteredFilePaths.append(directory+"/"+sortedListOfFiles[fileIndex])
             filteredFileNames.append(sortedListOfFiles[fileIndex])
-    if listFileNames:
+    if listNames:
         return filteredFilePaths, filteredFileNames
     return filteredFilePaths
 
-def loadImages(collectionDir: str, leftEye=False, extension="jpg", newImages=True) -> np.ndarray:
+def loadImages(collectionDir: str, leftEye=False, extension="jpg", newImages=True):
     """
     This function gets the directory of a series of images
     Blue channel of the image = 0
@@ -148,13 +148,13 @@ def loadImages(collectionDir: str, leftEye=False, extension="jpg", newImages=Tru
         for image in imageCollection:
             temporaryCollection.append(mirrorImage(image))
         imageCollection = np.array(temporaryCollection)
-    grayImage = np.zeros((len(imageCollection), imageCollection[0].shape[0], imageCollection[0].shape[1]))
+    grayImages = np.zeros((len(imageCollection), imageCollection[0].shape[0], imageCollection[0].shape[1]))
     for i in range(len(imageCollection)):
         imageCollection[i][:,:,2] = 0
-        grayImage[i,:,:] = rgb2gray(imageCollection[i])
-    return grayImage
+        grayImages[i,:,:] = rgb2gray(imageCollection[i])
+    return grayImages
 
-def seperateNewImages(grayImageCollection, collectionDir: str, extension="jpg") -> dict:
+def seperateNewImages(grayImageCollection, collectionDir: str, extension="jpg"):
     """
     Purpose: seperate new retina images from new rosa images
     Load retina image - then load the corresponding rosa image 
@@ -173,17 +173,15 @@ def seperateNewImages(grayImageCollection, collectionDir: str, extension="jpg") 
     radius = np.array([])
     imageNumber = np.array([])
 
-    sortedFileNames = np.sort(listFileNames(collectionDir, extension)) # lists ALL files
-    files, sortedFileNames = getFiles(collectionDir, extension, newImages=True, listFileNames=True) # lists only the eye and rosa images
+    files, sortedFileNames = getFiles(collectionDir, extension, newImages=True, listNames=True)
     # first pic = eye, 2nd pic = rosa
-    for i in range(1, grayImageCollection.shape[0]): # iterates over ALL files...
+    for i in range(1, grayImageCollection.shape[0]):
         if "eye" in files[i-1]:
             loadLaserImage = files[i]
             blob = analyzeRosa(loadLaserImage)
             if (blob['found'] == True):
                 numberOfRosaImages += 1
-                print(files[i])
-                currentImageNumber = int(sortedFileNames[i][-3:].lstrip("0"))
+                currentImageNumber = int(sortedFileNames[i][:3].lstrip("0"))
                 temp[0,:,:] = grayImageCollection[i-1,:,:] # retina
                 image = np.vstack((image, temp)) # retina
                 temp[0,:,:] = grayImageCollection[i,:,:] # rosa
