@@ -3,7 +3,7 @@ from analyzeRetinaImages import EllipseDetector
 from skimage.io import imread
 from skimage.color import rgb2gray, gray2rgb
 from skimage import img_as_ubyte
-from skimage.draw import ellipse_perimeter
+from skimage.draw import ellipse_perimeter, ellipse
 import matplotlib.pyplot as plt
 
 class TestEllipseDetectorClass(envtest.ZiliaTestCase):
@@ -50,7 +50,7 @@ class TestEllipseDetectorClass(envtest.ZiliaTestCase):
         # To prevent repetition in subsequent tests.
         (xCenter, yCenter), minorAxis, majorAxis, orientation = result
         # Draw the ellipse on the original image
-        cy, cx = ellipse_perimeter(yCenter, xCenter, minorAxis, majorAxis, orientation)
+        cy, cx = ellipse(yCenter, xCenter, minorAxis, majorAxis, rotation=orientation)
         imageRgb[cy, cx] = 130
         # Draw the edge (white) and the resulting ellipse (red)
         canniedImage = gray2rgb(img_as_ubyte(canniedImage))
@@ -63,9 +63,25 @@ class TestEllipseDetectorClass(envtest.ZiliaTestCase):
         ax2.imshow(canniedImage)
         plt.show()
 
-    @envtest.skip("skip computing time and plots")
+    @envtest.skip("skip plots")
     def testPlotBestEllipse(self):
         image = imread(self.testCannyDirectory+"/testPerfectBinaryEllipse.png")
+        detector = EllipseDetector(image)
+        detector.preProcessImage()
+        result = detector.findBestEllipse()
+        self.plotHoughEllipseWithRescale(result, image, detector.contours)
+
+    @envtest.skip("skip plots")
+    def testRotatedEllipse(self):
+        image = imread(self.testStudentDirectory+"/testImage5.png")
+        detector = EllipseDetector(image)
+        detector.preProcessImage()
+        result = detector.findBestEllipse()
+        self.plotHoughEllipseWithRescale(result, image, detector.contours)
+
+    # @envtest.skip("skip plots")
+    def testWeirdEllipse(self):
+        image = imread(self.testStudentDirectory+"/testImage4.png")
         detector = EllipseDetector(image)
         detector.preProcessImage()
         result = detector.findBestEllipse()

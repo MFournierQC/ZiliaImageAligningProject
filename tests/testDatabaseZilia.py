@@ -70,6 +70,6 @@ class TestZilia(env.DCCLabTestCase):
         self.assertIsNotNone(db)
         spectra, saturation = db.getBloodIntensities()
         print(spectra, saturation)
-        
+
 if __name__ == '__main__':
     unittest.main()

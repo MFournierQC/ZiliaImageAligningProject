@@ -137,6 +137,17 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+Elahe/Result.jpg
+
+Elahe/.vscode/settings.json
+
+Result.jpg
+
+preResult1.jpg
+
+preResult2.jpg
+
+preResult3.jpg
 
 .DS_Store
 zilia.db

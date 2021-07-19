@@ -2,11 +2,11 @@ from analyzeRosaImages import analyzeRosa
 
 from skimage.io import imread_collection
 from skimage.color import rgb2gray
+from skimage.feature import canny
+from skimage.transform import resize, hough_ellipse
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-#from scipy.ndimage import gaussian_filter
-#import scipy.fftpack as fp
 from matplotlib import pyplot
 from scipy.signal import find_peaks
 from scipy import ndimage
@@ -39,13 +39,13 @@ def removeBadImages(dataDictionary) -> dict:
         resLap = cv2.Laplacian(d1, cv2.CV_64F)
         score = resLap.var()
         ii = np.hstack((ii, score))
-    Threshold = np.mean(ii)
-    index = np.where(ii > Threshold)
+    Threshold = np.mean(ii) - np.std(ii)
+    index = np.where(ii < Threshold)
 
-    if len(index[0]) == 0:
+    if len(index[0]) != 0:
         # Some images are too blurry, let's remove them
-        print("Removing images because they are too blurry.")
         cleanDataDictionary = removeImagesFromIndex(dataDictionary, index)
+        print("Removed some images because they were too blurry.")
     else:
         cleanDataDictionary = dataDictionary
 
@@ -69,7 +69,7 @@ def seperateImages(grayImageCollection, collectionDir: str, extension="jpg") -> 
     xCenter = np.array([])
     yCenter = np.array([])
     radius = np.array([])
-    imageNumber = np.array([])
+    imageNumber = np.array([], dtype=int)
 
     for i in range(1, grayImageCollection.shape[0]):
         firstPicMeanValue = np.mean(grayImageCollection[i-1,:,:])
@@ -115,9 +115,10 @@ def listFileNames(directory: str, extension="jpg") -> list:
             foundFiles.append(file)
     return foundFiles
 
-def getFiles(directory: str, extension="jpg", newImages=True) -> list:
+def getFiles(directory: str, extension="jpg", newImages=True, listNames=False) -> list:
     sortedListOfFiles = np.sort(listFileNames(directory, extension))
-    filteredFiles = []
+    filteredFilePaths = []
+    filteredFileNames = []
     for fileIndex in range(len(sortedListOfFiles)):
         if (fileIndex + 3) % 3 == 0:
             if newImages:
@@ -125,12 +126,16 @@ def getFiles(directory: str, extension="jpg", newImages=True) -> list:
                 continue
             else:
                 # no file has to be removed
-                filteredFiles.append(directory+"/"+sortedListOfFiles[fileIndex])
+                filteredFilePaths.append(directory+"/"+sortedListOfFiles[fileIndex])
+                filteredFileNames.append(sortedListOfFiles[fileIndex])
         else:
-            filteredFiles.append(directory+"/"+sortedListOfFiles[fileIndex])
-    return filteredFiles
+            filteredFilePaths.append(directory+"/"+sortedListOfFiles[fileIndex])
+            filteredFileNames.append(sortedListOfFiles[fileIndex])
+    if listNames:
+        return filteredFilePaths, filteredFileNames
+    return filteredFilePaths
 
-def loadImages(collectionDir: str, leftEye=False, extension="jpg", newImages=True) -> np.ndarray:
+def loadImages(collectionDir: str, leftEye=False, extension="jpg", newImages=True):
     """
     This function gets the directory of a series of images
     Blue channel of the image = 0
@@ -143,13 +148,13 @@ def loadImages(collectionDir: str, leftEye=False, extension="jpg", newImages=Tru
         for image in imageCollection:
             temporaryCollection.append(mirrorImage(image))
         imageCollection = np.array(temporaryCollection)
-    grayImage = np.zeros((len(imageCollection), imageCollection[0].shape[0], imageCollection[0].shape[1]))
+    grayImages = np.zeros((len(imageCollection), imageCollection[0].shape[0], imageCollection[0].shape[1]))
     for i in range(len(imageCollection)):
         imageCollection[i][:,:,2] = 0
-        grayImage[i,:,:] = rgb2gray(imageCollection[i])
-    return grayImage
+        grayImages[i,:,:] = rgb2gray(imageCollection[i])
+    return grayImages
 
-def seperateNewImages(grayImageCollection, collectionDir: str, extension="jpg") -> dict:
+def seperateNewImages(grayImageCollection, collectionDir: str, extension="jpg"):
     """
     Purpose: seperate new retina images from new rosa images
     Load retina image - then load the corresponding rosa image 
@@ -166,10 +171,9 @@ def seperateNewImages(grayImageCollection, collectionDir: str, extension="jpg") 
     xCenter = np.array([])
     yCenter = np.array([])
     radius = np.array([])
-    imageNumber = np.array([])
+    imageNumber = np.array([], dtype=int)
 
-    sortedFileNames = np.sort(listFileNames(collectionDir, extension))
-    files = getFiles(collectionDir, extension, newImages=True)
+    files, sortedFileNames = getFiles(collectionDir, extension, newImages=True, listNames=True)
     # first pic = eye, 2nd pic = rosa
     for i in range(1, grayImageCollection.shape[0]):
         if "eye" in files[i-1]:
@@ -225,16 +229,12 @@ def findImageShift(Image: np.ndarray, Margin=250, N=100) -> np.ndarray:
         a[j,:,:] = ndimage.binary_closing(skeletonImage[j,:,:], structure=np.ones((20,20))).astype(np.int)
         if (j > 0):
             out1 = crossImage(a[j-1,:,:], a[j,:,:])
-            ind = np.unravel_index(np.argmax(out1, axis=None), out1.shape)
-            indexShift = np.vstack((indexShift, np.array(ind) - np.array([a.shape[1]/2, a.shape[2]/2])))
+            maxFlatIndex = np.argmax(out1, axis=None)
+            maxIndex = np.unravel_index(maxFlatIndex, out1.shape)
+            halfImageSize = np.array([a.shape[1]/2, a.shape[2]/2])
+            indexShift = np.vstack((indexShift, np.array(maxIndex) - halfImageSize))
             totalShift = np.vstack((totalShift, np.sum(indexShift, axis=0)))
     return totalShift
-
-def newFindImageShift():
-    """
-    Find the image shift with the new ellipse finding algorithm parameters.
-    """
-    pass
 
 def applyShift(xLaser: np.ndarray, yLaser:np.ndarray, shift:np.ndarray) -> tuple:
     """
@@ -336,20 +336,89 @@ def cleanShiftParameters(shiftParameters, indexesToRemove):
     yShift = np.delete(yShift, indexesToRemove)
     return xShift, yShift
 
-def defineGrid(Image) -> tuple:
-    # onh = optic nerve head
-    temp = np.zeros(Image.shape)
-    temp[np.where(Image >= np.mean(Image)*1.9)] = 1
+def oldDefineGrid(images) -> tuple:
+    temp = np.zeros(images.shape)
+    temp[np.where(images >= np.mean(images)*1.9)] = 1
     kernel = np.ones((5,5), np.uint8)
     openingTemp = cv2.morphologyEx(temp[0,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
     nonZero = np.nonzero(openingTemp)
     onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
     onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
-    onhCenterVerticalCoords = int(((np.max(nonZero[0]) + np.min(nonZero[0]))/2) - (onhHeight-onhWidth))
-    onhCenterHorizontalCoords = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
+    yCenterGrid = int(((np.max(nonZero[0]) + np.min(nonZero[0]))/2) - (onhHeight-onhWidth))
+    xCenterGrid = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
     length = int((np.min([onhHeight, onhWidth]))/2)
-    return onhCenterHorizontalCoords, onhCenterVerticalCoords, length
-    # return xCenterGrid, yCenterGrid, length
+    return xCenterGrid, yCenterGrid, length
+
+def defineGridParams(images, xThreshConst=.7, yThreshConst=.7):
+    if len(images.shape) == 2:
+        # for testing purposes
+        plotImage = images
+    else:
+        plotImage = images[0,:,:]
+    sumX = []
+    sumY = []
+    yIndexes = range(plotImage.shape[0])
+    xIndexes = range(plotImage.shape[1])
+    for i in yIndexes:
+        sumY.append(sum(plotImage[i,:]))
+    for j in xIndexes:
+        sumX.append(sum(plotImage[:,j]))
+
+    xWidth, xCenterGrid = findONHParamsFromAxisSums(sumX, xIndexes, xThreshConst)
+    yWidth, yCenterGrid = findONHParamsFromAxisSums(sumY, yIndexes, yThreshConst)
+
+    gridLength = max(xWidth, yWidth)
+    return xCenterGrid, yCenterGrid, gridLength
+
+def findONHParamsFromAxisSums(sumAx, axIndexes, axThreshConst):
+    sumAx = np.array(sumAx)
+    sumAxNorm = (sumAx - min(sumAx))/(max(sumAx) - min(sumAx))
+    # plt.plot(axIndexes, sumAxNorm)
+    # plt.plot([0, 900], [axThreshConst, axThreshConst])
+    # plt.show()
+    maxAxIndex = np.argmax(sumAxNorm)
+    leftAxPointIdx = findNearest(sumAxNorm[:maxAxIndex], axThreshConst)
+    rightAxPointIdx = findNearest(sumAxNorm[maxAxIndex:], axThreshConst) + maxAxIndex
+    axWidth = int(abs(rightAxPointIdx - leftAxPointIdx))
+    axCenterGrid = int((rightAxPointIdx + leftAxPointIdx)/2) # doesn't change with tresh... why???
+    return axWidth, axCenterGrid
+
+def findNearest(array, value):
+    idx = (np.abs(array - value)).argmin()
+    return idx
+
+"""
+# Maybe we'll use a modified version of this later.
+def findPlotImage(images, constant=1.9):
+    #Find the image in which the ONH is closest to the middle of the image.
+    xCenters = []
+    yCenters = []
+    binaryImages = np.zeros(images.shape)
+    binaryImages[np.where(images >= np.mean(images)*constant)] = 1
+    xImageShape = binaryImages[0,:,:].shape[1]
+    yImageShape = binaryImages[0,:,:].shape[0]
+
+    for i in range(binaryImages.shape[0]):
+        # Clean the images and find the middle
+        kernel = np.ones((5,5), np.uint8)
+        cleanBinaryIm = cv2.morphologyEx(binaryImages[i,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
+        nonZero = np.nonzero(cleanBinaryIm)
+        onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
+        onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
+        xCenter = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
+        yCenter = int((np.max(nonZero[0]) + np.min(nonZero[0]))/2 - (onhHeight-onhWidth))
+
+        xCenters.append(xCenter)
+        yCenters.append(yCenter)
+
+    x = np.array(xCenters) - xImageShape/2
+    y = np.array(yCenters) - yImageShape/2
+
+    distance = (x**2 + y**2)**.5
+    plotImageIndex = np.argmin(distance)
+
+    return plotImageIndex
+"""
 
 def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     xCenterGrid = gridParameters[0]
@@ -369,7 +438,7 @@ def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     left = np.max([xCenterGrid - (length*5), 0])
     up = np.max([yCenterGrid - (length*5), 0])
     right = np.min([(5*length), (Image.shape[1] - xCenterGrid)]) + xCenterGrid
-    down = right = np.min([(5*length), (Image.shape[2] - yCenterGrid)]) + yCenterGrid
+    down = np.min([(5*length), (Image.shape[2] - yCenterGrid)]) + yCenterGrid
     temp = Image[0,up:down, left:right]
     xNewCenter = xCenterGrid - left
     yNewCenter = yCenterGrid - up
@@ -382,7 +451,6 @@ def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     # Slicing:
     gridImage[LOW_SLICE_Y:HIGH_SLICE_Y, LOW_SLICE_X:HIGH_SLICE_X] = temp
 
-    plt.figure()
     img = gridImage.copy()
     dx, dy = length, length
     # Custom (rgb) grid color:
@@ -390,15 +458,17 @@ def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     # Modify the image to include the grid
     img[:,::dy] = gridColor
     img[::dx,:] = gridColor
-    plt.imsave('Result_old.jpg', img)
+    plt.imsave('Result_old.jpg', img, cmap="gray")
 
 def plotResult(image, shiftParameters, gridParameters, rosaRadius=30, thickness=5):
+    print("Preparing plot of the result")
     refImage = image[0,:,:]
     imageRGB = makeImageRGB(refImage)
     rescaledImage, LowSliceX, LowSliceY = rescaleImage(imageRGB, gridParameters)
     rescaledImageWithCircles = drawRosaCircles(rescaledImage, shiftParameters,
-                                LowSliceX, LowSliceY, rosaRadius=rosaRadius,
-                                thickness=thickness)
+                                                LowSliceX, LowSliceY,
+                                                rosaRadius=rosaRadius,
+                                                thickness=thickness)
     resultImageWithGrid = drawGrid(rescaledImageWithCircles, gridParameters)
     plt.imsave('Result.jpg', resultImageWithGrid)
 
@@ -412,7 +482,7 @@ def drawRosaCircles(rescaledImage, shiftParameters, LowSliceX, LowSliceY, rosaRa
     for j in range(xRosa.shape[0]):
         print(j)
         centerCoordinates = (int(xRosa[j]) + LowSliceX, int(yRosa[j]) + LowSliceY)
-        cv2.circle(rescaledImage, centerCoordinates, rosaRadius, color, thickness)
+        image = cv2.circle(rescaledImage, centerCoordinates, rosaRadius, color, thickness)
     return rescaledImage
 
 def rescaleImage(imageRGB, gridParameters):
@@ -422,7 +492,7 @@ def rescaleImage(imageRGB, gridParameters):
     left = np.max([xCenterGrid - (length*5), 0])
     up = np.max([yCenterGrid - (length*5), 0])
     right = np.min([(5*length), (imageRGB.shape[0] - xCenterGrid)]) + xCenterGrid
-    down = right = np.min([(5*length), (imageRGB.shape[1] - yCenterGrid)]) + yCenterGrid
+    down = np.min([(5*length), (imageRGB.shape[1] - yCenterGrid)]) + yCenterGrid
 
     temp = imageRGB[up:down, left:right,:]
     xNewCenter = xCenterGrid - left
