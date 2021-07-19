@@ -39,6 +39,7 @@ xLaser = dataDictionary["xCenter"]
 yLaser = dataDictionary["yCenter"]
 rLaser = dataDictionary["radius"]
 imageNumber = dataDictionary["imageNumber"]
+print(imageNumber)
 
 indexShift = findImageShift(image)
 shiftParameters = applyShift(xLaser, yLaser, indexShift)

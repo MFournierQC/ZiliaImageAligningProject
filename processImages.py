@@ -115,9 +115,10 @@ def listFileNames(directory: str, extension="jpg") -> list:
             foundFiles.append(file)
     return foundFiles
 
-def getFiles(directory: str, extension="jpg", newImages=True) -> list:
+def getFiles(directory: str, extension="jpg", newImages=True, listFileNames=False) -> list:
     sortedListOfFiles = np.sort(listFileNames(directory, extension))
-    filteredFiles = []
+    filteredFilePaths = []
+    filteredFileNames = []
     for fileIndex in range(len(sortedListOfFiles)):
         if (fileIndex + 3) % 3 == 0:
             if newImages:
@@ -125,10 +126,14 @@ def getFiles(directory: str, extension="jpg", newImages=True) -> list:
                 continue
             else:
                 # no file has to be removed
-                filteredFiles.append(directory+"/"+sortedListOfFiles[fileIndex])
+                filteredFilePaths.append(directory+"/"+sortedListOfFiles[fileIndex])
+                filteredFileNames.append(sortedListOfFiles[fileIndex])
         else:
-            filteredFiles.append(directory+"/"+sortedListOfFiles[fileIndex])
-    return filteredFiles
+            filteredFilePaths.append(directory+"/"+sortedListOfFiles[fileIndex])
+            filteredFileNames.append(sortedListOfFiles[fileIndex])
+    if listFileNames:
+        return filteredFilePaths, filteredFileNames
+    return filteredFilePaths
 
 def loadImages(collectionDir: str, leftEye=False, extension="jpg", newImages=True) -> np.ndarray:
     """
@@ -168,16 +173,17 @@ def seperateNewImages(grayImageCollection, collectionDir: str, extension="jpg") 
     radius = np.array([])
     imageNumber = np.array([])
 
-    sortedFileNames = np.sort(listFileNames(collectionDir, extension))
-    files = getFiles(collectionDir, extension, newImages=True)
+    sortedFileNames = np.sort(listFileNames(collectionDir, extension)) # lists ALL files
+    files, sortedFileNames = getFiles(collectionDir, extension, newImages=True, listFileNames=True) # lists only the eye and rosa images
     # first pic = eye, 2nd pic = rosa
-    for i in range(1, grayImageCollection.shape[0]):
+    for i in range(1, grayImageCollection.shape[0]): # iterates over ALL files...
         if "eye" in files[i-1]:
             loadLaserImage = files[i]
             blob = analyzeRosa(loadLaserImage)
             if (blob['found'] == True):
                 numberOfRosaImages += 1
-                currentImageNumber = int(sortedFileNames[i][:3].lstrip("0"))
+                print(files[i])
+                currentImageNumber = int(sortedFileNames[i][-3:].lstrip("0"))
                 temp[0,:,:] = grayImageCollection[i-1,:,:] # retina
                 image = np.vstack((image, temp)) # retina
                 temp[0,:,:] = grayImageCollection[i,:,:] # rosa
@@ -370,9 +376,9 @@ def findONHParamsFromAxisSums(sumAx, axIndexes, axThreshConst):
     sumAx = np.array(sumAx)
     sumAxNorm = (sumAx - min(sumAx))/(max(sumAx) - min(sumAx))
 
-    plt.plot(axIndexes, sumAxNorm)
-    plt.plot([0, 900], [axThreshConst, axThreshConst])
-    plt.show()
+    # plt.plot(axIndexes, sumAxNorm)
+    # plt.plot([0, 900], [axThreshConst, axThreshConst])
+    # plt.show()
 
     maxAxIndex = np.argmax(sumAxNorm)
     leftAxPointIdx = findNearest(sumAxNorm[:maxAxIndex], max(sumAx)*axThreshConst)
