@@ -69,7 +69,7 @@ def seperateImages(grayImageCollection, collectionDir: str, extension="jpg") -> 
     xCenter = np.array([])
     yCenter = np.array([])
     radius = np.array([])
-    imageNumber = np.array([])
+    imageNumber = np.array([], dtype=int)
 
     for i in range(1, grayImageCollection.shape[0]):
         firstPicMeanValue = np.mean(grayImageCollection[i-1,:,:])
@@ -171,7 +171,7 @@ def seperateNewImages(grayImageCollection, collectionDir: str, extension="jpg"):
     xCenter = np.array([])
     yCenter = np.array([])
     radius = np.array([])
-    imageNumber = np.array([])
+    imageNumber = np.array([], dtype=int)
 
     files, sortedFileNames = getFiles(collectionDir, extension, newImages=True, listNames=True)
     # first pic = eye, 2nd pic = rosa
