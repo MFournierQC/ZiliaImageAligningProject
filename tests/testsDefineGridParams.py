@@ -26,9 +26,9 @@ class TestDefineGridParams(envtest.ZiliaTestCase):
         image = imread(self.testCannyDirectory+"/bresilMedium.jpg")
         image[:,:,2] = 0
         image = rgb2gray(image)
-        params = defineGridParams(image, xThreshConst=.95, yThreshConst=.95)
+        params = defineGridParams(image, xThreshConst=.7, yThreshConst=.7)
         xCenterGrid, yCenterGrid, gridLength = params
-        print(params) # 366, 641, 4
+        print("params =", params) # 366, 641, 4
         plt.imshow(image, cmap="gray")
         plt.plot([xCenterGrid], [yCenterGrid], "o")
         plt.show()
@@ -38,9 +38,9 @@ class TestDefineGridParams(envtest.ZiliaTestCase):
         image = imread(self.testCannyDirectory+"/bresilHigh.jpg")
         image[:,:,2] = 0
         image = rgb2gray(image)
-        params = defineGridParams(image, xThreshConst=.3, yThreshConst=.3)
+        params = defineGridParams(image, xThreshConst=.7, yThreshConst=.7)
         xCenterGrid, yCenterGrid, gridLength = params
-        print(params) # 422, 365, 4
+        print("params =", params) # 422, 365, 4
         plt.imshow(image, cmap="gray")
         plt.plot([xCenterGrid], [yCenterGrid], "o")
         plt.show()

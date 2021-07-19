@@ -379,9 +379,11 @@ def findONHParamsFromAxisSums(sumAx, axIndexes, axThreshConst):
     # plt.show()
 
     maxAxIndex = np.argmax(sumAxNorm)
-    leftAxPointIdx = findNearest(sumAxNorm[:maxAxIndex], max(sumAx)*axThreshConst)
-    rightAxPointIdx = findNearest(sumAxNorm[maxAxIndex:], max(sumAx)*axThreshConst) + maxAxIndex
-    axWidth = int(abs(rightAxPointIdx - leftAxPointIdx)) # always gives 4???
+    # print("maxAxIndex =", maxAxIndex)
+    leftAxPointIdx = findNearest(sumAxNorm[:maxAxIndex], axThreshConst)
+    rightAxPointIdx = findNearest(sumAxNorm[maxAxIndex:], axThreshConst) + maxAxIndex
+    axWidth = int(abs(rightAxPointIdx - leftAxPointIdx))
+    # print("axWidth", axWidth)
     axCenterGrid = int((rightAxPointIdx + leftAxPointIdx)/2) # doesn't change with tresh... why???
     return axWidth, axCenterGrid
 
@@ -391,6 +393,7 @@ def findONHParamsFromAxisSums(sumAx, axIndexes, axThreshConst):
 
 def findNearest(array, value):
     idx = (np.abs(array - value)).argmin()
+    # print("idx =", idx)
     return idx
 
 """
