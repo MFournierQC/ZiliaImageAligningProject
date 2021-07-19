@@ -39,7 +39,6 @@ xLaser = dataDictionary["xCenter"]
 yLaser = dataDictionary["yCenter"]
 rLaser = dataDictionary["radius"]
 imageNumber = dataDictionary["imageNumber"]
-print(imageNumber)
 
 indexShift = findImageShift(image)
 shiftParameters = applyShift(xLaser, yLaser, indexShift)
@@ -47,7 +46,7 @@ gridParameters = defineGridParams(image)
 
 Label, dataDictionary, indexesToRemove = placeRosa(gridParameters, shiftParameters, dataDictionary)
 # print(Label)
-print(dataDictionary["imageNumber"])
+# print(dataDictionary["imageNumber"])
 
 shiftParameters = cleanShiftParameters(shiftParameters, indexesToRemove)
 

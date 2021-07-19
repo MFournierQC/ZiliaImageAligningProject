@@ -373,27 +373,18 @@ def defineGridParams(images, xThreshConst=.7, yThreshConst=.7):
 def findONHParamsFromAxisSums(sumAx, axIndexes, axThreshConst):
     sumAx = np.array(sumAx)
     sumAxNorm = (sumAx - min(sumAx))/(max(sumAx) - min(sumAx))
-
     # plt.plot(axIndexes, sumAxNorm)
     # plt.plot([0, 900], [axThreshConst, axThreshConst])
     # plt.show()
-
     maxAxIndex = np.argmax(sumAxNorm)
-    # print("maxAxIndex =", maxAxIndex)
     leftAxPointIdx = findNearest(sumAxNorm[:maxAxIndex], axThreshConst)
     rightAxPointIdx = findNearest(sumAxNorm[maxAxIndex:], axThreshConst) + maxAxIndex
     axWidth = int(abs(rightAxPointIdx - leftAxPointIdx))
-    # print("axWidth", axWidth)
     axCenterGrid = int((rightAxPointIdx + leftAxPointIdx)/2) # doesn't change with tresh... why???
     return axWidth, axCenterGrid
 
-# get middle of both
-# Find normalized thresh, by looking for relationship between thresh and max (like 0.1*max or whatever)
-# Find threshs for both axis
-
 def findNearest(array, value):
     idx = (np.abs(array - value)).argmin()
-    # print("idx =", idx)
     return idx
 
 """
