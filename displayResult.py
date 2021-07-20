@@ -43,8 +43,8 @@ def matrixSO2(labels,saturationValues,leftEye=False):
         splitLabel = np.array(list(labels[i]))
 
 
-        concentrationMatrix[int(np.where(np.array(splitLabel[0]) == xLabel)[0]),
-                            int(np.where(np.array(splitLabel[1]) == yLabel)[0])] =saturationValues[i]
+        concentrationMatrix[int(np.where(np.array(splitLabel[1]) == yLabel)[0]),
+            int(np.where(np.array(splitLabel[0]) == xLabel)[0])] =saturationValues[i]
     
     return concentrationMatrix
 

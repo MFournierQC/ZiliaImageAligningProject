@@ -413,8 +413,9 @@ def makeImageRGB(grayImage):
 def drawRosaCircles(rescaledImage, shiftParameters, LowSliceX, LowSliceY,saturationO2, rosaRadius=30, thickness=10):
     xRosa = shiftParameters[0]
     yRosa = shiftParameters[1]
+    normalizedSatiration=(saturationO2-np.min(saturationO2))/(np.max(saturationO2)-np.min(saturationO2))
     for j in range(xRosa.shape[0]):
-        color=(saturationO2[j]/100 , 0 , 1-(saturationO2[j]/100))
+        color=(normalizedSatiration[j] , 0 , 1-normalizedSatiration[j])
         centerCoordinates = (int(xRosa[j]) + LowSliceX, int(yRosa[j]) + LowSliceY)
         cv2.circle(rescaledImage, centerCoordinates, rosaRadius, color, thickness)
     return rescaledImage
