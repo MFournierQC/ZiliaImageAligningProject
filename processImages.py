@@ -338,16 +338,32 @@ def cleanShiftParameters(shiftParameters, indexesToRemove):
 
 def defineGrid(Image) -> tuple:
     # onh = optic nerve head
-    temp = np.zeros(Image.shape)
-    temp[np.where(Image >= np.mean(Image)*1.9)] = 1
-    kernel = np.ones((5,5), np.uint8)
-    openingTemp = cv2.morphologyEx(temp[0,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
-    nonZero = np.nonzero(openingTemp)
-    onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
-    onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
-    onhCenterVerticalCoords = int(((np.max(nonZero[0]) + np.min(nonZero[0]))/2) - (onhHeight-onhWidth))
-    onhCenterHorizontalCoords = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
-    length = int((np.min([onhHeight, onhWidth]))/2)
+    # temp = np.zeros(Image.shape)
+    # temp[np.where(Image >= np.mean(Image)*1.9)] = 1
+    # kernel = np.ones((5,5), np.uint8)
+    # openingTemp = cv2.morphologyEx(temp[0,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
+    # nonZero = np.nonzero(openingTemp)
+    # onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
+    # onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
+    # onhCenterVerticalCoords = int(((np.max(nonZero[0]) + np.min(nonZero[0]))/2) - (onhHeight-onhWidth))
+    # onhCenterHorizontalCoords = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
+    # length = int((np.min([onhHeight, onhWidth]))/2)
+    imgGray=Image[0,:,:]
+    meanVal = np.mean(imgGray)
+    imgGray = (imgGray - np.min(imgGray)) / (np.max(imgGray) - np.min(imgGray))
+    W = np.mean(imgGray, axis=0)
+    W = (W - np.min(W)) / (np.max(W) - np.min(W))
+    W = np.round(W, 2)
+    onhWidth = np.max(np.where(W > 0.50)) - np.min(np.where(W > 0.50))
+    onhCenterHorizontalCoords = int ( (np.max(np.where(W > 0.50)) + np.min(np.where(W > 0.50)))/2 )
+
+    H = np.mean(imgGray, axis=1)
+    H = (H - np.min(H)) / (np.max(H) - np.min(H))
+    H = np.round(H, 2)
+    onhHeight = np.max(np.where(H > np.min([meanVal * 4, 0.50]))) - np.min(np.where(H > meanVal * 2))
+    onhCenterVerticalCoords = int( (np.max(np.where(H > np.min([meanVal * 4, 0.50]))) + np.min(np.where(H > meanVal * 2)))/2 )
+    #
+    length = int((np.min([onhHeight, onhWidth])) / 2)
     return onhCenterHorizontalCoords, onhCenterVerticalCoords, length
     # return xCenterGrid, yCenterGrid, length
 
@@ -427,7 +443,7 @@ def rescaleImage(imageRGB, gridParameters):
     left = np.max([xCenterGrid - (length*5), 0])
     up = np.max([yCenterGrid - (length*5), 0])
     right = np.min([(5*length), (imageRGB.shape[0] - xCenterGrid)]) + xCenterGrid
-    down = right = np.min([(5*length), (imageRGB.shape[1] - yCenterGrid)]) + yCenterGrid
+    down  = np.min([(5*length), (imageRGB.shape[1] - yCenterGrid)]) + yCenterGrid
 
     temp = imageRGB[up:down, left:right,:]
     xNewCenter = xCenterGrid - left
