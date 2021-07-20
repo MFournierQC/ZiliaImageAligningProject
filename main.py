@@ -110,7 +110,7 @@ shiftParameters = cleanShiftParameters(shiftParameters, indexesToRemove)
 
 concentration, saturationFlag = mainAnalysis()
 
-b= plotResult(image, shiftParameters, gridParameters,concentration)
+b= plotResult(image, shiftParameters, gridParameters,concentration,leftEye=True)
 # oldPlotResult(image, shiftParameters, gridParameters)
 
 # so2 analysis

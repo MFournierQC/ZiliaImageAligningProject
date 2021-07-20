@@ -397,7 +397,7 @@ def plotResult(image, shiftParameters, gridParameters,saturationsO2, rosaRadius=
     imageRGB = makeImageRGB(refImage)
     rescaledImage, LowSliceX, LowSliceY = rescaleImage(imageRGB, gridParameters)
     rescaledImageWithCircles = drawRosaCircles(rescaledImage, shiftParameters,
-                                LowSliceX, LowSliceY,saturaionsO2, rosaRadius=rosaRadius,
+                                LowSliceX, LowSliceY,saturationsO2, rosaRadius=rosaRadius,
                                 thickness=thickness)
     resultImageWithGrid = drawGrid(rescaledImageWithCircles, gridParameters)
     if (leftEye == False):
