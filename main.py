@@ -6,7 +6,7 @@ from kneed import KneeLocator, DataGenerator
 
 # New data:
 # collectionDir = r"./tests/TestImages/miniTestSampleNewData"
-collectionDir="/Users/elahe/Documents/Bresil 1511184-20210525T145240Z-001/Bresil 1511184/20210316-095955-bresil-od-onh-rlp2"
+collectionDir="/Users/elahe/Documents/Bresil 1511184-20210525T145240Z-001/Bresil 1511184/20210316-100153-bresil-od-onh-rlp6"
 
 # Test plot directory
 # collectionDir = r"./tests/TestImages/testPlot"
@@ -78,7 +78,7 @@ plotSO2_right= matrixSO2(lab,meanC)
 
 #######################
 
-collectionDir="/Users/elahe/Documents/Bresil 1511184-20210525T145240Z-001/Bresil 1511184/20210316-101833-bresil-os-onh-rlp2"
+collectionDir="/Users/elahe/Documents/Bresil 1511184-20210525T145240Z-001/Bresil 1511184/20210316-101640-bresil-os-onh-rlp6"
 
 leftEye = True
 newImages = True
