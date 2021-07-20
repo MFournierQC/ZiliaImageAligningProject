@@ -392,26 +392,29 @@ def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     img[::dx,:] = gridColor
     plt.imsave('Result_old.jpg', img)
 
-def plotResult(image, shiftParameters, gridParameters, rosaRadius=30, thickness=5):
+def plotResult(image, shiftParameters, gridParameters,saturationsO2, rosaRadius=30, thickness=5,leftEye = False):
     refImage = image[0,:,:]
     imageRGB = makeImageRGB(refImage)
     rescaledImage, LowSliceX, LowSliceY = rescaleImage(imageRGB, gridParameters)
     rescaledImageWithCircles = drawRosaCircles(rescaledImage, shiftParameters,
-                                LowSliceX, LowSliceY, rosaRadius=rosaRadius,
+                                LowSliceX, LowSliceY,saturaionsO2, rosaRadius=rosaRadius,
                                 thickness=thickness)
     resultImageWithGrid = drawGrid(rescaledImageWithCircles, gridParameters)
-    plt.imsave('Result.jpg', resultImageWithGrid)
+    if (leftEye == False):
+        plt.imsave('Result.jpg', resultImageWithGrid)
+    if (leftEye == True):
+        plt.imsave('Result.jpg', mirrorImage(resultImageWithGrid))
     return resultImageWithGrid
 
 def makeImageRGB(grayImage):
     imageRGB = np.dstack((grayImage, grayImage, grayImage))
     return imageRGB
 
-def drawRosaCircles(rescaledImage, shiftParameters, LowSliceX, LowSliceY, rosaRadius=30, thickness=10, color=(0, 1, 0)):
+def drawRosaCircles(rescaledImage, shiftParameters, LowSliceX, LowSliceY,saturationO2, rosaRadius=30, thickness=10):
     xRosa = shiftParameters[0]
     yRosa = shiftParameters[1]
     for j in range(xRosa.shape[0]):
-        print(j)
+        color=(saturationO2[j]/100 , 0 , 1-(saturationO2[j]/100))
         centerCoordinates = (int(xRosa[j]) + LowSliceX, int(yRosa[j]) + LowSliceY)
         cv2.circle(rescaledImage, centerCoordinates, rosaRadius, color, thickness)
     return rescaledImage

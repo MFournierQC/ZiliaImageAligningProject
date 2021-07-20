@@ -2,6 +2,8 @@ from processImages import *
 from spectrumAnalysis import *
 from displayResult import *
 
+from kneed import KneeLocator, DataGenerator
+
 # New data:
 # collectionDir = r"./tests/TestImages/miniTestSampleNewData"
 collectionDir="/Users/elahe/Documents/Bresil 1511184-20210525T145240Z-001/Bresil 1511184/20210316-095955-bresil-od-onh-rlp2"
@@ -57,12 +59,14 @@ print(Label)
 
 shiftParameters = cleanShiftParameters(shiftParameters, indexesToRemove)
 
-a= plotResult(image, shiftParameters, gridParameters)
+
+concentration, saturationFlag = mainAnalysis()
+
+a= plotResult(image, shiftParameters, gridParameters,concentration)
 # oldPlotResult(image, shiftParameters, gridParameters)
 
 # so2 analysis
 
-concentration, saturationFlag = mainAnalysis()
 SO2Dictionary=saveData(saturationFlag, concentration , imageNumber , Label)
 
 # label=np.array(['A1','B2','C3','B2','B2','A1'])
@@ -104,12 +108,14 @@ print(Label)
 
 shiftParameters = cleanShiftParameters(shiftParameters, indexesToRemove)
 
-b= plotResult(image, shiftParameters, gridParameters)
+concentration, saturationFlag = mainAnalysis()
+
+b= plotResult(image, shiftParameters, gridParameters,concentration)
 # oldPlotResult(image, shiftParameters, gridParameters)
 
 # so2 analysis
 
-concentration, saturationFlag = mainAnalysis()
+
 SO2Dictionary=saveData(saturationFlag, concentration , imageNumber , Label)
 
 # label=np.array(['A1','B2','C3','B2','B2','A1'])
