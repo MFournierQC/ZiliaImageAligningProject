@@ -5,7 +5,7 @@ from skimage.io import imread
 from skimage.color import rgb2gray
 import numpy as np
 from skimage.data import coffee
-from skimage.draw import ellipse_perimeter
+from skimage.draw import ellipse_perimeter, ellipse
 from skimage.transform import hough_ellipse
 from skimage.feature import canny
 from skimage import color, img_as_ubyte
@@ -380,9 +380,14 @@ class TestHoughEllipse(envtest.ZiliaTestCase):
     def plotHoughEllipseWithRescale(self, smallBest, imageRgb, canniedImage, scaleFactor=5):
         # To prevent repetition in subsequent tests.
         yc, xc, a, b = [int(round(x)*scaleFactor) for x in smallBest[1:5]]
+        print("amin =", a)
+        print("bmax =", b)
         orientation = smallBest[5]
+        print(orientation)
         # Draw the ellipse on the original image
         cy, cx = ellipse_perimeter(yc, xc, a, b, orientation)
+        cye, cxe = ellipse(yc, xc, a, b, rotation=np.pi-orientation)
+        imageRgbe = np.array(imageRgb)
         imageRgb[cy, cx] = (0, 0, 255)
         # Draw the edge (white) and the resulting ellipse (red)
         canniedImage = color.gray2rgb(img_as_ubyte(canniedImage))
@@ -393,6 +398,17 @@ class TestHoughEllipse(envtest.ZiliaTestCase):
         ax1.imshow(imageRgb)
         ax2.set_title('Edge (white) and result (red)')
         ax2.imshow(canniedImage)
+        plt.show()
+
+        imageRgbe[cye, cxe] = (0, 0, 255)
+        canniedImagee = color.gray2rgb(img_as_ubyte(canniedImage))
+        canniedImagee[cye, cxe] = (250, 0, 0)
+        fig2, (ax1, ax2) = plt.subplots(ncols=2, nrows=1, figsize=(8, 4),
+                                        sharex=True, sharey=True)
+        ax1.set_title('Original picture')
+        ax1.imshow(imageRgbe)
+        ax2.set_title('Edge (white) and result (red)')
+        ax2.imshow(canniedImagee)
         plt.show()
 
     @envtest.skip("Skip plots")
@@ -518,6 +534,17 @@ class TestHoughEllipse(envtest.ZiliaTestCase):
         print(totalAlgorithmTime)
         self.plotHoughEllipseWithRescale(smallBest, imageRgb, canniedImage, scaleFactor=scaleFactor)
         # Not perfect with accuracy 10, but not bad thanks to gamma 5!!!
+
+    @envtest.skip("Color jams the plot")
+    def testPerfectBinaryEllipse(self):
+        startTime = time.time()
+        fileName = "testPerfectBinaryEllipse.png"
+        scaleFactor = 1
+        smallBest, imageRgb, canniedImage = self.evaluateHoughEllipseWithRescale(fileName, accuracy=10, scaleFactor=scaleFactor, showSmallCanny=True, gamma=5)
+        totalAlgorithmTime = time.time() - startTime
+        print(totalAlgorithmTime)
+        self.plotHoughEllipseWithRescale(smallBest, imageRgb, canniedImage, scaleFactor=scaleFactor)
+        # Angle of about pi, small axis still small and big one still bigger.
 
 if __name__ == "__main__":
     envtest.main()

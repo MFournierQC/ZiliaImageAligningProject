@@ -46,9 +46,12 @@ class TestCanny(envtest.ZiliaTestCase):
     def testCannySigmaMediumLightBresilMediumIsNotEnough(self):
         image = imread(self.testCannyDirectory+"/bresilMedium.jpg")
         grayImage = rgb2gray(image)
+        # print(np.amax(grayImage))
+        # print(np.amin(grayImage))
+        grayImage = grayImage > .3
         processedImage = canny(grayImage, sigma=1)
-        # plt.imshow(processedImage)
-        # plt.show()
+        plt.imshow(processedImage)
+        plt.show()
 
     def testCannySigmaHighLightSomalieHigh(self):
         image = imread(self.testCannyDirectory+"/somalieHigh.jpg")

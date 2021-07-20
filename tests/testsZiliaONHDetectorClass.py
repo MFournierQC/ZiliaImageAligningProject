@@ -4,7 +4,7 @@ from skimage.io import imread
 import matplotlib.pyplot as plt
 from skimage.color import rgb2gray, gray2rgb
 from skimage import img_as_ubyte
-from skimage.draw import ellipse_perimeter
+from skimage.draw import ellipse_perimeter, ellipse
 
 class TestZiliaONHDetectorClass(envtest.ZiliaTestCase):
 
@@ -48,8 +48,8 @@ class TestZiliaONHDetectorClass(envtest.ZiliaTestCase):
         # To prevent repetition in subsequent tests.
         (xCenter, yCenter), minorAxis, majorAxis, orientation = result
         # Draw the ellipse on the original image
-        cy, cx = ellipse_perimeter(yCenter, xCenter, minorAxis, majorAxis, orientation)
-        imageRgb[cy, cx] = 130
+        cy, cx = ellipse(yCenter, xCenter, minorAxis, majorAxis, rotation=orientation)
+        # imageRgb[cy, cx] = 130
         # Draw the edge (white) and the resulting ellipse (red)
         canniedImage = gray2rgb(img_as_ubyte(canniedImage))
         canniedImage[cy, cx] = (250, 0, 0)
@@ -62,13 +62,87 @@ class TestZiliaONHDetectorClass(envtest.ZiliaTestCase):
         plt.show()
 
     @envtest.skip("skip plot")
-    def testFindONH(self):
+    def testFindONH_ellipse(self):
+        image = imread(self.testStudentDirectory+"/testImage5.png")
+        print(image.shape)
+        detector = ZiliaONHDetector(image, gamma=False, accuracy=5)
+        detector.getParamsCorrections()
+        detector.preProcessImage()
+        result = detector.findOpticNerveHead()
+        self.plotHoughEllipseWithRescale(result, image, canny(rgb2gray(image)))
+        # very good!
+
+    @envtest.skip("skip plot")
+    def testFindONH_bresilMedium(self):
         image = imread(self.testCannyDirectory+"/bresilMedium.jpg")
         detector = ZiliaONHDetector(image)
         detector.getParamsCorrections()
         detector.preProcessImage()
         result = detector.findOpticNerveHead()
-        self.plotHoughEllipseWithRescale(result, image, image)
+        self.plotHoughEllipseWithRescale(result, image, canny(rgb2gray(image)))
+        # very good!
+
+    @envtest.skip("skip plot")
+    def testFindONH_bresilHigh(self):
+        image = imread(self.testCannyDirectory+"/bresilHigh.jpg")
+        detector = ZiliaONHDetector(image)
+        detector.getParamsCorrections()
+        detector.preProcessImage()
+        result = detector.findOpticNerveHead()
+        self.plotHoughEllipseWithRescale(result, image, canny(rgb2gray(image)))
+        # too big, but not too bad :)
+
+    @envtest.skip("skip plot")
+    def testFindONH_kenyaHigh(self):
+        image = imread(self.testCannyDirectory+"/kenyaHigh.jpg")
+        detector = ZiliaONHDetector(image)
+        detector.getParamsCorrections()
+        detector.preProcessImage()
+        result = detector.findOpticNerveHead()
+        self.plotHoughEllipseWithRescale(result, image, canny(rgb2gray(image)))
+        # not great... big oval, center too high, but could be worse...
+
+    @envtest.skip("skip plot")
+    def testFindONH_somalieHigh(self):
+        image = imread(self.testCannyDirectory+"/somalieHigh.jpg")
+        detector = ZiliaONHDetector(image)
+        detector.getParamsCorrections()
+        detector.preProcessImage()
+        result = detector.findOpticNerveHead()
+        self.plotHoughEllipseWithRescale(result, image, canny(rgb2gray(image)))
+        # good!
+
+    @envtest.skip("skip plot")
+    def testFindONH_rwandaHigh(self):
+        image = imread(self.testCannyDirectory+"/rwandaHigh.jpg")
+        detector = ZiliaONHDetector(image)
+        detector.getParamsCorrections()
+        detector.preProcessImage()
+        result = detector.findOpticNerveHead()
+        self.plotHoughEllipseWithRescale(result, image, canny(rgb2gray(image)))
+        # good too!
+
+    @envtest.skip("skip plot")
+    def testFindONH_rwandaMedium(self):
+        image = imread(self.testCannyDirectory+"/rwandaMedium.jpg")
+        detector = ZiliaONHDetector(image)
+        detector.getParamsCorrections()
+        detector.preProcessImage()
+        result = detector.findOpticNerveHead()
+        self.plotHoughEllipseWithRescale(result, image, canny(rgb2gray(image)))
+        # wow! very good even though it's so dim!
+
+    @envtest.skip("skip plot")
+    def testFindONH_somalieLow(self):
+        image = imread(self.testCannyDirectory+"/somalieLow.jpg")
+        detector = ZiliaONHDetector(image)
+        detector.getParamsCorrections()
+        detector.preProcessImage()
+        result = detector.findOpticNerveHead()
+        self.plotHoughEllipseWithRescale(result, image, canny(rgb2gray(image)))
+        # ouffff... WAYYYY too big, but the center is not too much higher...
+        # so partial success??? But we have to remember this image is one of
+        # the worst ones!
 
 if __name__ == '__main__':
     envtest.main()
