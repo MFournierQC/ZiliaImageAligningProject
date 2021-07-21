@@ -39,7 +39,9 @@ def removeBadImages(dataDictionary) -> dict:
         resLap = cv2.Laplacian(d1, cv2.CV_64F)
         score = resLap.var()
         ii = np.hstack((ii, score))
+
     Threshold = np.mean(ii) - np.std(ii)
+
     index = np.where(ii < Threshold)
 
     if len(index[0]) != 0:
@@ -336,89 +338,122 @@ def cleanShiftParameters(shiftParameters, indexesToRemove):
     yShift = np.delete(yShift, indexesToRemove)
     return xShift, yShift
 
-def oldDefineGrid(images) -> tuple:
-    temp = np.zeros(images.shape)
-    temp[np.where(images >= np.mean(images)*1.9)] = 1
-    kernel = np.ones((5,5), np.uint8)
-    openingTemp = cv2.morphologyEx(temp[0,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
-    nonZero = np.nonzero(openingTemp)
-    onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
-    onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
-    yCenterGrid = int(((np.max(nonZero[0]) + np.min(nonZero[0]))/2) - (onhHeight-onhWidth))
-    xCenterGrid = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
-    length = int((np.min([onhHeight, onhWidth]))/2)
-    return xCenterGrid, yCenterGrid, length
 
-def defineGridParams(images, xThreshConst=.7, yThreshConst=.7):
-    if len(images.shape) == 2:
-        # for testing purposes
-        plotImage = images
-    else:
-        plotImage = images[0,:,:]
-    sumX = []
-    sumY = []
-    yIndexes = range(plotImage.shape[0])
-    xIndexes = range(plotImage.shape[1])
-    for i in yIndexes:
-        sumY.append(sum(plotImage[i,:]))
-    for j in xIndexes:
-        sumX.append(sum(plotImage[:,j]))
+def defineGrid(Image) -> tuple:
+    # onh = optic nerve head
+    # temp = np.zeros(Image.shape)
+    # temp[np.where(Image >= np.mean(Image)*1.9)] = 1
+    # kernel = np.ones((5,5), np.uint8)
+    # openingTemp = cv2.morphologyEx(temp[0,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
+    # nonZero = np.nonzero(openingTemp)
+    # onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
+    # onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
+    # onhCenterVerticalCoords = int(((np.max(nonZero[0]) + np.min(nonZero[0]))/2) - (onhHeight-onhWidth))
+    # onhCenterHorizontalCoords = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
+    # length = int((np.min([onhHeight, onhWidth]))/2)
+    imgGray=Image[0,:,:]
+    meanVal = np.mean(imgGray)
+    imgGray = (imgGray - np.min(imgGray)) / (np.max(imgGray) - np.min(imgGray))
+    W = np.mean(imgGray, axis=0)
+    W = (W - np.min(W)) / (np.max(W) - np.min(W))
+    W = np.round(W, 2)
+    onhWidth = np.max(np.where(W > 0.50)) - np.min(np.where(W > 0.50))
+    onhCenterHorizontalCoords = int ( (np.max(np.where(W > 0.50)) + np.min(np.where(W > 0.50)))/2 )
 
-    xWidth, xCenterGrid = findONHParamsFromAxisSums(sumX, xIndexes, xThreshConst)
-    yWidth, yCenterGrid = findONHParamsFromAxisSums(sumY, yIndexes, yThreshConst)
-
-    gridLength = max(xWidth, yWidth)
-    return xCenterGrid, yCenterGrid, gridLength
-
-def findONHParamsFromAxisSums(sumAx, axIndexes, axThreshConst):
-    sumAx = np.array(sumAx)
-    sumAxNorm = (sumAx - min(sumAx))/(max(sumAx) - min(sumAx))
-    # plt.plot(axIndexes, sumAxNorm)
-    # plt.plot([0, 900], [axThreshConst, axThreshConst])
-    # plt.show()
-    maxAxIndex = np.argmax(sumAxNorm)
-    leftAxPointIdx = findNearest(sumAxNorm[:maxAxIndex], axThreshConst)
-    rightAxPointIdx = findNearest(sumAxNorm[maxAxIndex:], axThreshConst) + maxAxIndex
-    axWidth = int(abs(rightAxPointIdx - leftAxPointIdx))
-    axCenterGrid = int((rightAxPointIdx + leftAxPointIdx)/2) # doesn't change with tresh... why???
-    return axWidth, axCenterGrid
-
-def findNearest(array, value):
-    idx = (np.abs(array - value)).argmin()
-    return idx
-
-"""
-# Maybe we'll use a modified version of this later.
-def findPlotImage(images, constant=1.9):
-    #Find the image in which the ONH is closest to the middle of the image.
-    xCenters = []
-    yCenters = []
-    binaryImages = np.zeros(images.shape)
-    binaryImages[np.where(images >= np.mean(images)*constant)] = 1
-    xImageShape = binaryImages[0,:,:].shape[1]
-    yImageShape = binaryImages[0,:,:].shape[0]
-
-    for i in range(binaryImages.shape[0]):
-        # Clean the images and find the middle
-        kernel = np.ones((5,5), np.uint8)
-        cleanBinaryIm = cv2.morphologyEx(binaryImages[i,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
-        nonZero = np.nonzero(cleanBinaryIm)
-        onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
-        onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
-        xCenter = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
-        yCenter = int((np.max(nonZero[0]) + np.min(nonZero[0]))/2 - (onhHeight-onhWidth))
-
-        xCenters.append(xCenter)
-        yCenters.append(yCenter)
-
-    x = np.array(xCenters) - xImageShape/2
-    y = np.array(yCenters) - yImageShape/2
-
-    distance = (x**2 + y**2)**.5
-    plotImageIndex = np.argmin(distance)
-
-    return plotImageIndex
-"""
+    H = np.mean(imgGray, axis=1)
+    H = (H - np.min(H)) / (np.max(H) - np.min(H))
+    H = np.round(H, 2)
+    onhHeight = np.max(np.where(H > np.min([meanVal * 4, 0.50]))) - np.min(np.where(H > meanVal * 2))
+    onhCenterVerticalCoords = int( (np.max(np.where(H > np.min([meanVal * 4, 0.50]))) + np.min(np.where(H > meanVal * 2)))/2 )
+    #
+    length = int((np.min([onhHeight, onhWidth])) / 2)
+    return onhCenterHorizontalCoords, onhCenterVerticalCoords, length
+    # return xCenterGrid, yCenterGrid, length
+#=======
+#def oldDefineGrid(images) -> tuple:
+#    temp = np.zeros(images.shape)
+#    temp[np.where(images >= np.mean(images)*1.9)] = 1
+#    kernel = np.ones((5,5), np.uint8)
+#    openingTemp = cv2.morphologyEx(temp[0,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
+#    nonZero = np.nonzero(openingTemp)
+#    onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
+#    onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
+#    yCenterGrid = int(((np.max(nonZero[0]) + np.min(nonZero[0]))/2) - (onhHeight-onhWidth))
+#    xCenterGrid = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
+#    length = int((np.min([onhHeight, onhWidth]))/2)
+#    return xCenterGrid, yCenterGrid, length
+#
+#def defineGridParams(images, xThreshConst=.7, yThreshConst=.7):
+#    if len(images.shape) == 2:
+#        # for testing purposes
+#        plotImage = images
+#    else:
+#        plotImage = images[0,:,:]
+#    sumX = []
+#    sumY = []
+#    yIndexes = range(plotImage.shape[0])
+#    xIndexes = range(plotImage.shape[1])
+#    for i in yIndexes:
+#        sumY.append(sum(plotImage[i,:]))
+#    for j in xIndexes:
+#        sumX.append(sum(plotImage[:,j]))
+#
+#    xWidth, xCenterGrid = findONHParamsFromAxisSums(sumX, xIndexes, xThreshConst)
+#    yWidth, yCenterGrid = findONHParamsFromAxisSums(sumY, yIndexes, yThreshConst)
+#
+#    gridLength = max(xWidth, yWidth)
+#    return xCenterGrid, yCenterGrid, gridLength
+#
+#def findONHParamsFromAxisSums(sumAx, axIndexes, axThreshConst):
+#    sumAx = np.array(sumAx)
+#    sumAxNorm = (sumAx - min(sumAx))/(max(sumAx) - min(sumAx))
+#    # plt.plot(axIndexes, sumAxNorm)
+#    # plt.plot([0, 900], [axThreshConst, axThreshConst])
+#    # plt.show()
+#    maxAxIndex = np.argmax(sumAxNorm)
+#    leftAxPointIdx = findNearest(sumAxNorm[:maxAxIndex], axThreshConst)
+#    rightAxPointIdx = findNearest(sumAxNorm[maxAxIndex:], axThreshConst) + maxAxIndex
+#    axWidth = int(abs(rightAxPointIdx - leftAxPointIdx))
+#    axCenterGrid = int((rightAxPointIdx + leftAxPointIdx)/2) # doesn't change with tresh... why???
+#    return axWidth, axCenterGrid
+#
+#def findNearest(array, value):
+#    idx = (np.abs(array - value)).argmin()
+#    return idx
+#
+#"""
+## Maybe we'll use a modified version of this later.
+#def findPlotImage(images, constant=1.9):
+#    #Find the image in which the ONH is closest to the middle of the image.
+#    xCenters = []
+#    yCenters = []
+#    binaryImages = np.zeros(images.shape)
+#    binaryImages[np.where(images >= np.mean(images)*constant)] = 1
+#    xImageShape = binaryImages[0,:,:].shape[1]
+#    yImageShape = binaryImages[0,:,:].shape[0]
+#
+#    for i in range(binaryImages.shape[0]):
+#        # Clean the images and find the middle
+#        kernel = np.ones((5,5), np.uint8)
+#        cleanBinaryIm = cv2.morphologyEx(binaryImages[i,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
+#        nonZero = np.nonzero(cleanBinaryIm)
+#        onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
+#        onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
+#        xCenter = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
+#        yCenter = int((np.max(nonZero[0]) + np.min(nonZero[0]))/2 - (onhHeight-onhWidth))
+#
+#        xCenters.append(xCenter)
+#        yCenters.append(yCenter)
+#
+#    x = np.array(xCenters) - xImageShape/2
+#    y = np.array(yCenters) - yImageShape/2
+#
+#    distance = (x**2 + y**2)**.5
+#    plotImageIndex = np.argmin(distance)
+#
+#    return plotImageIndex
+#"""
+#>>>>>>> master
 
 def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     xCenterGrid = gridParameters[0]
@@ -460,27 +495,40 @@ def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
     img[::dx,:] = gridColor
     plt.imsave('Result_old.jpg', img, cmap="gray")
 
-def plotResult(image, shiftParameters, gridParameters, rosaRadius=30, thickness=5):
-    print("Preparing plot of the result")
+
+def plotResult(image, shiftParameters, gridParameters,saturationsO2, rosaRadius=30, thickness=5,leftEye = False):
+#=======
+#def plotResult(image, shiftParameters, gridParameters, rosaRadius=30, thickness=5):
+#    print("Preparing plot of the result")
+#>>>>>>> master
     refImage = image[0,:,:]
     imageRGB = makeImageRGB(refImage)
     rescaledImage, LowSliceX, LowSliceY = rescaleImage(imageRGB, gridParameters)
     rescaledImageWithCircles = drawRosaCircles(rescaledImage, shiftParameters,
-                                                LowSliceX, LowSliceY,
-                                                rosaRadius=rosaRadius,
-                                                thickness=thickness)
+                                LowSliceX, LowSliceY,saturationsO2, rosaRadius=rosaRadius,
+                                thickness=thickness)
+#=======
+#                                                LowSliceX, LowSliceY,
+#                                                rosaRadius=rosaRadius,
+#                                                thickness=thickness)
+#>>>>>>> master
     resultImageWithGrid = drawGrid(rescaledImageWithCircles, gridParameters)
-    plt.imsave('Result.jpg', resultImageWithGrid)
+    if (leftEye == False):
+        plt.imsave('Result.jpg', resultImageWithGrid)
+    if (leftEye == True):
+        plt.imsave('Result.jpg', mirrorImage(resultImageWithGrid))
+    return resultImageWithGrid
 
 def makeImageRGB(grayImage):
     imageRGB = np.dstack((grayImage, grayImage, grayImage))
     return imageRGB
 
-def drawRosaCircles(rescaledImage, shiftParameters, LowSliceX, LowSliceY, rosaRadius=30, thickness=10, color=(0, 1, 0)):
+def drawRosaCircles(rescaledImage, shiftParameters, LowSliceX, LowSliceY,saturationO2, rosaRadius=30, thickness=10):
     xRosa = shiftParameters[0]
     yRosa = shiftParameters[1]
+    normalizedSatiration=(saturationO2-np.min(saturationO2))/(np.max(saturationO2)-np.min(saturationO2))
     for j in range(xRosa.shape[0]):
-        print(j)
+        color=(normalizedSatiration[j] , 0 , 1-normalizedSatiration[j])
         centerCoordinates = (int(xRosa[j]) + LowSliceX, int(yRosa[j]) + LowSliceY)
         image = cv2.circle(rescaledImage, centerCoordinates, rosaRadius, color, thickness)
     return rescaledImage
@@ -492,7 +540,10 @@ def rescaleImage(imageRGB, gridParameters):
     left = np.max([xCenterGrid - (length*5), 0])
     up = np.max([yCenterGrid - (length*5), 0])
     right = np.min([(5*length), (imageRGB.shape[0] - xCenterGrid)]) + xCenterGrid
-    down = np.min([(5*length), (imageRGB.shape[1] - yCenterGrid)]) + yCenterGrid
+    down  = np.min([(5*length), (imageRGB.shape[1] - yCenterGrid)]) + yCenterGrid
+#=======
+#    down = np.min([(5*length), (imageRGB.shape[1] - yCenterGrid)]) + yCenterGrid
+#>>>>>>> master
 
     temp = imageRGB[up:down, left:right,:]
     xNewCenter = xCenterGrid - left

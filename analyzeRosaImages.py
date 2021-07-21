@@ -237,7 +237,7 @@ def findLaserSpotMainCall(inImage: np.ndarray):
     return blob, recTime, found
 
 
-def findLaserSpotRecursive(redChannel, maxValue, startTime, recTime=0, thr=0.95, algoTimeoutInSeconds=0.5):
+def findLaserSpotRecursive(redChannel, maxValue, startTime, recTime=0, thr=0.95, algoTimeoutInSeconds=0.1):
     """
     Use a recursive algorithm to try to find the laser spot in the image.
     Input: redChannel(red channel of the image),

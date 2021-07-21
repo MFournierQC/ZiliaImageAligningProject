@@ -119,7 +119,7 @@ def setSaturationFlag(spectrum):
     saturationFlag=np.zeros(spectrum.data.shape[1])
     for i in range(spectrum.data.shape[1]):
         if np.max(spectrum.data[:,i]) == saturatedValue :
-            saturationFlag = 1
+            saturationFlag[i] = 1
     return saturationFlag
 
 
@@ -210,8 +210,8 @@ def getCoef(absorbance, variables):
     return allCoef
 
 def saveData(saturationFlag , oxygenSat , imageNumber , rosaLabel):
-    keptFlag=saturationFlag[imageNumber]
-    keptOxygenSat=oxygenSat[imageNumber]
+    keptFlag=saturationFlag[imageNumber. astype(int)]
+    keptOxygenSat=oxygenSat[imageNumber. astype(int)]
 
     dataDic = {
         "saturationFlag": keptFlag,
@@ -234,6 +234,7 @@ def mainAnalysis(darkRefPath = None, spectrumPath = None, componentsSpectra=r'_c
     else:
         spectrums = loadSpectrum()
     saturationFlags = setSaturationFlag(spectrums)
+    print('flags' , saturationFlags)
     print(saturationFlags)
     spectrums.data[np.isnan(spectrums.data)] = 0
     normalizedSpectrum = normalizeSpectrum(spectrums, darkRef)
@@ -255,17 +256,17 @@ def mainAnalysis(darkRefPath = None, spectrumPath = None, componentsSpectra=r'_c
 
     # print('mean concentration :', np.mean(concentration))
     # print(np.std(concentration))
-    print(concentration)
+    # print(concentration)
     # print(concentration.shape)
 
-    return concentration
+    return concentration,saturationFlags
 
 #
 # darkRefPath = r"./tests/TestSpectrums/bresilODrlp14/background.csv"
 # spectrumPath = r"./tests/TestSpectrums/bresilODrlp14/spectrum.csv"
 #
 # mainAnalysis(darkRefPath, spectrumPath)
-mainAnalysis()
+# mainAnalysis()
 
 #### This is for test
 ####### blood sample test
@@ -308,3 +309,11 @@ def bloodTest(refNameNothinInfront='./tests/TestSpectrums/blood/int75_LEDON_noth
     return concentration, absorbance
 
 # bloodTest()
+
+def meanSO2 (concentrationValues,labels):
+    uniqueLabel=np.unique(labels)
+    meanConcentration=np.zeros(uniqueLabel.shape)
+    for i in range(uniqueLabel.shape[0]):
+        meanConcentration[i]=np.mean(concentrationValues[(np.where(labels==np.array(uniqueLabel[i]))[0])])
+
+    return meanConcentration,uniqueLabel
