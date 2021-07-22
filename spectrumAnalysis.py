@@ -210,8 +210,8 @@ def getCoef(absorbance, variables):
     return allCoef
 
 def saveData(saturationFlag , oxygenSat , imageNumber , rosaLabel):
-    keptFlag=saturationFlag[imageNumber. astype(int)]
-    keptOxygenSat=oxygenSat[imageNumber. astype(int)]
+    keptFlag=saturationFlag[(imageNumber-1). astype(int)]
+    keptOxygenSat=oxygenSat[(imageNumber-1). astype(int)]
 
     dataDic = {
         "saturationFlag": keptFlag,

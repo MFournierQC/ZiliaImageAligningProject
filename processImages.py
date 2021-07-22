@@ -370,89 +370,89 @@ def defineGrid(Image) -> tuple:
     return onhCenterHorizontalCoords, onhCenterVerticalCoords, length
     # return xCenterGrid, yCenterGrid, length
 #=======
-#def oldDefineGrid(images) -> tuple:
-#    temp = np.zeros(images.shape)
-#    temp[np.where(images >= np.mean(images)*1.9)] = 1
-#    kernel = np.ones((5,5), np.uint8)
-#    openingTemp = cv2.morphologyEx(temp[0,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
-#    nonZero = np.nonzero(openingTemp)
-#    onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
-#    onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
-#    yCenterGrid = int(((np.max(nonZero[0]) + np.min(nonZero[0]))/2) - (onhHeight-onhWidth))
-#    xCenterGrid = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
-#    length = int((np.min([onhHeight, onhWidth]))/2)
-#    return xCenterGrid, yCenterGrid, length
-#
-#def defineGridParams(images, xThreshConst=.7, yThreshConst=.7):
-#    if len(images.shape) == 2:
-#        # for testing purposes
-#        plotImage = images
-#    else:
-#        plotImage = images[0,:,:]
-#    sumX = []
-#    sumY = []
-#    yIndexes = range(plotImage.shape[0])
-#    xIndexes = range(plotImage.shape[1])
-#    for i in yIndexes:
-#        sumY.append(sum(plotImage[i,:]))
-#    for j in xIndexes:
-#        sumX.append(sum(plotImage[:,j]))
-#
-#    xWidth, xCenterGrid = findONHParamsFromAxisSums(sumX, xIndexes, xThreshConst)
-#    yWidth, yCenterGrid = findONHParamsFromAxisSums(sumY, yIndexes, yThreshConst)
-#
-#    gridLength = max(xWidth, yWidth)
-#    return xCenterGrid, yCenterGrid, gridLength
-#
-#def findONHParamsFromAxisSums(sumAx, axIndexes, axThreshConst):
-#    sumAx = np.array(sumAx)
-#    sumAxNorm = (sumAx - min(sumAx))/(max(sumAx) - min(sumAx))
-#    # plt.plot(axIndexes, sumAxNorm)
-#    # plt.plot([0, 900], [axThreshConst, axThreshConst])
-#    # plt.show()
-#    maxAxIndex = np.argmax(sumAxNorm)
-#    leftAxPointIdx = findNearest(sumAxNorm[:maxAxIndex], axThreshConst)
-#    rightAxPointIdx = findNearest(sumAxNorm[maxAxIndex:], axThreshConst) + maxAxIndex
-#    axWidth = int(abs(rightAxPointIdx - leftAxPointIdx))
-#    axCenterGrid = int((rightAxPointIdx + leftAxPointIdx)/2) # doesn't change with tresh... why???
-#    return axWidth, axCenterGrid
-#
-#def findNearest(array, value):
-#    idx = (np.abs(array - value)).argmin()
-#    return idx
-#
-#"""
-## Maybe we'll use a modified version of this later.
-#def findPlotImage(images, constant=1.9):
-#    #Find the image in which the ONH is closest to the middle of the image.
-#    xCenters = []
-#    yCenters = []
-#    binaryImages = np.zeros(images.shape)
-#    binaryImages[np.where(images >= np.mean(images)*constant)] = 1
-#    xImageShape = binaryImages[0,:,:].shape[1]
-#    yImageShape = binaryImages[0,:,:].shape[0]
-#
-#    for i in range(binaryImages.shape[0]):
-#        # Clean the images and find the middle
-#        kernel = np.ones((5,5), np.uint8)
-#        cleanBinaryIm = cv2.morphologyEx(binaryImages[i,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
-#        nonZero = np.nonzero(cleanBinaryIm)
-#        onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
-#        onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
-#        xCenter = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
-#        yCenter = int((np.max(nonZero[0]) + np.min(nonZero[0]))/2 - (onhHeight-onhWidth))
-#
-#        xCenters.append(xCenter)
-#        yCenters.append(yCenter)
-#
-#    x = np.array(xCenters) - xImageShape/2
-#    y = np.array(yCenters) - yImageShape/2
-#
-#    distance = (x**2 + y**2)**.5
-#    plotImageIndex = np.argmin(distance)
-#
-#    return plotImageIndex
-#"""
+def oldDefineGrid(images) -> tuple:
+   temp = np.zeros(images.shape)
+   temp[np.where(images >= np.mean(images)*1.9)] = 1
+   kernel = np.ones((5,5), np.uint8)
+   openingTemp = cv2.morphologyEx(temp[0,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
+   nonZero = np.nonzero(openingTemp)
+   onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
+   onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
+   yCenterGrid = int(((np.max(nonZero[0]) + np.min(nonZero[0]))/2) - (onhHeight-onhWidth))
+   xCenterGrid = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
+   length = int((np.min([onhHeight, onhWidth]))/2)
+   return xCenterGrid, yCenterGrid, length
+
+def defineGridParams(images, xThreshConst=.7, yThreshConst=.7):
+   if len(images.shape) == 2:
+       # for testing purposes
+       plotImage = images
+   else:
+       plotImage = images[0,:,:]
+   sumX = []
+   sumY = []
+   yIndexes = range(plotImage.shape[0])
+   xIndexes = range(plotImage.shape[1])
+   for i in yIndexes:
+       sumY.append(sum(plotImage[i,:]))
+   for j in xIndexes:
+       sumX.append(sum(plotImage[:,j]))
+
+   xWidth, xCenterGrid = findONHParamsFromAxisSums(sumX, xIndexes, xThreshConst)
+   yWidth, yCenterGrid = findONHParamsFromAxisSums(sumY, yIndexes, yThreshConst)
+
+   gridLength = max(xWidth, yWidth)
+   return xCenterGrid, yCenterGrid, gridLength
+
+def findONHParamsFromAxisSums(sumAx, axIndexes, axThreshConst):
+   sumAx = np.array(sumAx)
+   sumAxNorm = (sumAx - min(sumAx))/(max(sumAx) - min(sumAx))
+   # plt.plot(axIndexes, sumAxNorm)
+   # plt.plot([0, 900], [axThreshConst, axThreshConst])
+   # plt.show()
+   maxAxIndex = np.argmax(sumAxNorm)
+   leftAxPointIdx = findNearest(sumAxNorm[:maxAxIndex], axThreshConst)
+   rightAxPointIdx = findNearest(sumAxNorm[maxAxIndex:], axThreshConst) + maxAxIndex
+   axWidth = int(abs(rightAxPointIdx - leftAxPointIdx))
+   axCenterGrid = int((rightAxPointIdx + leftAxPointIdx)/2) # doesn't change with tresh... why???
+   return axWidth, axCenterGrid
+
+def findNearest(array, value):
+   idx = (np.abs(array - value)).argmin()
+   return idx
+
+"""
+# Maybe we'll use a modified version of this later.
+def findPlotImage(images, constant=1.9):
+   #Find the image in which the ONH is closest to the middle of the image.
+   xCenters = []
+   yCenters = []
+   binaryImages = np.zeros(images.shape)
+   binaryImages[np.where(images >= np.mean(images)*constant)] = 1
+   xImageShape = binaryImages[0,:,:].shape[1]
+   yImageShape = binaryImages[0,:,:].shape[0]
+
+   for i in range(binaryImages.shape[0]):
+       # Clean the images and find the middle
+       kernel = np.ones((5,5), np.uint8)
+       cleanBinaryIm = cv2.morphologyEx(binaryImages[i,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
+       nonZero = np.nonzero(cleanBinaryIm)
+       onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
+       onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
+       xCenter = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
+       yCenter = int((np.max(nonZero[0]) + np.min(nonZero[0]))/2 - (onhHeight-onhWidth))
+
+       xCenters.append(xCenter)
+       yCenters.append(yCenter)
+
+   x = np.array(xCenters) - xImageShape/2
+   y = np.array(yCenters) - yImageShape/2
+
+   distance = (x**2 + y**2)**.5
+   plotImageIndex = np.argmin(distance)
+
+   return plotImageIndex
+"""
 #>>>>>>> master
 
 def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
