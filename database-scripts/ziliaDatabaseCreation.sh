@@ -1,1 +1,0 @@
-find . -name "*csv" > bloodfiles.txt

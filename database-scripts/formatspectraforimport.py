@@ -34,7 +34,7 @@ for line in lines:
         values.pop(0) # ref
 
         for col, intensity in enumerate(values):
-            print(f'{wavelength},{intensity},raw {col},{hash}')
+            print(f'{wavelength},{intensity},null,{filepath},raw {col},{hash}')
 # # Must be wavelength, intensity, fileId, column, path, md5, backgroundCorrected, normalized
 # for curve in data.curves:
 #     nPts = len(curve.x)
