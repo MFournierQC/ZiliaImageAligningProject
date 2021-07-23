@@ -3,7 +3,8 @@
 # Zilia dataset
 
 1. create tables
-2. 
+2. import the path+md5 created from `find . -name -exec md5 {} \;`
+3. `ziliatableExtractMetadata.sql`
 
 # Zilia Questions
 
