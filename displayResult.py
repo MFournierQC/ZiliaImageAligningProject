@@ -30,21 +30,14 @@ def colorMapRange (firstImage,secondImage):
 
 def matrixSO2(labels,saturationValues,leftEye=False):
     yLabel = np.array(['A', 'B', 'C', 'D', 'E', 'F', 'J', 'K', 'L', 'M'])
-    # if leftEye==False :
     xLabel = np.array(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])
-
-    # if leftEye==True :
-    #     xLabel = np.array(['10', '9', '8', '7', '6', '5', '4', '3', '2', '1'])
-
-        
     concentrationMatrix = np.zeros([10, 10])
 
     for i in range(saturationValues.shape[0]):
         splitLabel = np.array(list(labels[i]))
 
-
-        concentrationMatrix[int(np.where(np.array(splitLabel[1]) == yLabel)[0]),
-            int(np.where(np.array(splitLabel[0]) == xLabel)[0])] =saturationValues[i]
+        concentrationMatrix[ int(np.where(np.array(splitLabel[0]) == xLabel)[0]),
+            int(np.where(np.array(splitLabel[1]) == yLabel)[0])] =saturationValues[i]
     
     return concentrationMatrix
 
@@ -56,66 +49,3 @@ def testPlot():
     SO2 = np.random.rand(10, 10)
     display(eye1,eye2,SO1,SO2)
     return None
-
-# xLabel = np.array(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])
-# a= np.array(['4B'])
-# k=np.array(list(a[0]))
-# print(list(a[0]))
-#
-# print(  (np.where(k[0] == xLabel)[0]) )
-###################
-
-# def moving_average(x, w):
-#     return np.convolve(x, np.ones(w), 'valid') / w
-# 
-# from skimage.io import imread
-# import numpy as np
-# import matplotlib.pyplot as plt
-# import matplotlib.image as mpimg
-# from skimage import color
-# import scipy
-# 
-# img=imread('/Users/elahe/Documents/Bresil 1511184-20210525T145240Z-001/Bresil 1511184/20210316-095955-bresil-od-onh-rlp2/001-eye.jpg')
-# # img=imread('/Users/elahe/Documents/Bresil 1511184-20210525T145240Z-001/Bresil 1511184/20210316-100153-bresil-od-onh-rlp6/001-eye.jpg')
-# 
-# img[:,:,2]=0
-# 
-# imgGray = color.rgb2gray(img)**1.5
-# # imgGray=img[:,:,0]
-# # imgGray=(imgGray-np.min(imgGray))/(np.max(imgGray)-np.min(imgGray))
-# 
-# Threshold = 0.4
-# w=10
-# L=np.mean(imgGray,axis=0)
-# L=(L-np.min(L))/(np.max(L)-np.min(L))
-# L=np.round(L,2)
-# dL = np.gradient(L)
-# 
-# 
-# 
-# # print(np.min(np.where(dL > 0.0051)))
-# # print(np.max(np.where(dL > 0.0051)))
-# H=np.mean(imgGray,axis=1)
-# H=(H-np.min(H))/(np.max(H)-np.min(H))
-# 
-# H=np.round(H,2)
-# dH = np.gradient(H)
-# # print(np.min(np.where(dH > 0.005)))
-# # print(np.max(np.where(dH > 0.005)))
-# 
-# plt.imshow(imgGray)
-# plt.show()
-# 
-# plt.plot(L)
-# 
-# 
-# plt.show()
-# 
-# plt.plot(np.abs(dL))
-# plt.show()
-# 
-# plt.plot(H)
-# plt.show()
-# 
-# plt.plot(np.abs(dH))
-# plt.show()
