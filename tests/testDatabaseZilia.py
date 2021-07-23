@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 dbPath = 'test.db'
-ziliaDb = 'zilia.db'
+ziliaDb = '../zilia.db'
 
 class TestZilia(env.DCCLabTestCase):
     def testZiliaDBCreation(self):

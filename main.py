@@ -35,11 +35,13 @@ leftEye = False
 newImages = True
 
 grayImage = loadImages(collectionDir, leftEye=leftEye, newImages=newImages)
-# dataDictionary = seperateImages(grayImage, collectionDir)
+
+
 dataDictionary = seperateNewImages(grayImage, collectionDir)
 dataDictionary = removeBadImages(dataDictionary)
 
 image = dataDictionary["image"]
+print("image shape" , image.shape)
 laser = dataDictionary["laserImage"]
 xLaser = dataDictionary["xCenter"]
 yLaser = dataDictionary["yCenter"]
@@ -54,8 +56,6 @@ gridParameters = defineGrid(image)
 
 Label, dataDictionary, indexesToRemove = placeRosa(gridParameters, shiftParameters, dataDictionary)
 print(Label)
-# print(Label)
-# print(dataDictionary["imageNumber"])
 
 shiftParameters = cleanShiftParameters(shiftParameters, indexesToRemove)
 
@@ -112,15 +112,12 @@ shiftParameters = cleanShiftParameters(shiftParameters, indexesToRemove)
 concentration, saturationFlag = mainAnalysis()
 
 b= plotResult(image, shiftParameters, gridParameters,concentration,leftEye=True)
-# oldPlotResult(image, shiftParameters, gridParameters)
+
 
 # so2 analysis
 
 
 SO2Dictionary=saveData(saturationFlag, concentration , imageNumber , Label)
-
-# label=np.array(['A1','B2','C3','B2','B2','A1'])
-# concentrationValues=np.array([1,2,3,4,5,1])
 
 meanC,lab=meanSO2(SO2Dictionary["oxygenSat"],SO2Dictionary["rosaLabel"])
 plotSO2_left= matrixSO2(lab,meanC,leftEye=True)
