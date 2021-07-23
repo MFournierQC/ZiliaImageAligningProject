@@ -1,13 +1,16 @@
 from dcclab.database import *
 import numpy as np
+from skimage.io import imread
+from skimage.color import rgb2gray
 
 class ZiliaDB(Database):
     statementFromAllJoin = "from spectra as s, spectralfiles as f, monkeys as m where s.md5 = f.md5 and f.monkeyId = m.monkeyId"
     statementFromSpectra = "from spectra as s"
 
-    def __init__(self, ziliaDbPath='zilia.db'):
+    def __init__(self, ziliaDbPath='zilia.db', root="/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"):
         super().__init__(ziliaDbPath, writePermission=False)
         self._wavelengths = None
+        self.root = root
 
     @property
     def wavelengths(self):
@@ -87,6 +90,46 @@ class ZiliaDB(Database):
         for row in rows:
             names.append(row['name'])
         return names
+
+    def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None):
+        stmnt = r"select path from imagefiles as f, monkeys as m where m.monkeyId = f.monkeyId "
+
+        if monkey is not None:
+            stmnt += " and (m.monkeyId = '{0}' or m.name = '{0}')".format(monkey)
+
+        if rlp is not None:
+            stmnt += " and rlp = {0}".format(rlp)
+
+        if content is not None:
+            stmnt += " and content = '{0}'".format(content)
+
+        if region is not None:
+            stmnt += " and f.region = '{0}'".format(region)
+
+        if timeline is not None:
+            stmnt += " and f.timeline like '%{0}%'".format(timeline)
+
+        self.execute(stmnt)
+        rows = self.fetchAll()
+
+        images = []
+        for row in rows:
+            relativePath = row['path']
+            absolutePath = "{0}/{1}".format(self.root, relativePath)
+            image = imread(absolutePath)
+            images.append(image)
+            print("Loading {0}".format(absolutePath))
+
+        return images
+
+    def getGrayscaleEyeImages(self, monkey=None, timeline=None, rlp=None, region=None):
+        images = self.getRGBImages(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content='eye')
+        grayscaleImages = []
+        for image in images:
+            image[:,:,2] = 0 # For eye images, always strip blue channel before conversion
+            grayscaleImages.append(rgb2gray(image))
+
+        return grayscaleImages
 
     def getRawIntensities(self, monkey=None, timeline=None ,region=None, column=None):
         stmnt = r"select s.wavelength, s.intensity, s.md5, s.column {0} ".format(self.statementFromAllJoin)

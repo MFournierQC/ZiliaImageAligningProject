@@ -5,6 +5,8 @@ from zilia import *
 import unittest
 import os
 import numpy as np
+from skimage.io import imread
+
 
 dbPath = 'test.db'
 ziliaDb = '../zilia.db'
@@ -59,18 +61,52 @@ class TestZilia(env.DCCLabTestCase):
         self.assertIsNotNone(spectra)
         print(spectra.shape)
 
-    def testGetSaturatedSpectralRAnge(self):
+    def testGetIntensities(self):
         db=ZiliaDB(ziliaDb)
         self.assertIsNotNone(db)
-        db.execute('select min(wavelength), max(wavelength), f.path from bloodspectra as s, bloodfiles as f where s.intensity == 65535 and s.wavelength > 530  and f.md5 = s.md5 group by s.md5;')
-        rows = db.fetchAll()
-        print(rows)
 
-    def testGetBloodSpectra(self):
+    def testGetEyeImages(self):
+        root="/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"
         db=ZiliaDB(ziliaDb)
         self.assertIsNotNone(db)
-        wavelengths, spectra, saturation = db.getBloodIntensities()
-        print(spectra, saturation)
+        db.execute("select path from imagefiles where content='eye' and rlp = 34 and timeline='baseline 3' limit 10 ")
+        rows = db.fetchAll()
+
+        for row in rows:
+            relativePath = row['path']
+            absolutePath = "{0}/{1}".format(root, relativePath)
+            image = imread(absolutePath)
+            self.assertIsNotNone(image)
+            self.assertEqual(image.shape, (1024, 1216, 3))
+
+    def testGetEyeImagesFromDatabase(self):
+        root="/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"
+        db=ZiliaDB(ziliaDb)
+        self.assertIsNotNone(db)
+        images = db.getRGBImages(rlp=34, timeline='baseline 3', region='onh', content='eye')
+        self.assertTrue(len(images) > 0)
+
+    def testGetGrayscaleEyeImagesFromDatabase(self):
+        root="/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"
+        db=ZiliaDB(ziliaDb)
+        self.assertIsNotNone(db)
+        images = db.getGrayscaleEyeImages(rlp=34, timeline='baseline 3', region='onh')
+        self.assertTrue(len(images) > 0)
+        for image in images:
+            self.assertEqual(image.shape, (1024, 1216))
+
+    # def testGetSaturatedSpectralRAnge(self):
+    #     db=ZiliaDB(ziliaDb)
+    #     self.assertIsNotNone(db)
+    #     db.execute('select min(wavelength), max(wavelength), f.path from bloodspectra as s, bloodfiles as f where s.intensity == 65535 and s.wavelength > 530  and f.md5 = s.md5 group by s.md5;')
+    #     rows = db.fetchAll()
+    #     print(rows)
+
+    # def testGetBloodSpectra(self):
+    #     db=ZiliaDB(ziliaDb)
+    #     self.assertIsNotNone(db)
+    #     wavelengths, spectra, saturation = db.getBloodIntensities()
+    #     print(spectra, saturation)
 
 if __name__ == '__main__':
     unittest.main()
