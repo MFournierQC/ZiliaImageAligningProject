@@ -51,11 +51,8 @@ indexShift = findImageShift(image)
 shiftParameters = applyShift(xLaser, yLaser, indexShift)
 gridParameters = defineGrid(image)
 
-Label, dataDictionary, indexesToRemove = placeRosa(gridParameters, shiftParameters, dataDictionary)
+Label, dataDictionary, shiftParameters = getRosaLabels(gridParameters, shiftParameters, dataDictionary)
 print(Label)
-
-shiftParameters = cleanShiftParameters(shiftParameters, indexesToRemove)
-
 
 concentration, saturationFlag = mainAnalysis()
 
@@ -97,13 +94,8 @@ indexShift = findImageShift(image)
 shiftParameters = applyShift(xLaser, yLaser, indexShift)
 gridParameters = defineGridParams(image)
 
-Label, dataDictionary, indexesToRemove = placeRosa(gridParameters, shiftParameters, dataDictionary)
+Label, dataDictionary, shiftParameters = getRosaLabels(gridParameters, shiftParameters, dataDictionary)
 print(Label)
-# print(Label)
-# print(dataDictionary["imageNumber"])
-
-shiftParameters = cleanShiftParameters(shiftParameters, indexesToRemove)
-
 
 concentration, saturationFlag = mainAnalysis()
 

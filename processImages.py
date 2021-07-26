@@ -36,8 +36,8 @@ def removeBadImages(dataDictionary) -> dict:
     for i in range(image.shape[0]):
         temp = image[i,:,:]
         temp = 256*((temp - np.min(temp))/(np.max(temp) - np.min(temp)))
-        resLap = cv2.Laplacian(temp, cv2.CV_64F)
-        score = resLap.var()
+        resultLaplacian = cv2.Laplacian(temp, cv2.CV_64F)
+        score = resultLaplacian.var()
         scoreArray = np.hstack((ii, score))
 
     Threshold = np.mean(scoreArray) + np.std(scoreArray)
@@ -195,8 +195,7 @@ def crossImage(im1, im2) -> np.ndarray:
     cross = scipy.signal.fftconvolve(im1, im2[::-1,::-1], mode='same')
     return cross
 
-#rename locateRosa
-def placeRosa(gridParameters, shiftParameters, dataDictionary) -> list:
+def getRosaLabels(gridParameters, shiftParameters, dataDictionary) -> list:
     xCenterGrid = gridParameters[0]
     yCenterGrid = gridParameters[1]
     length = gridParameters[2]
@@ -238,11 +237,12 @@ def placeRosa(gridParameters, shiftParameters, dataDictionary) -> list:
     # Remove images out of boundaries
     if imageIndexesToRemove != []:
         print("Removing images because the ROSA is out of the grid.")
+        shiftParameters = cleanShiftParameters(shiftParameters, indexesToRemove)
         imageDataDictionary = removeImagesFromIndex(dataDictionary, imageIndexesToRemove)
     else:
         imageDataDictionary = dataDictionary
 
-    return outputLabels, imageDataDictionary, imageIndexesToRemove
+    return outputLabels, imageDataDictionary, shiftParameters
 
 def removeImagesFromIndex(dataDictionary, indexes):
     image = dataDictionary["image"]
@@ -278,8 +278,8 @@ def cleanShiftParameters(shiftParameters, indexesToRemove):
     return xShift, yShift
 
 
-def defineGrid(Image) -> tuple:
-    imgGray=Image[0,:,:]
+def defineGrid(Image):
+    imgGray = Image[0,:,:]
     meanVal = np.mean(imgGray)
     imgGray = (imgGray - np.min(imgGray)) / (np.max(imgGray) - np.min(imgGray))
     W = np.mean(imgGray, axis=0)
