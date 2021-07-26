@@ -88,5 +88,11 @@ class TestZilia(env.DCCLabTestCase):
         paths = self.db.getSpectraPaths()
         self.assertTrue(len(paths) > 1000)
 
+    def testGetCalculatedProperties(self):
+        records = self.db.getCalculatedProperties(rlp=34, timeline='baseline 3', region='onh', content='eye')
+        self.assertTrue(len(records) > 0)
+        for record in records:
+            print(record)
+
 if __name__ == '__main__':
     unittest.main()

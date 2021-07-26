@@ -3,12 +3,15 @@ import numpy as np
 from skimage.io import imread
 from skimage.color import rgb2gray
 
+
 class ZiliaDB(Database):
     statementFromAllJoin = "from spectra as s, spectralfiles as f, monkeys as m where s.md5 = f.md5 and f.monkeyId = m.monkeyId"
     statementFromSpectra = "from spectra as s"
 
-    databaseCandidates = ["zilia.db", "../zilia.db", "/Volumes/Goliath/labdata/dcclab/zilia/zilia.db", "z:/Goliath/labdata/dcclab/zilia/zilia.db"]
-    rootCandidates = [".", "..", "/Volumes/Goliath/labdata/dcclab/zilia", "z:/labdata/dcclab/zilia", "U:/labdata/dcclab/zilia", "/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"]
+    databaseCandidates = ["zilia.db", "../zilia.db", "/Volumes/Goliath/labdata/dcclab/zilia/zilia.db", 
+    "z:/Goliath/labdata/dcclab/zilia/zilia.db"]
+    rootCandidates = [".", "..", "/Volumes/Goliath/labdata/dcclab/zilia", "z:/labdata/dcclab/zilia", 
+    "U:/labdata/dcclab/zilia", "/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"]
 
     @classmethod
     def findDatabasePath(cls) -> str:
@@ -31,6 +34,13 @@ class ZiliaDB(Database):
         return None
 
     def __init__(self, ziliaDbPath=None, root=None):  
+        """
+        Creates the database object for the ZIlia experiments.
+
+        The path to the database can be obtained dynamically. The root directory is not mandatory: it simply means you will not be able to 
+        read image files if it is None.
+
+        """
         if ziliaDbPath is None:
             ziliaDbPath = ZiliaDB.findDatabasePath()
         if root is None:
@@ -138,9 +148,9 @@ class ZiliaDB(Database):
 
     def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
         if self.root is None:
-            raise RuntimeError('You must provide a root directory for the data files')
+            raise RuntimeError('To read image files, you must provide a root directory')
 
-        stmnt = r"select path from imagefiles as f, monkeys as m where m.monkeyId = f.monkeyId "
+        stmnt = r"select f.path, group_concat(c.property), group_concat(c.value) from imagefiles as f inner join monkeys as m on m.monkeyId = f.monkeyId left join calculations as c on c.path = f.path group by f.path"
 
         if monkey is not None:
             stmnt += " and (m.monkeyId = '{0}' or m.name = '{0}')".format(monkey)
@@ -196,6 +206,60 @@ class ZiliaDB(Database):
             grayscaleImages.append(rgb2gray(image))
 
         return grayscaleImages
+
+    def getCalculatedProperties(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
+        if self.root is None:
+            raise RuntimeError('To read image files, you must provide a root directory')
+
+        stmnt = r"select f.path, group_concat(c.property) as property, group_concat(c.value) as value from imagefiles as f left join monkeys as m on m.monkeyId = f.monkeyId left join calculations as c on c.path = f.path group by f.path"
+
+        if monkey is not None:
+            stmnt += " and (m.monkeyId = '{0}' or m.name = '{0}')".format(monkey)
+
+        if rlp is not None:
+            stmnt += " and f.rlp = {0}".format(rlp)
+
+        if eye is not None:
+            stmnt += " and f.eye = '{0}'".format(eye)
+
+        if content is not None:
+            stmnt += " and f.content = '{0}'".format(content)
+
+        if region is not None:
+            stmnt += " and f.region = '{0}'".format(region)
+
+        if timeline is not None:
+            stmnt += " and f.timeline like '%{0}%'".format(timeline)
+            
+        if eye is not None:
+            stmnt += " and f.eye like '%{0}%'".format(eye)
+
+        stmnt += " order by f.path"
+
+        if limit is not None:
+            stmnt += " limit {0}".format(limit)
+
+
+        self.execute(stmnt)
+        rows = self.fetchAll()
+
+        records = []
+        nTotal = len(rows)
+        for i,row in enumerate(rows):
+            record = {}
+            
+            for property in row.keys():
+                record[property] = row[property]
+
+            properties = row['property'].split(',')            
+            values = row['value'].split(',')
+            for property, value in zip(properties, values):
+                record[property] = value
+
+            records.append(record)
+            self.showProgressBar(i+1, nTotal)
+
+        return records
 
     def getRawIntensities(self, monkey=None, timeline=None ,region=None, column=None):
         stmnt = r"select s.wavelength, s.intensity, s.md5, s.column {0} ".format(self.statementFromAllJoin)
