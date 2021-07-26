@@ -91,6 +91,22 @@ class ZiliaDB(Database):
             names.append(row['name'])
         return names
 
+    def getImagePaths(self):
+        self.execute("select path from imagefiles order by path")
+        rows = self.fetchAll()
+        paths = []
+        for row in rows:
+            paths.append(row['path'])
+        return paths
+
+    def getSpectraPaths(self):
+        self.execute("select path from spectralfiles order by path")
+        rows = self.fetchAll()
+        paths = []
+        for row in rows:
+            paths.append(row['path'])
+        return paths
+
     def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None):
         stmnt = r"select path from imagefiles as f, monkeys as m where m.monkeyId = f.monkeyId "
 

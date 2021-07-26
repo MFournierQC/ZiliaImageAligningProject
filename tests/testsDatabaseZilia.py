@@ -88,12 +88,29 @@ class TestZilia(env.DCCLabTestCase):
 
     def testGetGrayscaleEyeImagesFromDatabase(self):
         root="/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"
-        db=ZiliaDB(ziliaDb)
+        db=ZiliaDB(ziliaDb,root=root)
         self.assertIsNotNone(db)
         images = db.getGrayscaleEyeImages(rlp=34, timeline='baseline 3', region='onh')
         self.assertTrue(len(images) > 0)
         for image in images:
             self.assertEqual(image.shape, (1024, 1216))
+
+    def testGetImagePaths(self):
+        root="/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"
+        db=ZiliaDB(ziliaDb,root=root)
+        self.assertIsNotNone(db)
+        paths = db.getImagePaths()
+        self.assertTrue(len(paths) > 1000)
+
+
+    def testGetSpectraPaths(self):
+        root="/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"
+        db=ZiliaDB(ziliaDb,root=root)
+        self.assertIsNotNone(db)
+        paths = db.getSpectraPaths()
+        self.assertTrue(len(paths) > 1000)
+
+
 
     # def testGetSaturatedSpectralRAnge(self):
     #     db=ZiliaDB(ziliaDb)
