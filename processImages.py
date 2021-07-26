@@ -15,42 +15,6 @@ from tkinter.filedialog import askdirectory
 import fnmatch
 import os
 
-
-def mirrorImage(image) -> np.ndarray:
-    mirroredImage = image[:,:,::-1]
-    return mirroredImage
-
-def removeBadImages(dataDictionary) -> dict:
-    """
-    Purpose: remove images with low contrast or blurry
-    1- use laplacian filter to remove blury images
-    2- use average intensity in retinal images for thresholding
-    input: series of retina images, series of rosa images, x,y, radius of the rosa center,
-           image number in the original folder
-    output: reduced data
-    """
-    image = dataDictionary["image"]
-
-    index = np.array([])
-    ii = np.array([])
-    for i in range(image.shape[0]):
-        temp = image[i,:,:]
-        temp = 256*((temp - np.min(temp))/(np.max(temp) - np.min(temp)))
-        resultLaplacian = cv2.Laplacian(temp, cv2.CV_64F)
-        score = resultLaplacian.var()
-        scoreArray = np.hstack((ii, score))
-
-    Threshold = np.mean(scoreArray) + np.std(scoreArray)
-    indexToRemove = np.where(scoreArray < Threshold)
-    if len(indexToRemove[0]) != 0:
-        # Some images are too blurry, let's remove them
-        cleanDataDictionary = removeImagesFromIndex(dataDictionary, indexToRemove)
-        print("Removed some images because they were too blurry.")
-    else:
-        cleanDataDictionary = dataDictionary
-
-    return cleanDataDictionary
-
 def listFileNames(directory: str, extension="jpg") -> list:
     foundFiles = []
     for file in os.listdir(directory):
@@ -58,7 +22,7 @@ def listFileNames(directory: str, extension="jpg") -> list:
             foundFiles.append(file)
     return foundFiles
 
-def getFiles(directory: str, extension="jpg", newImages=True, listNames=False) -> list:
+def getFiles(directory: str, extension="jpg", newImages=True, listNames=False):
     sortedListOfFiles = np.sort(listFileNames(directory, extension))
     filteredFilePaths = []
     filteredFileNames = []
@@ -85,14 +49,18 @@ def loadImages(collectionDir: str, leftEye=False, extension="jpg", newImages=Tru
     Output is a series of grayscale images
     """
     files = getFiles(collectionDir, extension=extension, newImages=newImages)
-    imageCollection = imread_collection(files)# imports as RGB image
+    imageCollection = imread_collection(files)
     grayImages = np.zeros((len(imageCollection), imageCollection[0].shape[0], imageCollection[0].shape[1]))
     for i in range(len(imageCollection)):
         imageCollection[i][:,:,2] = 0
         grayImages[i,:,:] = rgb2gray(imageCollection[i])
     if leftEye:
-        grayImages=mirrorImage(grayImages)
+        grayImages = mirrorImage(grayImages)
     return grayImages
+
+def mirrorImage(image) -> np.ndarray:
+    mirroredImage = image[:,:,::-1]
+    return mirroredImage
 
 def seperateImages(grayImageCollection, collectionDir: str, extension="jpg"):
     """
@@ -144,6 +112,37 @@ def seperateImages(grayImageCollection, collectionDir: str, extension="jpg"):
         "imageNumber": imageNumber
     }
     return imageDataDictionary
+
+def removeBadImages(dataDictionary) -> dict:
+    """
+    Purpose: remove images with low contrast or blurry
+    1- use laplacian filter to remove blury images
+    2- use average intensity in retinal images for thresholding
+    input: series of retina images, series of rosa images, x,y, radius of the rosa center,
+           image number in the original folder
+    output: reduced data
+    """
+    image = dataDictionary["image"]
+
+    index = np.array([])
+    ii = np.array([])
+    for i in range(image.shape[0]):
+        temp = image[i,:,:]
+        temp = 256*((temp - np.min(temp))/(np.max(temp) - np.min(temp)))
+        resultLaplacian = cv2.Laplacian(temp, cv2.CV_64F)
+        score = resultLaplacian.var()
+        scoreArray = np.hstack((ii, score))
+
+    Threshold = np.mean(scoreArray) + np.std(scoreArray)
+    indexToRemove = np.where(scoreArray < Threshold)
+    if len(indexToRemove[0]) != 0:
+        # Some images are too blurry, let's remove them
+        cleanDataDictionary = removeImagesFromIndex(dataDictionary, indexToRemove)
+        print("Removed some images because they were too blurry.")
+    else:
+        cleanDataDictionary = dataDictionary
+
+    return cleanDataDictionary
 
 def findImageShift(Image: np.ndarray, Margin=250, N=100) -> np.ndarray:
     """
@@ -277,7 +276,6 @@ def cleanShiftParameters(shiftParameters, indexesToRemove):
     yShift = np.delete(yShift, indexesToRemove)
     return xShift, yShift
 
-
 def defineGrid(Image):
     imgGray = Image[0,:,:]
     meanVal = np.mean(imgGray)
@@ -286,21 +284,21 @@ def defineGrid(Image):
     W = (W - np.min(W)) / (np.max(W) - np.min(W))
     W = np.round(W, 2)
     onhWidth = np.max(np.where(W > 0.50)) - np.min(np.where(W > 0.50))
-    onhCenterHorizontalCoords = int ( np.min(np.where(W > 0.50)) + onhWidth/2 )
+    onhCenterXCoords = int ( np.min(np.where(W > 0.50)) + onhWidth/2 )
 
     H = np.mean(imgGray, axis=1)
     H = (H - np.min(H)) / (np.max(H) - np.min(H))
     H = np.round(H, 2)
     onhHeight = np.max(np.where(H > np.min([meanVal * 4, 0.50]))) - np.min(np.where(H > meanVal * 2))
-    onhCenterVerticalCoords = int( (np.min(np.where(H > meanVal * 2)) + onhHeight/2)-(onhHeight-onhWidth)/2 )
+    onhCenterYCoords = int( (np.min(np.where(H > meanVal * 2)) + onhHeight/2)-(onhHeight-onhWidth)/2 )
     length = int((np.min([onhHeight, onhWidth])) / 2)
-    return onhCenterHorizontalCoords, onhCenterVerticalCoords, length
+    return onhCenterXCoords, onhCenterYCoords, length
 
-def oldDefineGrid(images) -> tuple:
+def oldDefineGrid(images):
    temp = np.zeros(images.shape)
    temp[np.where(images >= np.mean(images)*1.9)] = 1
    kernel = np.ones((5,5), np.uint8)
-   openingTemp = cv2.morphologyEx(temp[0,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
+   openingTemp = cv2.morphologyEx(temp[0,:,:], cv2.MORPH_OPEN, kernel)
    nonZero = np.nonzero(openingTemp)
    onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
    onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
