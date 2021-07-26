@@ -150,35 +150,7 @@ class ZiliaDB(Database):
         if self.root is None:
             raise RuntimeError('To read image files, you must provide a root directory')
 
-        stmnt = r"select f.path, group_concat(c.property), group_concat(c.value) from imagefiles as f inner join monkeys as m on m.monkeyId = f.monkeyId left join calculations as c on c.path = f.path group by f.path"
-
-        if monkey is not None:
-            stmnt += " and (m.monkeyId = '{0}' or m.name = '{0}')".format(monkey)
-
-        if rlp is not None:
-            stmnt += " and f.rlp = {0}".format(rlp)
-
-        if eye is not None:
-            stmnt += " and f.eye = '{0}'".format(eye)
-
-        if content is not None:
-            stmnt += " and f.content = '{0}'".format(content)
-
-        if region is not None:
-            stmnt += " and f.region = '{0}'".format(region)
-
-        if timeline is not None:
-            stmnt += " and f.timeline like '%{0}%'".format(timeline)
-            
-        if eye is not None:
-            stmnt += " and f.eye like '%{0}%'".format(eye)
-
-        stmnt += " order by f.path"
-
-        if limit is not None:
-            stmnt += " limit {0}".format(limit)
-
-
+        stmnt = self.buildImageSelectStatement(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content=content, eye=eye, limit=limit)
         self.execute(stmnt)
         rows = self.fetchAll()
 
