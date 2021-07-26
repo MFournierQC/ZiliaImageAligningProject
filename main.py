@@ -2,7 +2,6 @@ from processImages import *
 from spectrumAnalysis import *
 from displayResult import *
 
-
 # New data:
 # collectionDir = r"./tests/TestImages/miniTestSampleNewData"
 collectionDir="/Users/elahe/Documents/Bresil 1511184-20210525T145240Z-001/Bresil 1511184/20210316-100153-bresil-od-onh-rlp6"
@@ -61,7 +60,6 @@ shiftParameters = cleanShiftParameters(shiftParameters, indexesToRemove)
 concentration, saturationFlag = mainAnalysis()
 
 a= plotResult(image, shiftParameters, gridParameters,concentration)
-# oldPlotResult(image, shiftParameters, gridParameters)
 
 # so2 analysis
 

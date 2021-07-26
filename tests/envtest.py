@@ -32,10 +32,6 @@ class ZiliaTestCase(unittest.TestCase):
         return ZiliaTestCase.testFilesRootDirectory + r"/smallFiles"
 
     @property
-    def testCV2CircleDirectory(self):
-        return ZiliaTestCase.testFilesRootDirectory + r"/testsCV2Circle"
-
-    @property
     def testMirrorImageDirectory(self):
         return ZiliaTestCase.testFilesRootDirectory + r"/testMirrorImage"
 
