@@ -7,10 +7,41 @@ class ZiliaDB(Database):
     statementFromAllJoin = "from spectra as s, spectralfiles as f, monkeys as m where s.md5 = f.md5 and f.monkeyId = m.monkeyId"
     statementFromSpectra = "from spectra as s"
 
-    def __init__(self, ziliaDbPath='/Volumes/zilia.db', root="/Users/elahe/Documents/GitHub"):
+    databaseCandidates = ["zilia.db", "../zilia.db", "/Volumes/Goliath/labdata/dcclab/zilia/zilia.db", "z:/Goliath/labdata/dcclab/zilia/zilia.db"]
+    rootCandidates = [".", "..", "/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO", "/Volumes/Goliath/labdata/dcclab/zilia", "z:/Goliath/labdata/dcclab/zilia"]
+
+    @classmethod
+    def findDatabasePath(cls) -> str:
+        for path in cls.databaseCandidates:
+            absPath = os.path.abspath(path)
+            if os.path.exists(path):
+                return absPath
+
+        return None
+
+    @classmethod
+    def findDataFilesRoot(cls) -> str:
+        someRelativePath = "./March2021" # FIXME: don't hardcode path
+
+        for root in cls.rootCandidates:
+            absolutePath = "{0}/{1}".format(root, someRelativePath)
+            if os.path.exists(absolutePath):
+                return absolutePath
+
+        return None
+
+    def __init__(self, ziliaDbPath=None, root=None):  
+        if ziliaDbPath is None:
+            ziliaDbPath = ZiliaDB.findDatabasePath()
+
         super().__init__(ziliaDbPath, writePermission=False)
-        self._wavelengths = None
+
+        if root is None:
+            root = ZiliaDB.findDataFilesRoot()
+
         self.root = root
+
+        self._wavelengths = None
 
     @property
     def wavelengths(self):
