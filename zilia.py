@@ -7,7 +7,7 @@ class ZiliaDB(Database):
     statementFromAllJoin = "from spectra as s, spectralfiles as f, monkeys as m where s.md5 = f.md5 and f.monkeyId = m.monkeyId"
     statementFromSpectra = "from spectra as s"
 
-    def __init__(self, ziliaDbPath='zilia.db', root="/Users/elahe/Documents/GitHub"):
+    def __init__(self, ziliaDbPath='/Volumes/zilia.db', root="/Users/elahe/Documents/GitHub"):
         super().__init__(ziliaDbPath, writePermission=False)
         self._wavelengths = None
         self.root = root
