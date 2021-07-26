@@ -91,17 +91,22 @@ class ZiliaDB(Database):
             names.append(row['name'])
         return names
 
-    def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None , eye=None):
+
+    def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None):
+
         stmnt = r"select path from imagefiles as f, monkeys as m where m.monkeyId = f.monkeyId "
 
         if monkey is not None:
             stmnt += " and (m.monkeyId = '{0}' or m.name = '{0}')".format(monkey)
 
         if rlp is not None:
-            stmnt += " and rlp = {0}".format(rlp)
+            stmnt += " and f.rlp = {0}".format(rlp)
+
+        if eye is not None:
+            stmnt += " and f.eye = '{0}'".format(eye)
 
         if content is not None:
-            stmnt += " and content = '{0}'".format(content)
+            stmnt += " and f.content = '{0}'".format(content)
 
         if region is not None:
             stmnt += " and f.region = '{0}'".format(region)
@@ -126,8 +131,10 @@ class ZiliaDB(Database):
 
         return images
 
-    def getGrayscaleEyeImages(self, monkey=None, timeline=None, rlp=None, region=None , eye=None):
-        images = self.getRGBImages(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content='eye' , eye=eye)
+
+    def getGrayscaleEyeImages(self, monkey=None, timeline=None, rlp=None, region=None, eye=None):
+        images = self.getRGBImages(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content='eye', eye=eye)
+
         grayscaleImages = []
         for image in images:
             image[:,:,2] = 0 # For eye images, always strip blue channel before conversion
