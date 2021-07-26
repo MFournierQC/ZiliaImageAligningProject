@@ -58,7 +58,6 @@ class TestZilia(env.DCCLabTestCase):
     def testGetSpectra(self):
         spectra = self.db.getRawIntensities(monkey='Rwanda', region='onh', timeline='baseline', column='raw')
         self.assertIsNotNone(spectra)
-        print(spectra.shape)
 
     @unittest.skip("Was used for initial development")
     def testGetEyeImages(self):

@@ -8,7 +8,7 @@ class ZiliaDB(Database):
     statementFromSpectra = "from spectra as s"
 
     databaseCandidates = ["zilia.db", "../zilia.db", "/Volumes/Goliath/labdata/dcclab/zilia/zilia.db", "z:/Goliath/labdata/dcclab/zilia/zilia.db"]
-    rootCandidates = [".", "..", "/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO", "/Volumes/Goliath/labdata/dcclab/zilia", "z:/Goliath/labdata/dcclab/zilia"]
+    rootCandidates = [".", "..", "/Volumes/Goliath/labdata/dcclab/zilia", "z:/labdata/dcclab/zilia", "U:/labdata/dcclab/zilia", "/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"]
 
     @classmethod
     def findDatabasePath(cls) -> str:
@@ -137,6 +137,8 @@ class ZiliaDB(Database):
         return paths
 
     def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None):
+        if self.root is None:
+            raise RuntimeError('You must provide a root directory for the data files')
 
         stmnt = r"select path from imagefiles as f, monkeys as m where m.monkeyId = f.monkeyId "
 
@@ -166,15 +168,16 @@ class ZiliaDB(Database):
         rows = self.fetchAll()
 
         images = []
-        for row in rows:
+        nTotal = len(rows)
+        for i,row in enumerate(rows):
             relativePath = row['path']
             absolutePath = "{0}/{1}".format(self.root, relativePath)
             if not os.path.exists(absolutePath):
-                raise Exception("Not found: {0}".format(absolutePath))
+                raise FileNotFoundError(absolutePath)
 
             image = imread(absolutePath)
             images.append(image)
-            print("Loading {0}".format(absolutePath))
+            self.showProgressBar(i+1, nTotal)
 
         return images
 
@@ -242,3 +245,26 @@ class ZiliaDB(Database):
             saturation.append(float(row['saturation']))
 
         return self.getBloodWavelengths(), spectra, saturation
+
+    def showProgressBar(self, iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+        """
+        From: https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
+
+        Call in a loop to create terminal progress bar
+        @params:
+            iteration   - Required  : current iteration (Int)
+            total       - Required  : total iterations (Int)
+            prefix      - Optional  : prefix string (Str)
+            suffix      - Optional  : suffix string (Str)
+            decimals    - Optional  : positive number of decimals in percent complete (Int)
+            length      - Optional  : character length of bar (Int)
+            fill        - Optional  : bar fill character (Str)
+            printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+        """
+        percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+        filledLength = int(length * iteration // total)
+        bar = fill * filledLength + '-' * (length - filledLength)
+        print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
+        # Print New Line on Complete
+        if iteration == total: 
+            print()
