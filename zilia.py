@@ -136,7 +136,7 @@ class ZiliaDB(Database):
             paths.append(row['path'])
         return paths
 
-    def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None):
+    def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
         if self.root is None:
             raise RuntimeError('You must provide a root directory for the data files')
 
@@ -164,6 +164,11 @@ class ZiliaDB(Database):
             stmnt += " and f.eye like '%{0}%'".format(eye)
 
         stmnt += " order by f.path"
+
+        if limit is not None:
+            stmnt += " limit {0}".format(limit)
+
+
         self.execute(stmnt)
         rows = self.fetchAll()
 
@@ -182,8 +187,8 @@ class ZiliaDB(Database):
         return images
 
 
-    def getGrayscaleEyeImages(self, monkey=None, timeline=None, rlp=None, region=None, eye=None):
-        images = self.getRGBImages(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content='eye', eye=eye)
+    def getGrayscaleEyeImages(self, monkey=None, timeline=None, rlp=None, region=None, eye=None, limit=None):
+        images = self.getRGBImages(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content='eye', eye=eye, limit=limit)
 
         grayscaleImages = []
         for image in images:
