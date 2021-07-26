@@ -9,104 +9,78 @@ from skimage.io import imread
 
 
 dbPath = 'test.db'
-ziliaDb = '../zilia.db'
+ziliaDb = '/Volumes/Goliath/labdata/dcclab/zilia/zilia.db'
+dbRoot = '/Volumes/Goliath/labdata/dcclab/zilia'
 
 class TestZilia(env.DCCLabTestCase):
+    def setUp(self):
+        self.db = ZiliaDB(ziliaDb, dbRoot)
+        self.assertIsNotNone(self.db)
+
     def testZiliaDBCreation(self):
-        self.assertIsNotNone(ZiliaDB(ziliaDb))
+        self.assertIsNotNone(self.db)
 
     def testZiliaGetMonkeyNames(self):
-        db=ZiliaDB(ziliaDb)
-        self.assertIsNotNone(db)
-        db.execute("select name from monkeys order by name")
-        rows = db.fetchAll()
+        self.db.execute("select name from monkeys order by name")
+        rows = self.db.fetchAll()
         self.assertTrue(len(rows) == 4)
         self.assertEqual([ r['name'] for r in rows], ['Bresil', 'Kenya', 'Rwanda', 'Somalie'])
 
     def testGetMonkeyNames(self):
-        db=ZiliaDB(ziliaDb)
-        self.assertIsNotNone(db)
-        names = db.getMonkeyNames()
+        names = self.db.getMonkeyNames()
         self.assertEqual(names, ['Bresil', 'Kenya', 'Rwanda', 'Somalie'])
 
     def testGetWavelengths(self):
-        db=ZiliaDB(ziliaDb)
-        self.assertIsNotNone(db)
-        wavelengths = db.getWavelengths()
+        wavelengths = self.db.getWavelengths()
         self.assertTrue(wavelengths.shape == (512,))
 
     def testGetTimelines(self):
-        db=ZiliaDB(ziliaDb)
-        self.assertIsNotNone(db)
-        types = db.getTimelines()
+        types = self.db.getTimelines()
         self.assertEqual(types, ['background','baseline'])
 
     def testGetColumns(self):
-        db=ZiliaDB(ziliaDb)
-        self.assertIsNotNone(db)
-        cols = db.getColumns()
+        cols = self.db.getColumns()
         # self.assertEqual(cols, ['bg','raw','ref'])
         self.assertEqual(cols, ['raw'])
 
     def testGetRegions(self):
-        db=ZiliaDB(ziliaDb)
-        self.assertIsNotNone(db)
-        regions = db.getRegions()
+        regions = self.db.getRegions()
         self.assertEqual(regions, ['mac','onh'])
 
     def testGetSpectra(self):
-        db=ZiliaDB(ziliaDb)
-        self.assertIsNotNone(db)
-        spectra = db.getRawIntensities(monkey='Rwanda', region='onh', timeline='baseline', column='raw')
+        spectra = self.db.getRawIntensities(monkey='Rwanda', region='onh', timeline='baseline', column='raw')
         self.assertIsNotNone(spectra)
         print(spectra.shape)
 
-    def testGetIntensities(self):
-        db=ZiliaDB(ziliaDb)
-        self.assertIsNotNone(db)
-
     def testGetEyeImages(self):
-        root="/Users/elahe/Documents/GitHub"
-        db=ZiliaDB(ziliaDb)
-        self.assertIsNotNone(db)
-        db.execute("select path from imagefiles where content='eye' and rlp = 34 and timeline='baseline 3' limit 10 ")
-        rows = db.fetchAll()
+        self.db.execute("select path from imagefiles where content='eye' and rlp = 34 and timeline='baseline 3' limit 10 ")
+        rows = self.db.fetchAll()
 
         for row in rows:
             relativePath = row['path']
-            absolutePath = "{0}/{1}".format(root, relativePath)
+            absolutePath = "{0}/{1}".format(dbRoot, relativePath)
             image = imread(absolutePath)
             self.assertIsNotNone(image)
             self.assertEqual(image.shape, (1024, 1216, 3))
 
     def testGetEyeImagesFromDatabase(self):
-        root="/Users/elahe/Documents/GitHub"
-        db=ZiliaDB(ziliaDb)
-        self.assertIsNotNone(db)
-        images = db.getRGBImages(rlp=34, timeline='baseline 3', region='onh', content='eye')
+        images = self.db.getRGBImages(rlp=34, timeline='baseline 3', region='onh', content='eye')
         self.assertTrue(len(images) > 0)
 
     def testGetGrayscaleEyeImagesFromDatabase(self):
-        root="/Users/elahe/Documents/GitHub"
-        db=ZiliaDB(ziliaDb)
-        self.assertIsNotNone(db)
-        images = db.getGrayscaleEyeImages(monkey='Bresil' , rlp=6, timeline='baseline 3', region='onh')
+        images = self.db.getGrayscaleEyeImages(monkey='Bresil' , rlp=6, timeline='baseline 3', region='onh')
         self.assertTrue(len(images) > 0)
         for image in images:
             self.assertEqual(image.shape, (1024, 1216))
 
-    # def testGetSaturatedSpectralRAnge(self):
-    #     db=ZiliaDB(ziliaDb)
-    #     self.assertIsNotNone(db)
-    #     db.execute('select min(wavelength), max(wavelength), f.path from bloodspectra as s, bloodfiles as f where s.intensity == 65535 and s.wavelength > 530  and f.md5 = s.md5 group by s.md5;')
-    #     rows = db.fetchAll()
-    #     print(rows)
+    def testGetImagePaths(self):
+        paths = self.db.getImagePaths()
+        self.assertTrue(len(paths) > 1000)
 
-    # def testGetBloodSpectra(self):
-    #     db=ZiliaDB(ziliaDb)
-    #     self.assertIsNotNone(db)
-    #     wavelengths, spectra, saturation = db.getBloodIntensities()
-    #     print(spectra, saturation)
+
+    def testGetSpectraPaths(self):
+        paths = self.db.getSpectraPaths()
+        self.assertTrue(len(paths) > 1000)
 
 if __name__ == '__main__':
     unittest.main()
