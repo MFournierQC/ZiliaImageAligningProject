@@ -7,7 +7,7 @@ class ZiliaDB(Database):
     statementFromAllJoin = "from spectra as s, spectralfiles as f, monkeys as m where s.md5 = f.md5 and f.monkeyId = m.monkeyId"
     statementFromSpectra = "from spectra as s"
 
-    def __init__(self, ziliaDbPath='zilia.db', root="/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"):
+    def __init__(self, ziliaDbPath='zilia.db', root="/Users/elahe/Documents/GitHub"):
         super().__init__(ziliaDbPath, writePermission=False)
         self._wavelengths = None
         self.root = root
@@ -91,24 +91,33 @@ class ZiliaDB(Database):
             names.append(row['name'])
         return names
 
-    def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None):
+
+    def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None):
+
         stmnt = r"select path from imagefiles as f, monkeys as m where m.monkeyId = f.monkeyId "
 
         if monkey is not None:
             stmnt += " and (m.monkeyId = '{0}' or m.name = '{0}')".format(monkey)
 
         if rlp is not None:
-            stmnt += " and rlp = {0}".format(rlp)
+            stmnt += " and f.rlp = {0}".format(rlp)
+
+        if eye is not None:
+            stmnt += " and f.eye = '{0}'".format(eye)
 
         if content is not None:
-            stmnt += " and content = '{0}'".format(content)
+            stmnt += " and f.content = '{0}'".format(content)
 
         if region is not None:
             stmnt += " and f.region = '{0}'".format(region)
 
         if timeline is not None:
             stmnt += " and f.timeline like '%{0}%'".format(timeline)
+            
+        if eye is not None:
+            stmnt += " and f.eye like '%{0}%'".format(eye)
 
+        stmnt += " order by f.path"
         self.execute(stmnt)
         rows = self.fetchAll()
 
@@ -122,8 +131,10 @@ class ZiliaDB(Database):
 
         return images
 
-    def getGrayscaleEyeImages(self, monkey=None, timeline=None, rlp=None, region=None):
-        images = self.getRGBImages(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content='eye')
+
+    def getGrayscaleEyeImages(self, monkey=None, timeline=None, rlp=None, region=None, eye=None):
+        images = self.getRGBImages(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content='eye', eye=eye)
+
         grayscaleImages = []
         for image in images:
             image[:,:,2] = 0 # For eye images, always strip blue channel before conversion
