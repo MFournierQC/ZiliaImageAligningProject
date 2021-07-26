@@ -25,7 +25,7 @@ class TestZilia(env.DCCLabTestCase):
         self.db = ZiliaDB()
         self.assertIsNotNone(self.db)
 
-    def testZiliaDBCreation(self):
+    def testZiliaDBInit(self):
         self.assertIsNotNone(self.db)
 
     def testZiliaGetMonkeyNames(self):
@@ -60,35 +60,35 @@ class TestZilia(env.DCCLabTestCase):
         self.assertIsNotNone(spectra)
         print(spectra.shape)
 
-    # def testGetEyeImages(self):
-    #     self.db.execute("select path from imagefiles where content='eye' and rlp = 34 and timeline='baseline 3' limit 10 ")
-    #     rows = self.db.fetchAll()
+    @unittest.skip("Was used for initial development")
+    def testGetEyeImages(self):
+        self.db.execute("select path from imagefiles where content='eye' and rlp = 34 and timeline='baseline 3' limit 10 ")
+        rows = self.db.fetchAll()
+        for row in rows:
+            relativePath = row['path']
+            absolutePath = "{0}/{1}".format(dbRoot, relativePath)
+            image = imread(absolutePath)
+            self.assertIsNotNone(image)
+            self.assertEqual(image.shape, (1024, 1216, 3))
 
-    #     for row in rows:
-    #         relativePath = row['path']
-    #         absolutePath = "{0}/{1}".format(dbRoot, relativePath)
-    #         image = imread(absolutePath)
-    #         self.assertIsNotNone(image)
-    #         self.assertEqual(image.shape, (1024, 1216, 3))
+    def testGetEyeImagesFromDatabase(self):
+        images = self.db.getRGBImages(rlp=34, timeline='baseline 3', region='onh', content='eye')
+        self.assertTrue(len(images) > 0)
 
-    # def testGetEyeImagesFromDatabase(self):
-    #     images = self.db.getRGBImages(rlp=34, timeline='baseline 3', region='onh', content='eye')
-    #     self.assertTrue(len(images) > 0)
+    def testGetGrayscaleEyeImagesFromDatabase(self):
+        images = self.db.getGrayscaleEyeImages(monkey='Bresil' , rlp=6, timeline='baseline 3', region='onh')
+        self.assertTrue(len(images) > 0)
+        for image in images:
+            self.assertEqual(image.shape, (1024, 1216))
 
-    # def testGetGrayscaleEyeImagesFromDatabase(self):
-    #     images = self.db.getGrayscaleEyeImages(monkey='Bresil' , rlp=6, timeline='baseline 3', region='onh')
-    #     self.assertTrue(len(images) > 0)
-    #     for image in images:
-    #         self.assertEqual(image.shape, (1024, 1216))
-
-    # def testGetImagePaths(self):
-    #     paths = self.db.getImagePaths()
-    #     self.assertTrue(len(paths) > 1000)
+    def testGetImagePaths(self):
+        paths = self.db.getImagePaths()
+        self.assertTrue(len(paths) > 1000)
 
 
-    # def testGetSpectraPaths(self):
-    #     paths = self.db.getSpectraPaths()
-    #     self.assertTrue(len(paths) > 1000)
+    def testGetSpectraPaths(self):
+        paths = self.db.getSpectraPaths()
+        self.assertTrue(len(paths) > 1000)
 
 if __name__ == '__main__':
     unittest.main()

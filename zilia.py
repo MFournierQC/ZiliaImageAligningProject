@@ -26,21 +26,19 @@ class ZiliaDB(Database):
         for root in cls.rootCandidates:
             absolutePath = "{0}/{1}".format(root, someRelativePath)
             if os.path.exists(absolutePath):
-                return absolutePath
+                return root
 
         return None
 
     def __init__(self, ziliaDbPath=None, root=None):  
         if ziliaDbPath is None:
             ziliaDbPath = ZiliaDB.findDatabasePath()
-
-        super().__init__(ziliaDbPath, writePermission=False)
-
         if root is None:
             root = ZiliaDB.findDataFilesRoot()
 
-        self.root = root
+        super().__init__(ziliaDbPath, writePermission=False)
 
+        self.root = root
         self._wavelengths = None
 
     @property
@@ -171,6 +169,9 @@ class ZiliaDB(Database):
         for row in rows:
             relativePath = row['path']
             absolutePath = "{0}/{1}".format(self.root, relativePath)
+            if not os.path.exists(absolutePath):
+                raise Exception("Not found: {0}".format(absolutePath))
+
             image = imread(absolutePath)
             images.append(image)
             print("Loading {0}".format(absolutePath))
