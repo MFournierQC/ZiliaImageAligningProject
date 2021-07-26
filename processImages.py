@@ -94,7 +94,7 @@ def loadImages(collectionDir: str, leftEye=False, extension="jpg", newImages=Tru
         grayImages=mirrorImage(grayImages)
     return grayImages
 
-def seperateNewImages(grayImageCollection, collectionDir: str, extension="jpg"):
+def seperateImages(grayImageCollection, collectionDir: str, extension="jpg"):
     """
     Purpose: seperate new retina images from new rosa images
     Load retina image - then load the corresponding rosa image 
