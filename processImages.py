@@ -51,8 +51,6 @@ def removeBadImages(dataDictionary) -> dict:
 
     return cleanDataDictionary
 
-
-
 def listFileNames(directory: str, extension="jpg") -> list:
     foundFiles = []
     for file in os.listdir(directory):
@@ -281,17 +279,6 @@ def cleanShiftParameters(shiftParameters, indexesToRemove):
 
 
 def defineGrid(Image) -> tuple:
-    # onh = optic nerve head
-    # temp = np.zeros(Image.shape)
-    # temp[np.where(Image >= np.mean(Image)*1.9)] = 1
-    # kernel = np.ones((5,5), np.uint8)
-    # openingTemp = cv2.morphologyEx(temp[0,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
-    # nonZero = np.nonzero(openingTemp)
-    # onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
-    # onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
-    # onhCenterVerticalCoords = int(((np.max(nonZero[0]) + np.min(nonZero[0]))/2) - (onhHeight-onhWidth))
-    # onhCenterHorizontalCoords = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
-    # length = int((np.min([onhHeight, onhWidth]))/2)
     imgGray=Image[0,:,:]
     meanVal = np.mean(imgGray)
     imgGray = (imgGray - np.min(imgGray)) / (np.max(imgGray) - np.min(imgGray))
@@ -420,135 +407,3 @@ def drawGrid(imageRGB, gridParameters):
     imageRGB[:,::dx,:] = gridColor
     imageRGB[::dy,:,:] = gridColor
     return imageRGB
-
-
-######## OLD FUNCTIONS ###########
-def seperateImagesOld(grayImageCollection, collectionDir: str, extension="jpg") -> dict:
-    """
-    Purpose: seperate retina images from rosa images
-    Load retina image - then load the corresponding rosa image
-    Check to find the rosa, if found, append the image and other info a the numpy array
-    Input: grayscale images (output of loadImages function), directory for the images folder
-    Output: dictionary including: retina images, rosa images,
-            x,y, and radius of rosa center, numbers of the images in the directory
-    """
-    # 1st image has to be the retina, 2nd has to be the rosa.
-    Thresh = np.mean(grayImageCollection)
-    numberOfRosaImages = 0
-    image = np.empty((1, grayImageCollection.shape[1], grayImageCollection.shape[2]), float)
-    laserImage = np.empty((1, grayImageCollection.shape[1], grayImageCollection.shape[2]), float)
-    temp = np.empty((1, grayImageCollection.shape[1], grayImageCollection.shape[2]), float)
-    xCenter = np.array([])
-    yCenter = np.array([])
-    radius = np.array([])
-    imageNumber = np.array([], dtype=int)
-
-    for i in range(1, grayImageCollection.shape[0]):
-        firstPicMeanValue = np.mean(grayImageCollection[i-1,:,:])
-        secondPicMeanValue = np.mean(grayImageCollection[i,:,:])
-        if (firstPicMeanValue > Thresh and secondPicMeanValue < Thresh):
-            # The first picture is a retina image and the next one, a ROSA image.
-            if (i < 10):
-                loadLaserImage = collectionDir+'/00'+str(i)+"."+extension
-            if (i >= 10 and i < 100):
-                loadLaserImage = collectionDir+'/0'+str(i)+"."+extension
-            if (i >= 100):
-                loadLaserImage = collectionDir+"/"+str(i)+"."+extension
-            blob = analyzeRosa(loadLaserImage)
-            if (blob['found'] == True):
-                temp[0,:,:] = grayImageCollection[i-1,:,:] # retina
-                image = np.vstack((image, temp)) # retina
-                temp[0,:,:] = grayImageCollection[i,:,:] # rosa
-                laserImage = np.vstack((laserImage, temp)) # rosa
-                numberOfRosaImages += 1
-                # the following arrays are 1D
-                xCenter = np.hstack((xCenter,int(blob['center']['x']*image.shape[2]))) # for the center of the rosa
-                yCenter = np.hstack((yCenter,int(blob['center']['y']*image.shape[1]))) # for the center of the rosa
-                radius = np.hstack((radius,int(blob['radius']*image.shape[1]))) # for the center of the rosa
-                imageNumber = np.hstack((imageNumber, int(i-1))) # it's a 1D array
-    if numberOfRosaImages == 0:
-        raise ImportError("No laser spot was found. Try with different data.")
-    image = np.delete(image, 0, axis=0) # remove the first initialized empty matrix
-    laserImage = np.delete(laserImage, 0, axis=0) # remove the first initialized empty matrix
-    imageDataDictionary = {
-        "image": image,
-        "laserImage": laserImage,
-        "xCenter": xCenter,
-        "yCenter": yCenter,
-        "radius": radius,
-        "imageNumber": imageNumber
-    }
-    return imageDataDictionary
-
-def oldPlotResult(Image, shiftParameters, gridParameters, rosaRadius=30):
-    xCenterGrid = gridParameters[0]
-    yCenterGrid = gridParameters[1]
-    length = gridParameters[2]
-    xRosa = shiftParameters[0]
-    yRosa = shiftParameters[1]
-
-    color = (0, 255, 0)
-    thickness = 5
-
-    for j in range(xRosa.shape[0]):
-        centerCoordinates = (int(xRosa[j]), int(yRosa[j]))
-        image = cv2.circle(Image[0,:,:], centerCoordinates, rosaRadius, color, thickness)
-    #plt.imsave("preimage2D.jpg", image) # same for old and new
-
-    left = np.max([xCenterGrid - (length*5), 0])
-    up = np.max([yCenterGrid - (length*5), 0])
-    right = np.min([(5*length), (Image.shape[1] - xCenterGrid)]) + xCenterGrid
-    down = np.min([(5*length), (Image.shape[2] - yCenterGrid)]) + yCenterGrid
-    temp = Image[0,up:down, left:right]
-    xNewCenter = xCenterGrid - left
-    yNewCenter = yCenterGrid - up
-    gridImage = np.zeros([length*10, length*10])
-    # Set slicing limits:
-    LOW_SLICE_Y = ((5*length) - yNewCenter)
-    HIGH_SLICE_Y = ((5*length) + (temp.shape[0] - yNewCenter))
-    LOW_SLICE_X = ((5*length) - xNewCenter)
-    HIGH_SLICE_X = ((5*length) + (temp.shape[1] - xNewCenter))
-    # Slicing:
-    gridImage[LOW_SLICE_Y:HIGH_SLICE_Y, LOW_SLICE_X:HIGH_SLICE_X] = temp
-
-    img = gridImage.copy()
-    dx, dy = length, length
-    # Custom (rgb) grid color:
-    gridColor = 0
-    # Modify the image to include the grid
-    img[:,::dy] = gridColor
-    img[::dx,:] = gridColor
-    plt.imsave('Result_old.jpg', img, cmap="gray")
-
-    """
-    # Maybe we'll use a modified version of this later.
-    def findPlotImage(images, constant=1.9):
-       #Find the image in which the ONH is closest to the middle of the image.
-       xCenters = []
-       yCenters = []
-       binaryImages = np.zeros(images.shape)
-       binaryImages[np.where(images >= np.mean(images)*constant)] = 1
-       xImageShape = binaryImages[0,:,:].shape[1]
-       yImageShape = binaryImages[0,:,:].shape[0]
-
-       for i in range(binaryImages.shape[0]):
-           # Clean the images and find the middle
-           kernel = np.ones((5,5), np.uint8)
-           cleanBinaryIm = cv2.morphologyEx(binaryImages[i,:,:], cv2.MORPH_OPEN, kernel) # to reduce noise
-           nonZero = np.nonzero(cleanBinaryIm)
-           onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
-           onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
-           xCenter = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
-           yCenter = int((np.max(nonZero[0]) + np.min(nonZero[0]))/2 - (onhHeight-onhWidth))
-
-           xCenters.append(xCenter)
-           yCenters.append(yCenter)
-
-       x = np.array(xCenters) - xImageShape/2
-       y = np.array(yCenters) - yImageShape/2
-
-       distance = (x**2 + y**2)**.5
-       plotImageIndex = np.argmin(distance)
-
-       return plotImageIndex
-    """
