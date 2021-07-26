@@ -2,7 +2,6 @@ from processImages import *
 from spectrumAnalysis import *
 from displayResult import *
 
-from kneed import KneeLocator, DataGenerator
 
 # New data:
 # collectionDir = r"./tests/TestImages/miniTestSampleNewData"
@@ -36,12 +35,11 @@ newImages = True
 
 grayImage = loadImages(collectionDir, leftEye=leftEye, newImages=newImages)
 
-
+## change function name
 dataDictionary = seperateNewImages(grayImage, collectionDir)
 dataDictionary = removeBadImages(dataDictionary)
 
 image = dataDictionary["image"]
-print("image shape" , image.shape)
 laser = dataDictionary["laserImage"]
 xLaser = dataDictionary["xCenter"]
 yLaser = dataDictionary["yCenter"]
@@ -126,3 +124,22 @@ plotSO2_left= matrixSO2(lab,meanC,leftEye=True)
 
 display(a,b,plotSO2_right,plotSO2_left)
 
+# if file, all rosas place, find store uniqly!!!
+#insert into calculations (pah=th,key,value):
+#values ('/')
+"""
+# onhCenterX
+# onhCenterY
+# onhHeight
+# onhWidth
+rosaCenterX
+rosaCentery
+rosaRadius
+displacementX
+displacementY
+reference
+gridX
+gridY
+isDark
+
+"""

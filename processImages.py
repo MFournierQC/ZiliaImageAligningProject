@@ -197,6 +197,7 @@ def crossImage(im1, im2) -> np.ndarray:
     cross = scipy.signal.fftconvolve(im1, im2[::-1,::-1], mode='same')
     return cross
 
+#rename locateRosa
 def placeRosa(gridParameters, shiftParameters, dataDictionary) -> list:
     xCenterGrid = gridParameters[0]
     yCenterGrid = gridParameters[1]
