@@ -66,7 +66,7 @@ class TestZilia(env.DCCLabTestCase):
         self.assertIsNotNone(db)
 
     def testGetEyeImages(self):
-        root="/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"
+        root="/Users/elahe/Documents/GitHub"
         db=ZiliaDB(ziliaDb)
         self.assertIsNotNone(db)
         db.execute("select path from imagefiles where content='eye' and rlp = 34 and timeline='baseline 3' limit 10 ")
@@ -80,17 +80,17 @@ class TestZilia(env.DCCLabTestCase):
             self.assertEqual(image.shape, (1024, 1216, 3))
 
     def testGetEyeImagesFromDatabase(self):
-        root="/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"
+        root="/Users/elahe/Documents/GitHub"
         db=ZiliaDB(ziliaDb)
         self.assertIsNotNone(db)
         images = db.getRGBImages(rlp=34, timeline='baseline 3', region='onh', content='eye')
         self.assertTrue(len(images) > 0)
 
     def testGetGrayscaleEyeImagesFromDatabase(self):
-        root="/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"
-        db=ZiliaDB(ziliaDb,root=root)
+        root="/Users/elahe/Documents/GitHub"
+        db=ZiliaDB(ziliaDb)
         self.assertIsNotNone(db)
-        images = db.getGrayscaleEyeImages(rlp=34, timeline='baseline 3', region='onh')
+        images = db.getGrayscaleEyeImages(monkey='Bresil' , rlp=6, timeline='baseline 3', region='onh')
         self.assertTrue(len(images) > 0)
         for image in images:
             self.assertEqual(image.shape, (1024, 1216))
