@@ -109,6 +109,7 @@ class ZiliaDB(Database):
         if timeline is not None:
             stmnt += " and f.timeline like '%{0}%'".format(timeline)
 
+        stmnt += " order by f.path"
         self.execute(stmnt)
         rows = self.fetchAll()
 
