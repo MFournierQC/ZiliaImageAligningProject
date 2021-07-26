@@ -36,7 +36,7 @@ newImages = True
 grayImage = loadImages(collectionDir, leftEye=leftEye, newImages=newImages)
 
 ## change function name
-dataDictionary = seperateNewImages(grayImage, collectionDir)
+dataDictionary = seperateImages(grayImage, collectionDir)
 dataDictionary = removeBadImages(dataDictionary)
 
 image = dataDictionary["image"]
@@ -83,7 +83,7 @@ newImages = True
 
 grayImage = loadImages(collectionDir, leftEye=leftEye, newImages=newImages)
 # dataDictionary = seperateImages(grayImage, collectionDir)
-dataDictionary = seperateNewImages(grayImage, collectionDir)
+dataDictionary = seperateImages(grayImage, collectionDir)
 dataDictionary = removeBadImages(dataDictionary)
 
 image = dataDictionary["image"]
