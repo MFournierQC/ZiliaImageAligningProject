@@ -92,7 +92,8 @@ class TestZilia(env.DCCLabTestCase):
         records = self.db.getCalculatedProperties(rlp=34, timeline='baseline 3', region='onh', content='eye')
         self.assertTrue(len(records) > 0)
         for record in records:
-            print(record)
+            self.assertTrue('path' in record)    
+            self.assertTrue('timeline' in record)    
 
 if __name__ == '__main__':
     unittest.main()

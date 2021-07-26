@@ -208,10 +208,31 @@ class ZiliaDB(Database):
         return grayscaleImages
 
     def getCalculatedProperties(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
-        if self.root is None:
-            raise RuntimeError('To read image files, you must provide a root directory')
 
-        stmnt = r"select f.path, group_concat(c.property) as property, group_concat(c.value) as value from imagefiles as f left join monkeys as m on m.monkeyId = f.monkeyId left join calculations as c on c.path = f.path group by f.path"
+        stmnt = self.buildImageSelectStatement(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content=content, eye=eye, limit=limit)
+        self.execute(stmnt)
+        rows = self.fetchAll()
+
+        records = []
+        nTotal = len(rows)
+        for i,row in enumerate(rows):
+            record = {}
+
+            for property in row.keys():
+                record[property] = row[property]
+
+            properties = row['properties'].split(',')            
+            values = row['floatValues'].split(',') # values is a reserved word
+            for property, value in zip(properties, values):
+                record[property] = value
+
+            records.append(record)
+            self.showProgressBar(i+1, nTotal)
+
+        return records
+
+    def buildImageSelectStatement(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
+        stmnt = r"select f.*, m.*, group_concat(c.property) as properties, group_concat(c.value) as floatValues, group_concat(c.stringValue) as stringValues from imagefiles as f left join monkeys as m on m.monkeyId = f.monkeyId left join calculations as c on c.path = f.path group by f.path"
 
         if monkey is not None:
             stmnt += " and (m.monkeyId = '{0}' or m.name = '{0}')".format(monkey)
@@ -239,27 +260,7 @@ class ZiliaDB(Database):
         if limit is not None:
             stmnt += " limit {0}".format(limit)
 
-
-        self.execute(stmnt)
-        rows = self.fetchAll()
-
-        records = []
-        nTotal = len(rows)
-        for i,row in enumerate(rows):
-            record = {}
-            
-            for property in row.keys():
-                record[property] = row[property]
-
-            properties = row['property'].split(',')            
-            values = row['value'].split(',')
-            for property, value in zip(properties, values):
-                record[property] = value
-
-            records.append(record)
-            self.showProgressBar(i+1, nTotal)
-
-        return records
+        return stmnt
 
     def getRawIntensities(self, monkey=None, timeline=None ,region=None, column=None):
         stmnt = r"select s.wavelength, s.intensity, s.md5, s.column {0} ".format(self.statementFromAllJoin)
@@ -291,7 +292,6 @@ class ZiliaDB(Database):
             min = 0
         if range[1] is None:
             max = 10000
-
 
         stmnt = r"select s.wavelength, s.intensity,s.column, f.saturation from bloodspectra as s, bloodfiles as f where s.wavelength >= {0} and s.wavelength <= {1} and f.md5 = s.md5 and s.column like '%raw%' and f.saturation is not null order by s.md5, s.column, f.saturation, s.wavelength".format(min, max)
 
