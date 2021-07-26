@@ -345,7 +345,7 @@ def findNearest(array, value):
    idx = (np.abs(array - value)).argmin()
    return idx
 
-def plotResult(image, shiftParameters, gridParameters,saturationsO2, rosaRadius=30, thickness=5,leftEye = False):
+def plotResult(image, shiftParameters, gridParameters,saturationsO2, rosaRadius=4, thickness=8,leftEye = False):
     print("Preparing plot of the result")
     refImage = image[0,:,:]
     imageRGB = makeImageRGB(refImage)
@@ -364,9 +364,9 @@ def makeImageRGB(grayImage):
     imageRGB = np.dstack((grayImage, grayImage, grayImage))
     return imageRGB
 
-def drawRosaCircles(rescaledImage, shiftParameters, LowSliceX, LowSliceY,saturationO2, rosaRadius=30, thickness=10):
-    xRosa = shiftParameters[1]
-    yRosa = shiftParameters[0]
+def drawRosaCircles(rescaledImage, shiftParameters, LowSliceX, LowSliceY,saturationO2, rosaRadius=4, thickness=8):
+    xRosa = shiftParameters[0]
+    yRosa = shiftParameters[1]
     normalizedSatiration=(saturationO2-np.min(saturationO2))/(np.max(saturationO2)-np.min(saturationO2))
     for j in range(xRosa.shape[0]):
         color=(normalizedSatiration[j] , 0 , 1-normalizedSatiration[j])
