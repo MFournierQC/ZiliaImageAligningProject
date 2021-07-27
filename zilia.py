@@ -25,7 +25,7 @@ class ZiliaDB(Database):
 
     @classmethod
     def findDataFilesRoot(cls) -> str:
-        ZiliaDB.addCyberduckPaths()
+        ZiliaDB.addCyberduckPathsIfPresent()
 
         someRelativePath = "./March2021" # FIXME: don't hardcode path
 
@@ -37,7 +37,7 @@ class ZiliaDB(Database):
         return None
 
     @classmethod
-    def addCyberduckPaths(cls):
+    def addCyberduckPathsIfPresent(cls):
         try:
             result = subprocess.run(['duck', '-h'], capture_output=True, text=True)
             lines = result.stdout.split('\n')
@@ -49,10 +49,8 @@ class ZiliaDB(Database):
                     ziliaPath = ("{0}/Volumes/Zilia".format(duckDir))
                     if os.path.exists(ziliaPath):
                         ZiliaDB.rootCandidates.append(ziliaPath)
-                    else:
-                        print("Cyberduck mount missing")
         except:
-            pass
+            pass # cyberduck not installed or available
 
     def __init__(self, ziliaDbPath=None, root=None):  
         """
@@ -177,6 +175,10 @@ class ZiliaDB(Database):
         return paths
 
     def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None, mirrorLeftEye=True):
+        images = self.getRGBImagesWithPaths(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content=content, eye=eye, limit=limit, mirrorLeftEye=mirrorLeftEye)
+        return images.values()
+
+    def getRGBImagesWithPaths(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None, mirrorLeftEye=True):
         if self.root is None:
             raise RuntimeError('To read image files, you must provide a root directory')
 
@@ -184,7 +186,7 @@ class ZiliaDB(Database):
         self.execute(stmnt)
         rows = self.fetchAll()
 
-        images = []
+        images = {}
         nTotal = len(rows)
         for i,row in enumerate(rows):
             relativePath = row['path']
@@ -195,7 +197,7 @@ class ZiliaDB(Database):
             image = imread(absolutePath)
             if row['eye'] == 'os' and mirrorLeftEye:
                 image = self.mirrorImageHorizontally(image) 
-            images.append(image)
+            images[relativePath] = image
             self.showProgressBar(i+1, nTotal)
 
         return images
@@ -203,13 +205,17 @@ class ZiliaDB(Database):
     def mirrorImageHorizontally(self, image):
         return image[:,::-1,:]
 
-    def getGrayscaleEyeImages(self, monkey=None, timeline=None, rlp=None, region=None, eye=None, limit=None):
-        images = self.getRGBImages(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content='eye', eye=eye, limit=limit)
+    def getGrayscaleEyeImages(self, monkey=None, timeline=None, rlp=None, region=None, eye=None, limit=None, mirrorLeftEye=True):
+        images = self.getGrayscaleEyeImagesWithPaths(monkey=monkey, timeline=timeline, rlp=rlp, region=region, eye=eye, limit=limit, mirrorLeftEye=mirrorLeftEye)
+        return images.values()
 
-        grayscaleImages = []
-        for image in images:
+    def getGrayscaleEyeImagesWithPaths(self, monkey=None, timeline=None, rlp=None, region=None, eye=None, limit=None, mirrorLeftEye=True):
+        images = self.getRGBImagesWithPaths(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content='eye', eye=eye, limit=limit, mirrorLeftEye=mirrorLeftEye)
+
+        grayscaleImages = {}
+        for key, image in images.items():
             image[:,:,2] = 0 # For eye images, always strip blue channel before conversion
-            grayscaleImages.append(rgb2gray(image))
+            grayscaleImages[key] = rgb2gray(image)
 
         return grayscaleImages
 
