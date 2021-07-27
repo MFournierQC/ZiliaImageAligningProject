@@ -30,9 +30,10 @@ class ZiliaDB(Database):
         someRelativePath = "./March2021" # FIXME: don't hardcode path
 
         for root in cls.rootCandidates:
-            absolutePath = "{0}/{1}".format(root, someRelativePath)
+            absRoot = os.path.abspath(root)
+            absolutePath = "{0}/{1}".format(absRoot, someRelativePath)
             if os.path.exists(absolutePath):
-                return root
+                return absRoot
 
         return None
 
