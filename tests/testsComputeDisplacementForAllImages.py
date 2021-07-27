@@ -3,16 +3,36 @@ from processImages import *
 from getImageDisplacementData import *
 from zilia import *
 
-dir1 = r"Z:\labdata\dcclab\zilia\March2021\Baseline 3\Bresil 1511184\20210316-095955-bresil-od-onh-rlp2"
-dir2 = r"Z:\labdata\dcclab\zilia\March2021\Baseline 3\Bresil 1511184\20210316-100153-bresil-od-onh-rlp6"
-
 class TestComputeDisplacementForAllImages(envtest.ZiliaTestCase):
 
     def testInit(self):
         self.assertTrue(True)
 
-    def testComputeDisplacementForAllImages(self):
+    def testGetRGBImagesFromDatabase(self):
+        db = ZiliaDB()
+        grayImagesDict = db.getRGBImagesWithPaths(limit=10)
+        self.assertIsInstance(grayImagesDict, dict)
+        self.assertEqual(len(grayImagesDict), 10)
+
+    def testGetRGBOnhImagesFromDatabase(self):
+        db = ZiliaDB()
+        grayImagesDict = db.getRGBImagesWithPaths(region="onh", limit=10)
+        self.assertIsInstance(grayImagesDict, dict)
+        self.assertEqual(len(grayImagesDict), 10)
+        # print(grayImagesDict)
+
+    def testGetOnlyRosaImagesFromDatabase(self):
+        db = ZiliaDB()
+        grayImagesDict = db.getRGBImagesWithPaths(region="onh", content="rosa", limit=10)
+        self.assertIsInstance(grayImagesDict, dict)
+        self.assertEqual(len(grayImagesDict), 10)
+        for path in grayImagesDict.keys():
+            self.assertIn("rosa", path)
+
+    def testComputeRosaAbsolutePosition(self):
         pass
+
+    # def testComputeDisplacementForAllImages(self):
 
     # @envtest.skip("Works fine, but skip file creation please.")
     # def testSave2Folders(self):
