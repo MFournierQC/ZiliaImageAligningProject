@@ -3,7 +3,11 @@ from zilia import *
 import csv
 from os import path
 
-def computeDisplacementForAllImages(dirPath, removeBadIm=True):
+def computeDisplacementForAllImages(imageDict):
+    pass
+
+
+def oldComputeDisplacementForAllImages(dirPath, removeBadIm=True):
     """
     The goal is to save a csv file with the following columns:
     filePath, properties, values
@@ -36,8 +40,8 @@ def saveImageData(data, fileName="displacementData"):
         for i in range(len(eyeImagePaths)):
             writer.writerow([eyeImagePaths[i], 'rosaAbsX', int(rawRosaXs[i])])
             writer.writerow([eyeImagePaths[i], 'rosaAbsY', int(rawRosaYs[i])])
-            # writer.writerow([eyeImagePaths[i], 'onhXShift', int(onhXShifts[i])])
-            # writer.writerow([eyeImagePaths[i], 'onhYShift', int(onhYShifts[i])])
+            # writer.writerow([eyeImagePaths[i], 'onhAbsX', int(onhXShifts[i])])
+            # writer.writerow([eyeImagePaths[i], 'onhAbsY', int(onhYShifts[i])])
 
 def getPathsFromImageNumbers(dirPath, imageNumbers):
     paths = []
