@@ -34,10 +34,10 @@ def saveImageData(data, fileName="displacementData"):
     with open(fileName+'.csv', fileMode, newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         for i in range(len(eyeImagePaths)):
-            writer.writerow([eyeImagePaths[i], 'rawRosaX', int(rawRosaXs[i])])
-            writer.writerow([eyeImagePaths[i], 'rawRosaY', int(rawRosaYs[i])])
-            writer.writerow([eyeImagePaths[i], 'onhXShift', int(onhXShifts[i])])
-            writer.writerow([eyeImagePaths[i], 'onhYShift', int(onhYShifts[i])])
+            writer.writerow([eyeImagePaths[i], 'rosaAbsX', int(rawRosaXs[i])])
+            writer.writerow([eyeImagePaths[i], 'rosaAbsY', int(rawRosaYs[i])])
+            # writer.writerow([eyeImagePaths[i], 'onhXShift', int(onhXShifts[i])])
+            # writer.writerow([eyeImagePaths[i], 'onhYShift', int(onhYShifts[i])])
 
 def getPathsFromImageNumbers(dirPath, imageNumbers):
     paths = []
