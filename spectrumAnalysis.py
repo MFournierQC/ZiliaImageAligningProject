@@ -12,21 +12,14 @@ lowerLimitOximetry = 530
 upperLimitOximetry = 585
 saturatedValue = 65535
 
-# lowerLimitNormalization = 200
-# upperLimitNormalization = 1000
-# lowerLimitOximetry = 200
-# upperLimitOximetry = 1000
-
-"""
-Relative paths of test spectras
-Dark ref came from E:\Background\20210316-102946-bresil-dark-2
-Spectrum came from E:\Baseline3\Bresil 1511184\20210316-095955-bresil-od-onh-rlp2
-"""
 
 # These 3 will always be the same for every test
 whiteRefName = r"int75_WHITEREFERENCE.csv"
 refNameNothinInfront = r"int75_LEDON_nothingInFront.csv"
 componentsSpectraGlobal = r'_components_spectra.csv'
+
+# whiteRefName = '/Users/elahe/Documents/GitHub/Human acquisition/1104_whiteRef.csv'
+# refNameNothinInfront = '/Users/elahe/Documents/GitHub/Human acquisition/spectro_data_DARKRLP60.csv'
 
 
 class Spectrum:
@@ -203,10 +196,6 @@ def getCoef(absorbance, variables):
     for i in range(absorbance.data.shape[1]):
         coef = nnls(variables.T, absorbance.data[:,i],maxiter=2000 )
         allCoef[i,:] = coef[0]
-    # plt.plot(absorbance.data[:, 1])
-    # plt.show()
-    # print('all coef shape : ',allCoef.shape)
-    # print('all coefs :' , allCoef)
     return allCoef
 
 def saveData(saturationFlag , oxygenSat , imageNumber , rosaLabel):
@@ -234,8 +223,6 @@ def mainAnalysis(darkRefPath = None, spectrumPath = None, componentsSpectra=r'_c
     else:
         spectrums = loadSpectrum()
     saturationFlags = setSaturationFlag(spectrums)
-    print('flags' , saturationFlags)
-    print(saturationFlags)
     spectrums.data[np.isnan(spectrums.data)] = 0
     normalizedSpectrum = normalizeSpectrum(spectrums, darkRef)
     normalizedSpectrum.data[np.isnan(normalizedSpectrum.data)] = 0
@@ -248,16 +235,9 @@ def mainAnalysis(darkRefPath = None, spectrumPath = None, componentsSpectra=r'_c
         croppedComponent = cropComponents(absorbance, componentsSpectra)
     features = componentsToArray(croppedComponent)
     features[np.isnan(features)] = 0
-    # print('features shape :', features.shape)
     coef = getCoef(absorbance,features)
-    print(coef)
     concentration = 100 * coef[:,1] /(coef[:,1]+coef[:,2])
     concentration[np.isnan(concentration)] = 0
-
-    # print('mean concentration :', np.mean(concentration))
-    # print(np.std(concentration))
-    # print(concentration)
-    # print(concentration.shape)
 
     return concentration,saturationFlags
 
@@ -266,7 +246,8 @@ def mainAnalysis(darkRefPath = None, spectrumPath = None, componentsSpectra=r'_c
 # spectrumPath = r"./tests/TestSpectrums/bresilODrlp14/spectrum.csv"
 #
 # mainAnalysis(darkRefPath, spectrumPath)
-# mainAnalysis()
+# concent= mainAnalysis()
+# print(concent)
 
 #### This is for test
 ####### blood sample test
@@ -285,9 +266,7 @@ def bloodTest(refNameNothinInfront='./tests/TestSpectrums/blood/int75_LEDON_noth
         spectrums = loadSpectrum(skipRows=24, wavelengthColumn=1, firstSpecColumn=4)
     else:
         spectrums = loadSpectrum(spectrumPath=spectrumPath, skipRows=24, wavelengthColumn=1, firstSpecColumn=4)
-    saturationFlags=setSaturationFlag(spectrums)
     spectrums.data[np.isnan(spectrums.data)] = 0
-    # print(spectrums.data.shape)
     normalizedSpectrum = normalizeSpectrum(spectrums,darkRef)
     normalizedSpectrum.data[np.isnan(normalizedSpectrum.data)] = 0
     absorbance = absorbanceSpectrum(whiteRef,normalizedSpectrum)
@@ -304,7 +283,6 @@ def bloodTest(refNameNothinInfront='./tests/TestSpectrums/blood/int75_LEDON_noth
     coef = getCoef(absorbance, features)
     concentration = 100 * coef[:,1] /(coef[:,1]+coef[:,2])
     concentration[np.isnan(concentration)] = 0
-    print('mean concentration :' , np.mean(concentration))
 
     return concentration, absorbance
 
