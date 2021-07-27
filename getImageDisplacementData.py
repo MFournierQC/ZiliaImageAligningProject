@@ -10,9 +10,16 @@ def computeDisplacementForAllImages(imageDict):
     rosaAbsX = {}
     rosaAbsY = {}
     for path, image in imageDict.items():
-        image = 
-
-
+        blob = findLaserSpot(image)
+        if blob is None:
+            rosaAbsX[path] = "NA"
+            rosaAbsY[path] = "NA"
+        else:
+            rosaX = int(blob['center']['x']*image.shape[1])
+            rosaY = int(blob['center']['y']*image.shape[0])
+            rosaAbsX[path] = rosaX
+            rosaAbsY[path] = rosaY
+    return rosaAbsX, rosaAbsY
 
 def findLaserSpot(inImage: np.ndarray):
     redChannel = getGrayMapFromRedChannel(inImage)
@@ -20,14 +27,14 @@ def findLaserSpot(inImage: np.ndarray):
     found, _, circleHeight, circleWidth, radius = findLaserSpotRecursive(
         redChannel, maxValueRedChannel, time_start)
     if found:
+        print("Laser found.")
         circleHeight, circleWidth, fine_tuned_radius = fineTuneRosaDetection(redChannel, circleHeight, circleWidth, radius)
         radius = fine_tuned_radius
     else:
-        return None, False
+        print("Laser not found")
+        return None
     blob = formatBlob(inImage, [circleHeight, circleWidth, radius, found])
-    laserFound = "Laser found" if found else "Laser NOT found"
-    print(laserFound)
-    return blob, found
+    return blob
 
 def getGrayMapFromRedChannel(inImage):
     image = inImage.astype(np.uint8)
@@ -39,27 +46,6 @@ def getGrayMapFromRedChannel(inImage):
     outImage = redChannel*grayLevelImg
     outImage = outImage.astype(np.uint8)
     return outImage
-
-
-def oldComputeDisplacementForAllImages(dirPath, removeBadIm=True):
-    """
-    The goal is to save a csv file with the following columns:
-    filePath, properties, values
-    The properties will be computed for each file, and will be the following:
-    rawRosaX, rawRosaY, onhXShift, onhYShift
-    """
-    grayImages = loadImages(dirPath)
-    dataDictionary = seperateImages(grayImages, dirPath)
-    if removeBadIm:
-        dataDictionary = removeBadImages(dataDictionary)
-    rawRosaXs = dataDictionary["xCenter"]
-    rawRosaYs = dataDictionary["yCenter"]
-    grayImages = dataDictionary["image"]
-    imageNumbers = dataDictionary["imageNumber"]
-    shiftParams = findImageShift(grayImages)
-    onhXShifts, onhYShifts = shiftParams[:,1], shiftParams[:,0]
-    eyeImagePaths = getPathsFromImageNumbers(dirPath, imageNumbers)
-    return rawRosaXs, rawRosaYs, onhXShifts, onhYShifts, eyeImagePaths
 
 def saveImageData(data, fileName="displacementData"):
     rawRosaXs, rawRosaYs, onhXShifts, onhYShifts, eyeImagePaths = data
