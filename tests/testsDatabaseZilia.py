@@ -80,6 +80,13 @@ class TestZilia(env.DCCLabTestCase):
         for image in images:
             self.assertEqual(image.shape, (1024, 1216))
 
+    def testGetGrayscaleEyeImagesFromDatabaseLarge(self):
+        images = self.db.getRGBImages(timeline='baseline 3', limit=100)
+        self.assertTrue(len(images) > 0)
+        print(len(images))
+        for image in images:
+            self.assertEqual(image.shape, (1024, 1216, 3))
+
     def testGetImagePaths(self):
         paths = self.db.getImagePaths()
         self.assertTrue(len(paths) > 1000)
@@ -89,7 +96,7 @@ class TestZilia(env.DCCLabTestCase):
         self.assertTrue(len(paths) > 1000)
 
     def testGetCalculatedProperties(self):
-        records = self.db.getCalculatedProperties(rlp=34, timeline='baseline 3', region='onh', content='eye')
+        records = self.db.getCalculatedImageProperties(rlp=34, timeline='baseline 3', region='onh', content='eye')
         self.assertTrue(len(records) > 0)
         for record in records:
             self.assertTrue('path' in record)    

@@ -2,7 +2,7 @@ from dcclab.database import *
 import numpy as np
 from skimage.io import imread
 from skimage.color import rgb2gray
-
+import time
 
 class ZiliaDB(Database):
     statementFromAllJoin = "from spectra as s, spectralfiles as f, monkeys as m where s.md5 = f.md5 and f.monkeyId = m.monkeyId"
@@ -50,6 +50,7 @@ class ZiliaDB(Database):
 
         self.root = root
         self._wavelengths = None
+        self.progressStart = None
 
     @property
     def wavelengths(self):
@@ -179,7 +180,7 @@ class ZiliaDB(Database):
 
         return grayscaleImages
 
-    def getCalculatedProperties(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
+    def getCalculatedImageProperties(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
 
         stmnt = self.buildImageSelectStatement(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content=content, eye=eye, limit=limit)
         self.execute(stmnt)
@@ -193,10 +194,12 @@ class ZiliaDB(Database):
             for property in row.keys():
                 record[property] = row[property]
 
-            properties = row['properties'].split(',')            
-            values = row['floatValues'].split(',') # values is a reserved word
-            for property, value in zip(properties, values):
-                record[property] = value
+            if row['properties'] is not None: # We may have records without any calculations
+                properties = row['properties'].split(',')
+                values = row['floatValues'].split(',')
+
+                for property, value in zip(properties, values):
+                    record[property] = value
 
             records.append(record)
             self.showProgressBar(i+1, nTotal)
@@ -204,7 +207,8 @@ class ZiliaDB(Database):
         return records
 
     def buildImageSelectStatement(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
-        stmnt = r"select f.*, m.*, group_concat(c.property) as properties, group_concat(c.value) as floatValues, group_concat(c.stringValue) as stringValues from imagefiles as f left join monkeys as m on m.monkeyId = f.monkeyId left join calculations as c on c.path = f.path group by f.path"
+        stmnt = r"""select f.*, m.*, group_concat(c.property) as properties, group_concat(c.value) as floatValues, group_concat(c.stringValue) as stringValues
+        from imagefiles as f left join monkeys as m on m.monkeyId = f.monkeyId left join calculations as c on c.path = f.path where 1 = 1 """
 
         if monkey is not None:
             stmnt += " and (m.monkeyId = '{0}' or m.name = '{0}')".format(monkey)
@@ -227,6 +231,7 @@ class ZiliaDB(Database):
         if eye is not None:
             stmnt += " and f.eye like '%{0}%'".format(eye)
 
+        stmnt += " group by f.path"
         stmnt += " order by f.path"
 
         if limit is not None:
@@ -302,10 +307,18 @@ class ZiliaDB(Database):
             fill        - Optional  : bar fill character (Str)
             printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
         """
-        percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-        filledLength = int(length * iteration // total)
-        bar = fill * filledLength + '-' * (length - filledLength)
-        print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
-        # Print New Line on Complete
+
+        if self.progressStart is None:
+            self.progressStart = time.time()
+
+        if time.time() > self.progressStart + 3:
+            percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+            filledLength = int(length * iteration // total)
+            bar = fill * filledLength + '-' * (length - filledLength)
+            print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
+
+            if iteration == total: 
+                print()
+        
         if iteration == total: 
-            print()
+            self.progressStart = None
