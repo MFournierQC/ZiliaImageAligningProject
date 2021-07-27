@@ -16,6 +16,7 @@ import fnmatch
 import os
 
 def getRosaProperties (rosaImages):
+    """get a list of rosa images, returns the properties in a dictionary, if no rosa found, it will raise an error"""
     rosaProperties=[]
     numberOfRosaFound=0
     for image in range(len(rosaImages)):
@@ -27,40 +28,31 @@ def getRosaProperties (rosaImages):
         raise ImportError("No laser spot was found. Try with different data.")
     return rosaProperties
 
-
-
-
-def removeBadImages(dataDictionary) -> dict:
-    """
-    Purpose: remove images with low contrast or blurry
-    1- use laplacian filter to remove blury images
-    2- use average intensity in retinal images for thresholding
-    input: series of retina images, series of rosa images, x,y, radius of the rosa center,
-           image number in the original folder
-    output: reduced data
-    """
-    image = dataDictionary["image"]
-
-    index = np.array([])
-    ii = np.array([])
-    for i in range(image.shape[0]):
-        temp = image[i,:,:]
-        temp = 256*((temp - np.min(temp))/(np.max(temp) - np.min(temp)))
-        resultLaplacian = cv2.Laplacian(temp, cv2.CV_64F)
-        score = resultLaplacian.var()
-        scoreArray = np.hstack((ii, score))
-
-    Threshold = np.mean(scoreArray) + np.std(scoreArray)
-    indexToRemove = np.where(scoreArray < Threshold)
-    if len(indexToRemove[0]) != 0:
-        # Some images are too blurry, let's remove them
-        cleanDataDictionary = removeImagesFromIndex(dataDictionary, indexToRemove)
-        print("Removed some images because they were too blurry.")
-    else:
-        cleanDataDictionary = dataDictionary
-
-    return cleanDataDictionary
-
+def findBlurryImages (retinaImages):
+    """see if the image is blurry based on the average laplacian std
+    returns a label that is true if the image is blurry and false if it is not!"""
+    blurryImages = []
+    laplacianVarianceValues = np.array([])
+    for image in range(len(retinaImages)):
+        normalizedRetinaImage = 256 * ((retinaImages[image] - np.min(retinaImages[image])) /
+                                       (np.max(retinaImages[image]) - np.min(retinaImages[image])))
+        laplacianOfImage = cv2.Laplacian(normalizedRetinaImage, cv2.CV_64F)
+        laplacianVariance = laplacianOfImage.var()
+        laplacianVarianceValues = np.hstack((laplacianVarianceValues, laplacianVariance))
+    laplacianThreshold = np.mean(laplacianVarianceValues) + np.std(laplacianVarianceValues)    
+    for i in range(laplacianVarianceValues.shape[0]):
+        if laplacianVarianceValues[i] < laplacianThreshold :
+            blurryImages.append('True')
+        else :
+            blurryImages.append('False')
+    return blurryImages
+ 
+    
+    
+# def findDarkImages (retinaImages):
+    
+    
+        
 def findImageShift(Image: np.ndarray, Margin=250, N=100) -> np.ndarray:
     """
     Calculated the shift in x and y direction in two consecutive images
