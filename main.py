@@ -9,8 +9,8 @@ from zilia import *
 # collectionDir="/Users/elahe/Documents/Bresil 1511184-20210525T145240Z-001/Bresil 1511184/20210316-100153-bresil-od-onh-rlp6"
 
 
-ziliaDb = 'zilia.db'
-db = ZiliaDB(ziliaDb)
+# ziliaDb = 'zilia.db'
+db = ZiliaDB()
 retinaImages = db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh', eye='od')
 rosaImages = db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh', content='rosa', eye='od')
 print(len(retinaImages))
