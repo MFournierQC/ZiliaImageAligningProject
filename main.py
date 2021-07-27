@@ -2,14 +2,14 @@ from processImages import *
 from spectrumAnalysis import *
 from displayResult import *
 from zilia import *
+import matplotlib.pyplot as plt
 
-
+eye='os'
 
 db = ZiliaDB()
-retinaImages = db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh', eye='od')
-rosaImages = db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh', content='rosa', eye='od')
-print(len(retinaImages))
-print(len(retinaImages))
+retinaImages = db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh', eye=eye)
+rosaImages = db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh', content='rosa', eye=eye)
+
 
 
 ## OLD FUNCTIONS
