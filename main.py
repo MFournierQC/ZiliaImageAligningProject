@@ -1,6 +1,7 @@
 from processImages import *
 from spectrumAnalysis import *
 from displayResult import *
+from processImagesFromDatabase import *
 from zilia import *
 import matplotlib.pyplot as plt
 
@@ -9,6 +10,11 @@ eye='os'
 db = ZiliaDB()
 retinaImages = db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh', eye=eye)
 rosaImages = db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh', content='rosa', eye=eye)
+
+rosaAbsoluteXY=getRosaProperties(rosaImages)
+""" useful info:  int(['center']['x']) , int(['center']['y']) , ['rradius'] , and ['found'] """
+
+
 
 
 

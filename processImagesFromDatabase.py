@@ -15,59 +15,20 @@ from tkinter.filedialog import askdirectory
 import fnmatch
 import os
 
-
-
-
-def seperateImages(grayImageCollection, collectionDir: str, extension="jpg"):
-    """
-    Purpose: seperate new retina images from new rosa images
-    Load retina image - then load the corresponding rosa image 
-    Check to find the rosa, if found, append the image and other info a the numpy array
-    Input: grayscale images (output of loadImages function), directory for the images folder
-    Output: dictionary including: retina images, rosa images,
-            x,y, and radius of rosa center, numbers of the images in the directory
-    """
-    # 1st image has to be the retina, 2nd has to be the rosa.
-    numberOfRosaImages = 0
-    image = np.empty((1, grayImageCollection.shape[1], grayImageCollection.shape[2]), float)
-    laserImage = np.empty((1, grayImageCollection.shape[1], grayImageCollection.shape[2]), float)
-    temp = np.empty((1, grayImageCollection.shape[1], grayImageCollection.shape[2]), float)
-    xCenter = np.array([])
-    yCenter = np.array([])
-    radius = np.array([])
-    imageNumber = np.array([], dtype=int)
-
-    files, sortedFileNames = getFiles(collectionDir, extension, newImages=True, listNames=True)
-    # first pic = eye, 2nd pic = rosa
-    for i in range(1, grayImageCollection.shape[0]):
-        if "eye" in files[i-1]:
-            loadLaserImage = files[i]
-            blob = analyzeRosa(loadLaserImage)
-            if (blob['found'] == True):
-                numberOfRosaImages += 1
-                currentImageNumber = int(sortedFileNames[i][:3].lstrip("0"))
-                temp[0,:,:] = grayImageCollection[i-1,:,:] # retina
-                image = np.vstack((image, temp)) # retina
-                temp[0,:,:] = grayImageCollection[i,:,:] # rosa
-                laserImage = np.vstack((laserImage, temp)) # rosa
-                # the following arrays are 1D
-                xCenter = np.hstack((xCenter, int(blob['center']['x']*image.shape[2]))) # for the center of the rosa
-                yCenter = np.hstack((yCenter, int(blob['center']['y']*image.shape[1]))) # for the center of the rosa
-                radius = np.hstack((radius, int(blob['radius']*image.shape[1]))) # for the center of the rosa
-                imageNumber = np.hstack((imageNumber, currentImageNumber)) # it's a 1D array
-    if numberOfRosaImages == 0:
+def getRosaProperties (rosaImages):
+    rosaProperties=[]
+    numberOfRosaFound=0
+    for image in range(len(rosaImages)):
+        rosaInfo = analyzeRosa(rosaImages[image])
+        rosaProperties.append(rosaInfo)
+        if rosaInfo['found']:
+            numberOfRosaFound +=1
+    if numberOfRosaFound == 0:
         raise ImportError("No laser spot was found. Try with different data.")
-    image = np.delete(image, 0, axis=0) # remove the first initialized empty matrix
-    laserImage = np.delete(laserImage, 0, axis=0) # remove the first initialized empty matrix
-    imageDataDictionary = {
-        "image": image,
-        "laserImage": laserImage,
-        "xCenter": xCenter,
-        "yCenter": yCenter,
-        "radius": radius,
-        "imageNumber": imageNumber
-    }
-    return imageDataDictionary
+    return rosaProperties
+
+
+
 
 def removeBadImages(dataDictionary) -> dict:
     """
