@@ -49,7 +49,9 @@ class ZiliaDB(Database):
                     ziliaPath = ("{0}/Volumes/Zilia".format(duckDir))
                     if os.path.exists(ziliaPath):
                         ZiliaDB.rootCandidates.append(ziliaPath)
-            return True
+                        return True
+                    else:
+                        return False
         except:
             return False # cyberduck not installed or available
 
