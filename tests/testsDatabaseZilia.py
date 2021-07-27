@@ -119,7 +119,7 @@ class TestZilia(env.DCCLabTestCase):
 
     def testGetCalculatedProperties(self):
         records = self.db.getCalculatedImageProperties(rlp=34, timeline='baseline 3', region='onh', content='eye')
-        self.assertTrue(len(records) > 0)
+        self.assertTrue(len(records) > 100)
         for record in records:
             self.assertTrue('path' in record)    
             self.assertTrue('timeline' in record)    
