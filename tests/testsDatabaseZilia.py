@@ -39,8 +39,10 @@ class TestZilia(env.DCCLabTestCase):
 
     def testCyberduckMounts(self):
         before = len(ZiliaDB.rootCandidates)
-        ZiliaDB.addCyberduckPathsIfPresent()
-        self.assertTrue(before < len(ZiliaDB.rootCandidates))
+        if ZiliaDB.addCyberduckPathsIfPresent():
+            self.assertTrue(before < len(ZiliaDB.rootCandidates))
+        else:
+            self.assertTrue(before == len(ZiliaDB.rootCandidates))
 
     def setUp(self):
         self.db = ZiliaDB()
