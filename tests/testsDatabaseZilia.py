@@ -35,11 +35,11 @@ class TestZilia(env.DCCLabTestCase):
                     ziliaPath = ("{0}/Volumes/Zilia".format(duckDir))
                     self.assertTrue(os.path.exists( ziliaPath ) )
         except:
-            self.fail("No cyberduck CLI")
+            print("No cyberduck command-line tool. Not an error.")
 
     def testCyberduckMounts(self):
         before = len(ZiliaDB.rootCandidates)
-        ZiliaDB.addCyberduckPaths()
+        ZiliaDB.addCyberduckPathsIfPresent()
         self.assertTrue(before < len(ZiliaDB.rootCandidates))
 
     def setUp(self):
