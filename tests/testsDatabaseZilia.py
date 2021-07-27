@@ -6,9 +6,29 @@ import unittest
 import os
 import numpy as np
 from skimage.io import imread
-
+import subprocess
+import re
 
 class TestZilia(env.DCCLabTestCase):
+    def testSubprocess(self):
+        try:
+            result = subprocess.run(['duck', '-h'], capture_output=True, text=True)
+            lines = result.stdout.split('\n')
+            for line in lines:
+                match = re.match(r'Third.+in\s+(.+/duck).Profiles', line)
+                if match is not None:
+                    shortPath = match.group(1)
+                    duckDir = os.path.expanduser(shortPath)
+                    ziliaPath = ("{0}/Volumes/Zilia".format(duckDir))
+                    self.assertTrue(os.path.exists( ziliaPath ) )
+        except:
+            self.fail("No cyberduck CLI")
+
+    def testCyberduckMounts(self):
+        before = len(ZiliaDB.rootCandidates)
+        ZiliaDB.addCyberduckPaths()
+        self.assertTrue(before < len(ZiliaDB.rootCandidates))
+
     def test01FindDatabase(self):
         path = ZiliaDB.findDatabasePath()
         self.assertIsNotNone(path)
@@ -100,6 +120,10 @@ class TestZilia(env.DCCLabTestCase):
         for record in records:
             self.assertTrue('path' in record)    
             self.assertTrue('timeline' in record)    
+
+    def testGetAcquisitionIdList(self):
+        acqIds = self.db.getAcquisitionIdList()
+        self.assertTrue(len(acqIds) == 205)
 
 if __name__ == '__main__':
     unittest.main()

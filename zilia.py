@@ -3,6 +3,7 @@ import numpy as np
 from skimage.io import imread
 from skimage.color import rgb2gray
 import time
+import subprocess
 
 class ZiliaDB(Database):
     statementFromAllJoin = "from spectra as s, spectralfiles as f, monkeys as m where s.md5 = f.md5 and f.monkeyId = m.monkeyId"
@@ -24,6 +25,8 @@ class ZiliaDB(Database):
 
     @classmethod
     def findDataFilesRoot(cls) -> str:
+        ZiliaDB.addCyberduckPaths()
+
         someRelativePath = "./March2021" # FIXME: don't hardcode path
 
         for root in cls.rootCandidates:
@@ -33,9 +36,27 @@ class ZiliaDB(Database):
 
         return None
 
+    @classmethod
+    def addCyberduckPaths(cls):
+        try:
+            result = subprocess.run(['duck', '-h'], capture_output=True, text=True)
+            lines = result.stdout.split('\n')
+            for line in lines:
+                match = re.match(r'Third.+in\s+(.+/duck)/Profiles', str(line))
+                if match is not None:
+                    shortPath = match.group(1)
+                    duckDir = os.path.expanduser(shortPath)
+                    ziliaPath = ("{0}/Volumes/Zilia".format(duckDir))
+                    if os.path.exists(ziliaPath):
+                        ZiliaDB.rootCandidates.append(ziliaPath)
+                    else:
+                        print("Cyberduyck mount missing")
+        except:
+            pass
+
     def __init__(self, ziliaDbPath=None, root=None):  
         """
-        Creates the database object for the ZIlia experiments.
+        Creates the database object for the Zilia experiments.
 
         The path to the database can be obtained dynamically. The root directory is not mandatory: it simply means you will not be able to 
         read image files if it is None.
@@ -130,6 +151,14 @@ class ZiliaDB(Database):
         for row in rows:
             names.append(row['name'])
         return names
+
+    def getAcquisitionIdList(self):
+        self.execute("select date as acquisitionId, m.monkeyId, timeline, rlp, region, content, eye from imagefiles as f left join monkeys as m on m.monkeyId = f.monkeyId group by acquisitionId order by acquisitionId")
+        rows = self.fetchAll()
+        paths = []
+        for row in rows:
+            paths.append(row['acquisitionId'])
+        return rows
 
     def getImagePaths(self):
         self.execute("select path from imagefiles order by path")
