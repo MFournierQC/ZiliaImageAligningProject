@@ -72,18 +72,17 @@ class TestZilia(env.DCCLabTestCase):
 
     def testGetEyeImagesFromDatabase(self):
         images = self.db.getRGBImages(rlp=34, timeline='baseline 3', region='onh', content='eye', limit=10)
-        self.assertTrue(len(images) > 0)
+        self.assertTrue(len(images) == 10)
 
     def testGetGrayscaleEyeImagesFromDatabase(self):
         images = self.db.getGrayscaleEyeImages(monkey='Bresil' , rlp=6, timeline='baseline 3', region='onh', limit=10)
-        self.assertTrue(len(images) > 0)
+        self.assertTrue(len(images) == 10)
         for image in images:
             self.assertEqual(image.shape, (1024, 1216))
 
     def testGetGrayscaleEyeImagesFromDatabaseLarge(self):
         images = self.db.getRGBImages(timeline='baseline 3', limit=100)
-        self.assertTrue(len(images) > 0)
-        print(len(images))
+        self.assertEqual(len(images), 100)
         for image in images:
             self.assertEqual(image.shape, (1024, 1216, 3))
 
