@@ -46,35 +46,60 @@ def findBlurryImages (retinaImages):
         else :
             blurryImages.append('False')
     return blurryImages
- 
-    
-    
-# def findDarkImages (retinaImages):
-    
+
+def cropImageMargins(image , margin=250):
+    return image [margin:image.shape[0] - margin, margin:image.shape[1] - margin]
+
+def spotDarkVessels(image):
+    croppedSkeleton=np.zeros(image.shape)
+    for i in range(image.shape[0]):
+        columns = np.convolve(image[i,:], np.ones(n)/n, mode='valid')
+        peaks, _ = find_peaks(-columns, prominence=0.001, distance=250)
+        croppedSkeleton[i , peaks] = 1
+    for i in range(temp.shape[1]):
+        rows = np.convolve(temp[:,i], np.ones(n)/n, mode='valid')
+        peaks, _ = find_peaks(-rows, prominence=0.001, distance=250)
+        croppedSkeleton[peaks , i ] = 1
+    return croppedSkeleton
+
+
+
+def calculateSkeletonImage (image , margin = 250 , n = 100 ):
+    skeletonImage = np.zeros(image.shape)
+    croppedImage = cropImageMargins(image , margin = margin)
+    skeletonImage[margin:image.shape[0]-margin , margin:image.shape[1]-margin] = spotDarkVessels(croppedImage)
+    return ndimage.binary_closing(skeletonImage[:,:], structure=np.ones((20,20))).astype(np.int)
+
+
+def calculateShiftInOneAcquisition (images : np.ndarray , Margin=250, N=100 ):
+    """Calculated the shift in x and y direction in two consecutive images
+        Input: list of 2D numpy arrays (series of retina images)
+        The shift in the first image is considered to be zero
+        Output: 2D numpy array with the shifts in each image regarding the first image
+        """
+    indexShift = np.array([0, 0])
+    totalShift = np.array([[0, 0]])
+    for image in range(len(images)-1):
+        crossCorrelationImage= crossImage(a[j - 1, :, :], a[j, :, :])
+
+
     
         
 def findImageShift(Image: np.ndarray, Margin=250, N=100) -> np.ndarray:
-    """
-    Calculated the shift in x and y direction in two consecutive images
-    Input: 3D numpy array (series of retina images)
-    The shift in the first image is considered to be zero
-    Output: 2D numpy array with the shifts in each image regarding the first image
-    """
     temp = Image[:, Margin:Image.shape[1] - Margin, Margin:Image.shape[2] - Margin]
     skeletonImage = np.zeros(Image.shape)
     a = np.zeros(Image.shape)
-    indexShift = np.array([0, 0])
-    totalShift = np.array([[0, 0]])
-    for j in range(temp.shape[0]):
-        for i in range(temp.shape[1]):
-            y = np.convolve(temp[j,i,:], np.ones(N)/N, mode='valid')
-            peaks, _ = find_peaks(-y, prominence=0.001, distance=250)
-            skeletonImage[j,i+Margin,peaks+Margin] = 1
-        for i in range(temp.shape[2]):
-            y = np.convolve(temp[j,:,i], np.ones(N)/N, mode='valid')
-            peaks, _ = find_peaks(-y, prominence=0.001, distance=250)
-            skeletonImage[j, peaks+Margin, i+Margin] = 1
-        a[j,:,:] = ndimage.binary_closing(skeletonImage[j,:,:], structure=np.ones((20,20))).astype(np.int)
+
+    # for j in range(temp.shape[0]):
+    #     for i in range(temp.shape[1]):
+    #         y = np.convolve(temp[j,i,:], np.ones(N)/N, mode='valid')
+    #         peaks, _ = find_peaks(-y, prominence=0.001, distance=250)
+    #         skeletonImage[j,i+Margin,peaks+Margin] = 1
+    #     for i in range(temp.shape[2]):
+    #         y = np.convolve(temp[j,:,i], np.ones(N)/N, mode='valid')
+    #         peaks, _ = find_peaks(-y, prominence=0.001, distance=250)
+    #         skeletonImage[j, peaks+Margin, i+Margin] = 1
+    #     a[j,:,:] = ndimage.binary_closing(skeletonImage[j,:,:], structure=np.ones((20,20))).astype(np.int)
         if (j > 0):
             out1 = crossImage(a[j-1,:,:], a[j,:,:])
             maxFlatIndex = np.argmax(out1, axis=None)
