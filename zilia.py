@@ -42,7 +42,7 @@ class ZiliaDB(Database):
             result = subprocess.run(['duck', '-h'], capture_output=True, text=True)
             lines = result.stdout.split('\n')
             for line in lines:
-                match = re.match(r'Third.+in\s+(.+/duck)/Profiles', str(line))
+                match = re.match(r'Third.+in\s+(.+duck)/Profiles', line)
                 if match is not None:
                     shortPath = match.group(1)
                     duckDir = os.path.expanduser(shortPath)
@@ -50,7 +50,7 @@ class ZiliaDB(Database):
                     if os.path.exists(ziliaPath):
                         ZiliaDB.rootCandidates.append(ziliaPath)
                     else:
-                        print("Cyberduyck mount missing")
+                        print("Cyberduck mount missing")
         except:
             pass
 

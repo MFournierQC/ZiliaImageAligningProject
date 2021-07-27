@@ -10,6 +10,19 @@ import subprocess
 import re
 
 class TestZilia(env.DCCLabTestCase):
+
+    def test01FindDatabase(self):
+        path = ZiliaDB.findDatabasePath()
+        self.assertIsNotNone(path)
+        self.assertTrue(os.path.isabs(path))
+        print("Using database at: {0}".format(path))
+
+    def test02FindDataFilesRoot(self):
+        path = ZiliaDB.findDataFilesRoot()
+        self.assertIsNotNone(path)
+        self.assertTrue(os.path.isabs(path))
+        print("Using files from: {0}".format(path))
+
     def testSubprocess(self):
         try:
             result = subprocess.run(['duck', '-h'], capture_output=True, text=True)
@@ -28,18 +41,6 @@ class TestZilia(env.DCCLabTestCase):
         before = len(ZiliaDB.rootCandidates)
         ZiliaDB.addCyberduckPaths()
         self.assertTrue(before < len(ZiliaDB.rootCandidates))
-
-    def test01FindDatabase(self):
-        path = ZiliaDB.findDatabasePath()
-        self.assertIsNotNone(path)
-        self.assertTrue(os.path.isabs(path))
-        print("Using database at: {0}".format(path))
-
-    def test02FindDataFilesRoot(self):
-        path = ZiliaDB.findDataFilesRoot()
-        self.assertIsNotNone(path)
-        self.assertTrue(os.path.isabs(path))
-        print("Using files from: {0}".format(path))
 
     def setUp(self):
         self.db = ZiliaDB()
@@ -101,7 +102,7 @@ class TestZilia(env.DCCLabTestCase):
             self.assertEqual(image.shape, (1024, 1216))
 
     def testGetGrayscaleEyeImagesFromDatabaseLarge(self):
-        images = self.db.getRGBImages(timeline='baseline 3', limit=100)
+        images = self.db.getRGBImages(timeline='baseline 3', limit=1000)
         self.assertEqual(len(images), 100)
         for image in images:
             self.assertEqual(image.shape, (1024, 1216, 3))
