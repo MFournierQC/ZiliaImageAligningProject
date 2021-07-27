@@ -6,7 +6,7 @@ import csv
 import os
 from skimage.color import rgb2gray
 
-def computeDisplacementForAllImages(imageDict):
+def computeRosaDisplacementForAllImages(imageDict):
     rosaAbsX = {}
     rosaAbsY = {}
     for path, image in imageDict.items():
@@ -23,16 +23,13 @@ def computeDisplacementForAllImages(imageDict):
 
 def findLaserSpot(inImage: np.ndarray):
     redChannel = getGrayMapFromRedChannel(inImage)
-    maxValueRedChannel = np.max(redChannel)
-    found, _, circleHeight, circleWidth, radius = findLaserSpotRecursive(
-        redChannel, maxValueRedChannel, time_start)
-    if found:
-        print("Laser found.")
-        circleHeight, circleWidth, fine_tuned_radius = fineTuneRosaDetection(redChannel, circleHeight, circleWidth, radius)
-        radius = fine_tuned_radius
-    else:
+    maxRedChannel = np.max(redChannel)
+    found, _, circleHeight, circleWidth, radius = findLaserSpotRecursive(redChannel, maxRedChannel, time_start)
+    if not found:
         print("Laser not found")
         return None
+    print("Laser found.")
+    circleHeight, circleWidth, radius = fineTuneRosaDetection(redChannel, circleHeight, circleWidth, radius)
     blob = formatBlob(inImage, [circleHeight, circleWidth, radius, found])
     return blob
 
@@ -62,17 +59,3 @@ def saveImageData(data, fileName="displacementData"):
             writer.writerow([eyeImagePaths[i], 'rosaAbsY', int(rawRosaYs[i])])
             # writer.writerow([eyeImagePaths[i], 'onhAbsX', int(onhXShifts[i])])
             # writer.writerow([eyeImagePaths[i], 'onhAbsY', int(onhYShifts[i])])
-
-def getPathsFromImageNumbers(dirPath, imageNumbers):
-    paths = []
-    for i in imageNumbers:
-        if len(str(i)) == 1:
-            path = dirPath+"/00"+str(i)+"-eye.jpg"
-            paths.append(os.path.replace("\\", "/"))
-        if len(str(i)) == 2:
-            path = dirPath+"/0"+str(i)+"-eye.jpg"
-            paths.append(os.path.replace("\\", "/"))
-        if len(str(i)) == 3:
-            path = dirPath+"/"+str(i)+"-eye.jpg"
-            paths.append(os.path.replace("\\", "/"))
-    return paths
