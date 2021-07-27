@@ -102,8 +102,8 @@ class TestZilia(env.DCCLabTestCase):
             self.assertEqual(image.shape, (1024, 1216))
 
     def testGetGrayscaleEyeImagesFromDatabaseLarge(self):
-        images = self.db.getRGBImages(timeline='baseline 3', limit=1000)
-        self.assertEqual(len(images), 100)
+        images = self.db.getRGBImages(timeline='baseline 3', limit=300)
+        self.assertEqual(len(images), 300)
         for image in images:
             self.assertEqual(image.shape, (1024, 1216, 3))
 
