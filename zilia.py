@@ -10,8 +10,8 @@ class ZiliaDB(Database):
     statementFromSpectra = "from spectra as s"
 
     databaseCandidates = ["zilia.db", "../zilia.db", "/Volumes/Goliath/labdata/dcclab/zilia/zilia.db",
-    "z:/Goliath/labdata/dcclab/zilia/zilia.db"]
-    rootCandidates = [".", "..", "/Volumes/Goliath/labdata/dcclab/zilia", "z:/labdata/dcclab/zilia",
+    r"z:\labdata\dcclab\zilia\zilia.db"]
+    rootCandidates = [".", "..", "/Volumes/Goliath/labdata/dcclab/zilia", r"z:\labdata\dcclab\zilia",
     "U:/labdata/dcclab/zilia", "/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"]
 
     @classmethod
@@ -176,7 +176,7 @@ class ZiliaDB(Database):
             paths.append(row['path'])
         return paths
 
-    def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
+    def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None, mirrorLeftEye=True):
         if self.root is None:
             raise RuntimeError('To read image files, you must provide a root directory')
 
@@ -193,11 +193,15 @@ class ZiliaDB(Database):
                 raise FileNotFoundError(absolutePath)
 
             image = imread(absolutePath)
+            if row['eye'] == 'os' and mirrorLeftEye:
+                image = self.mirrorImageHorizontally(image) 
             images.append(image)
             self.showProgressBar(i+1, nTotal)
 
         return images
 
+    def mirrorImageHorizontally(self, image):
+        return image[:,::-1,:]
 
     def getGrayscaleEyeImages(self, monkey=None, timeline=None, rlp=None, region=None, eye=None, limit=None):
         images = self.getRGBImages(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content='eye', eye=eye, limit=limit)
