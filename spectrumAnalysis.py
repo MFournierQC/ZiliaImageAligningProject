@@ -14,12 +14,12 @@ saturatedValue = 65535
 
 
 # These 3 will always be the same for every test
-# whiteRefName = r"int75_WHITEREFERENCE.csv"
-# refNameNothinInfront = r"int75_LEDON_nothingInFront.csv"
+whiteRefName = r"int75_WHITEREFERENCE.csv"
+refNameNothinInfront = r"int75_LEDON_nothingInFront.csv"
 componentsSpectraGlobal = r'_components_spectra.csv'
 
-whiteRefName = '/Users/elahe/Documents/GitHub/Human acquisition/1104_whiteRef.csv'
-refNameNothinInfront = '/Users/elahe/Documents/GitHub/Human acquisition/spectro_data_DARKRLP60.csv'
+# whiteRefName = '/Users/elahe/Documents/GitHub/Human acquisition/1104_whiteRef.csv'
+# refNameNothinInfront = '/Users/elahe/Documents/GitHub/Human acquisition/spectro_data_DARKRLP60.csv'
 
 
 class Spectrum:
