@@ -10,8 +10,8 @@ class ZiliaDB(Database):
     statementFromSpectra = "from spectra as s"
 
     databaseCandidates = ["zilia.db", "../zilia.db", "/Volumes/Goliath/labdata/dcclab/zilia/zilia.db",
-    "z:/Goliath/labdata/dcclab/zilia/zilia.db"]
-    rootCandidates = [".", "..", "/Volumes/Goliath/labdata/dcclab/zilia", "z:/labdata/dcclab/zilia",
+    r"z:\labdata\dcclab\zilia\zilia.db"]
+    rootCandidates = [".", "..", "/Volumes/Goliath/labdata/dcclab/zilia", r"z:\labdata\dcclab\zilia",
     "U:/labdata/dcclab/zilia", "/Volumes/GoogleDrive/My Drive/Zilia/ZDS-CE Zilia DataShare CERVO"]
 
     @classmethod
