@@ -297,17 +297,15 @@ def binarizeLaserImage(inputImage, thresh, maxValue, halfRange=3):
 
 
 # if __name__ == "__main__":
-def analyzeRosa(imagePath):
+def analyzeRosa(image):
     """
-    Import an image as a numpy array and give parameters of the blob.
-    Input: imagePath(file path of the image you want to import. Must not
-                include accents [è, é, etc.], or else it will not work).
-    Output: blob(a dictionary containting parameters from the blob in the
+    Import an image as a numpy array and give parameters of ROSA.
+    Input: image RGB.
+    Output: ROSA properties (a dictionary containting parameters from ROSA in the
                 picure, which is the output of the formatBlob function).
     """
 
-    image = cv2.imread(imagePath)
+    image = image[:,:,::-1]
+    rosaProperties, _, _ = findLaserSpotMainCall(image)
 
-    blob, _, _ = findLaserSpotMainCall(image)
-
-    return blob
+    return rosaProperties
