@@ -14,8 +14,7 @@ rosaImages = db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', regi
 rosaAbsoluteXY=getRosaProperties(rosaImages)
 # useful info:  int(['center']['x']) , int(['center']['y']) , ['rradius'] , and ['found']
 
-blurryImagesLabel=findBlurryImages(retinaImages) 
-
+blurryImagesLabel=findBlurryImages(retinaImages)
 
 
 ## OLD FUNCTIONS

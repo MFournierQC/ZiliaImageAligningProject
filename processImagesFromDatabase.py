@@ -71,16 +71,33 @@ def calculateSkeletonImage (image , margin = 250 , n = 100 ):
     return ndimage.binary_closing(skeletonImage[:,:], structure=np.ones((20,20))).astype(np.int)
 
 
-def calculateShiftInOneAcquisition (images : np.ndarray , Margin=250, N=100 ):
+def calculateShiftInOneAcquisition (images : np.ndarray , blurryImagesLabel , Margin=250, N=100 ):
     """Calculated the shift in x and y direction in two consecutive images
         Input: list of 2D numpy arrays (series of retina images)
         The shift in the first image is considered to be zero
         Output: 2D numpy array with the shifts in each image regarding the first image
         """
-    indexShift = np.array([0, 0])
-    totalShift = np.array([[0, 0]])
-    for image in range(len(images)-1):
-        crossCorrelationImage= crossImage(a[j - 1, :, :], a[j, :, :])
+    #define a None array with blurryImageLabels length
+    # use the location of non blurry images to
+
+    # a= [None] * len(blurryImagesLabel)
+
+    # a[10] = np.array([12, 1])
+    #
+    # a[20] = 10
+    #
+    # print(a)
+
+    # for image in range(len(images)-1):
+    #     if blurryImagesLabel[image]
+        
+    
+    # indexShift = np.array([0, 0])
+    # totalShift = np.array([[0, 0]])
+    # for image in range(len(images)-1):
+    #     crossCorrelationImage= crossImage()
+
+    pass
 
 
     
@@ -89,17 +106,19 @@ def findImageShift(Image: np.ndarray, Margin=250, N=100) -> np.ndarray:
     temp = Image[:, Margin:Image.shape[1] - Margin, Margin:Image.shape[2] - Margin]
     skeletonImage = np.zeros(Image.shape)
     a = np.zeros(Image.shape)
+    indexShift = np.array([0, 0])
+    totalShift = np.array([[0, 0]])
 
-    # for j in range(temp.shape[0]):
-    #     for i in range(temp.shape[1]):
-    #         y = np.convolve(temp[j,i,:], np.ones(N)/N, mode='valid')
-    #         peaks, _ = find_peaks(-y, prominence=0.001, distance=250)
-    #         skeletonImage[j,i+Margin,peaks+Margin] = 1
-    #     for i in range(temp.shape[2]):
-    #         y = np.convolve(temp[j,:,i], np.ones(N)/N, mode='valid')
-    #         peaks, _ = find_peaks(-y, prominence=0.001, distance=250)
-    #         skeletonImage[j, peaks+Margin, i+Margin] = 1
-    #     a[j,:,:] = ndimage.binary_closing(skeletonImage[j,:,:], structure=np.ones((20,20))).astype(np.int)
+    for j in range(temp.shape[0]):
+        for i in range(temp.shape[1]):
+            y = np.convolve(temp[j,i,:], np.ones(N)/N, mode='valid')
+            peaks, _ = find_peaks(-y, prominence=0.001, distance=250)
+            skeletonImage[j,i+Margin,peaks+Margin] = 1
+        for i in range(temp.shape[2]):
+            y = np.convolve(temp[j,:,i], np.ones(N)/N, mode='valid')
+            peaks, _ = find_peaks(-y, prominence=0.001, distance=250)
+            skeletonImage[j, peaks+Margin, i+Margin] = 1
+        a[j,:,:] = ndimage.binary_closing(skeletonImage[j,:,:], structure=np.ones((20,20))).astype(np.int)
         if (j > 0):
             out1 = crossImage(a[j-1,:,:], a[j,:,:])
             maxFlatIndex = np.argmax(out1, axis=None)

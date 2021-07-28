@@ -304,7 +304,6 @@ def analyzeRosa(image):
     Output: ROSA properties (a dictionary containting parameters from ROSA in the
                 picure, which is the output of the formatBlob function).
     """
-
     image = image[:,:,::-1]
     rosaProperties, _, _ = findLaserSpotMainCall(image)
 
