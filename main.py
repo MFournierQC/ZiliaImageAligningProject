@@ -14,7 +14,14 @@ rosaImages = db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', regi
 rosaAbsoluteXY=getRosaProperties(rosaImages)
 # useful info:  int(['center']['x']) , int(['center']['y']) , ['rradius'] , and ['found']
 
-blurryImagesLabel=findBlurryImages(retinaImages)
+shift = calculateShiftInOneAcquisition (retinaImages)
+# Calculate shifts regarding the first good image in an acquisition
+
+
+
+########
+# what else to consider?
+# remove dark images? (it was there before but where is it now??)
 
 
 ## OLD FUNCTIONS

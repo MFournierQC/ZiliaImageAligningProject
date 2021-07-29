@@ -39,7 +39,7 @@ def findBlurryImages (retinaImages):
         laplacianOfImage = cv2.Laplacian(normalizedRetinaImage, cv2.CV_64F)
         laplacianVariance = laplacianOfImage.var()
         laplacianVarianceValues = np.hstack((laplacianVarianceValues, laplacianVariance))
-    laplacianThreshold = np.mean(laplacianVarianceValues) + np.std(laplacianVarianceValues)    
+    laplacianThreshold = np.mean(laplacianVarianceValues) # - np.std(laplacianVarianceValues)
     for i in range(laplacianVarianceValues.shape[0]):
         if laplacianVarianceValues[i] < laplacianThreshold :
             blurryImages.append('True')
@@ -47,87 +47,57 @@ def findBlurryImages (retinaImages):
             blurryImages.append('False')
     return blurryImages
 
-def cropImageMargins(image , margin=250):
+def cropImageMargins(image , margin=250 ):
     return image [margin:image.shape[0] - margin, margin:image.shape[1] - margin]
 
-def spotDarkVessels(image):
+def spotDarkVessels(image , n = 100 ):
     croppedSkeleton=np.zeros(image.shape)
     for i in range(image.shape[0]):
         columns = np.convolve(image[i,:], np.ones(n)/n, mode='valid')
         peaks, _ = find_peaks(-columns, prominence=0.001, distance=250)
         croppedSkeleton[i , peaks] = 1
-    for i in range(temp.shape[1]):
-        rows = np.convolve(temp[:,i], np.ones(n)/n, mode='valid')
+    for i in range(image.shape[1]):
+        rows = np.convolve(image[:,i], np.ones(n)/n, mode='valid')
         peaks, _ = find_peaks(-rows, prominence=0.001, distance=250)
         croppedSkeleton[peaks , i ] = 1
     return croppedSkeleton
-
-
 
 def calculateSkeletonImage (image , margin = 250 , n = 100 ):
     skeletonImage = np.zeros(image.shape)
     croppedImage = cropImageMargins(image , margin = margin)
     skeletonImage[margin:image.shape[0]-margin , margin:image.shape[1]-margin] = spotDarkVessels(croppedImage)
-    return ndimage.binary_closing(skeletonImage[:,:], structure=np.ones((20,20))).astype(np.int)
+    return ndimage.binary_closing(skeletonImage[:,:], structure=np.ones((20,20))).astype(np.float)
 
+def findGoodImagesIndex (blurryFlag):
+    return np.where(np.array(blurryFlag) != 'True')[0]
 
-def calculateShiftInOneAcquisition (images : np.ndarray , blurryImagesLabel , Margin=250, N=100 ):
+def calculateShiftInOneAcquisition (images : np.ndarray , Margin=250, N=100 ):
     """Calculated the shift in x and y direction in two consecutive images
         Input: list of 2D numpy arrays (series of retina images)
         The shift in the first image is considered to be zero
         Output: 2D numpy array with the shifts in each image regarding the first image
         """
-    #define a None array with blurryImageLabels length
-    # use the location of non blurry images to
+    blurryImagesLabel = findBlurryImages(images)
+    goodImagesNumber = findGoodImagesIndex(blurryImagesLabel)
 
-    # a= [None] * len(blurryImagesLabel)
+    shiftValueFromReferenceImage = [None] * len(blurryImagesLabel)    
+    shiftValueFromReferenceImage[goodImagesNumber[0]]=np.array([0,0])
 
-    # a[10] = np.array([12, 1])
-    #
-    # a[20] = 10
-    #
-    # print(a)
-
-    # for image in range(len(images)-1):
-    #     if blurryImagesLabel[image]
+    for image in range(len(goodImagesNumber)-1):
+        firstSkeletonImage = calculateSkeletonImage(images[goodImagesNumber[image]])
+        secondSkeletonImage = calculateSkeletonImage(images[goodImagesNumber[image+1]])
+        crossCorrelationResult = crossImage(firstSkeletonImage, secondSkeletonImage)
+        maxValueIndexFlat = np.argmax(crossCorrelationResult, axis=None)
+        maxValueIndex2D = np.unravel_index(maxValueIndexFlat, crossCorrelationResult.shape)
+        halfImageSize = np.array([firstSkeletonImage.shape[0] / 2, firstSkeletonImage.shape[1] / 2])
+        shiftValue = np.array(maxValueIndex2D) - halfImageSize
+        shiftValueFromReferenceImage[goodImagesNumber[image+1]]= shiftValue + \
+                                                                 shiftValueFromReferenceImage[goodImagesNumber[image]]
         
-    
-    # indexShift = np.array([0, 0])
-    # totalShift = np.array([[0, 0]])
-    # for image in range(len(images)-1):
-    #     crossCorrelationImage= crossImage()
-
-    pass
+    return shiftValueFromReferenceImage
 
 
     
-        
-def findImageShift(Image: np.ndarray, Margin=250, N=100) -> np.ndarray:
-    temp = Image[:, Margin:Image.shape[1] - Margin, Margin:Image.shape[2] - Margin]
-    skeletonImage = np.zeros(Image.shape)
-    a = np.zeros(Image.shape)
-    indexShift = np.array([0, 0])
-    totalShift = np.array([[0, 0]])
-
-    for j in range(temp.shape[0]):
-        for i in range(temp.shape[1]):
-            y = np.convolve(temp[j,i,:], np.ones(N)/N, mode='valid')
-            peaks, _ = find_peaks(-y, prominence=0.001, distance=250)
-            skeletonImage[j,i+Margin,peaks+Margin] = 1
-        for i in range(temp.shape[2]):
-            y = np.convolve(temp[j,:,i], np.ones(N)/N, mode='valid')
-            peaks, _ = find_peaks(-y, prominence=0.001, distance=250)
-            skeletonImage[j, peaks+Margin, i+Margin] = 1
-        a[j,:,:] = ndimage.binary_closing(skeletonImage[j,:,:], structure=np.ones((20,20))).astype(np.int)
-        if (j > 0):
-            out1 = crossImage(a[j-1,:,:], a[j,:,:])
-            maxFlatIndex = np.argmax(out1, axis=None)
-            maxIndex = np.unravel_index(maxFlatIndex, out1.shape)
-            halfImageSize = np.array([a.shape[1]/2, a.shape[2]/2])
-            indexShift = np.vstack((indexShift, np.array(maxIndex) - halfImageSize))
-            totalShift = np.vstack((totalShift, np.sum(indexShift, axis=0)))
-    return totalShift
-
 def applyShift(xLaser: np.ndarray, yLaser:np.ndarray, shift:np.ndarray) -> tuple:
     """
     Apply the shift value on the x and y of the rosa
