@@ -106,13 +106,13 @@ class TestComputeDisplacementForAllImages(envtest.ZiliaTestCase):
         # print('rosaAbsCoords =', rosaAbsCoords)
         saveRosaData(rosaAbsCoords, fileName="rosaDisplacementDataTest3")
 
-    # @envtest.skip("Very long test!")
+    @envtest.skip("Very long test!")
     def testGetNumberOfRosaImages(self):
         db = ZiliaDB()
         rosaImagesDict = db.getRGBImagesWithPaths(region="onh", content="rosa")
-        print("number of rosa =", len(rosaImagesDict))
+        print("number of rosa =", len(rosaImagesDict)) # 16599 files!
 
-    @envtest.skip("Very long test!")
+    # @envtest.skip("Very long test!")
     def testSaveRosaDataForAllImages(self):
         db = ZiliaDB()
         rosaImagesDict = db.getRGBImagesWithPaths(region="onh", content="rosa")

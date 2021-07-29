@@ -157,3 +157,4 @@ zilia.db
 tests/rosaDisplacementDataTest1.csv
 tests/rosaDisplacementDataTest2.csv
 tests/rosaDisplacementDataTest3.csv
+tests/allRosaDisplacementData.csv
