@@ -5,8 +5,9 @@ from processImages import *
 from getImageDisplacementData import *
 from zilia import *
 
+# Global variables to decide if some tests will run or not.
 showPlots = False
-# showPlots = True
+dontRecreateFiles = True
 
 class TestComputeDisplacementForAllImages(envtest.ZiliaTestCase):
 
@@ -47,46 +48,71 @@ class TestComputeDisplacementForAllImages(envtest.ZiliaTestCase):
             plt.show()
         # This worked wonderfully!
 
-    @envtest.skip("needs to be readapted to the new code output.")
-    def testComputeRosaPositionFor1RosaImage(self):
-        db = ZiliaDB()
-        rosaImagesDict = db.getRGBImagesWithPaths(region="onh", content="rosa", limit=3)
-        self.assertEqual(len(rosaImagesDict), 3)
-        rosaAbsX, rosaAbsY = computeRosaPositionForAllImages(rosaImagesDict)
-        self.assertEqual(len(rosaAbsX), 3)
-        self.assertEqual(len(rosaAbsY), 3)
-        for path, value in rosaAbsX.items():
-            self.assertIsInstance(path, str)
-            try:
-                self.assertIsInstance(value, int)
-            except AssertionError:
-                self.assertIsInstance(value, str)
-        # print('rosaAbsX =', rosaAbsX)
-        # print('rosaAbsY =', rosaAbsY)
-        # Worked perfectly!
-
-    @envtest.skip("needs to be readapted to the new code output.")
     def testComputeRosaPositionFor3RosaImages(self):
         db = ZiliaDB()
         rosaImagesDict = db.getRGBImagesWithPaths(region="onh", content="rosa", limit=3)
         self.assertEqual(len(rosaImagesDict), 3)
-        rosaAbsX, rosaAbsY = computeRosaPositionForAllImages(rosaImagesDict)
-        self.assertEqual(len(rosaAbsX), 3)
-        self.assertEqual(len(rosaAbsY), 3)
-        for path, value in rosaAbsX.items():
+        rosaAbsCoords: dict = computeRosaPositionForAllImages(rosaImagesDict)
+        self.assertEqual(len(rosaAbsCoords), 3)
+        for path, coords in rosaAbsCoords.items():
             self.assertIsInstance(path, str)
+            self.assertIsInstance(coords, tuple)
             try:
-                self.assertIsInstance(value, int)
+                self.assertIsInstance(coords[0], int)
             except AssertionError:
-                self.assertIsInstance(value, str)
-        # print('rosaAbsX =', rosaAbsX)
-        # print('rosaAbsY =', rosaAbsY)
+                self.assertIsInstance(coords[0], str)
+            try:
+                self.assertIsInstance(coords[1], int)
+            except AssertionError:
+                self.assertIsInstance(coords[1], str)
+        # print('rosaAbsCoords =', rosaAbsCoords)
         # Worked perfectly!
 
+    def testSaveRosaDataFor1Image(self):
+        db = ZiliaDB()
+        rosaImagesDict = db.getRGBImagesWithPaths(region="onh", content="rosa", limit=1)
+        self.assertEqual(len(rosaImagesDict), 1)
+        rosaAbsCoords: dict = computeRosaPositionForAllImages(rosaImagesDict)
+        self.assertEqual(len(rosaAbsCoords), 1)
+        # print('rosaAbsCoords =', rosaAbsCoords)
+        saveRosaData(rosaAbsCoords, fileName="rosaDisplacementDataTest1")
 
-    @envtest.skip("Works fine, but skip file creation please.")
-    def testSaveFolders(self):
-        pass
+    def testSaveRosaDataFor1ImageTwiceInARow(self):
+        # This test is necessary because the function saveRosaData will behave
+        # a bit differently if a data file already exists or not.
+        db = ZiliaDB()
+        rosaImagesDict = db.getRGBImagesWithPaths(region="onh", content="rosa", limit=1)
+        self.assertEqual(len(rosaImagesDict), 1)
+        rosaAbsCoords: dict = computeRosaPositionForAllImages(rosaImagesDict)
+        self.assertEqual(len(rosaAbsCoords), 1)
+        # print('rosaAbsCoords =', rosaAbsCoords)
+        saveRosaData(rosaAbsCoords, fileName="rosaDisplacementDataTest1")
+        saveRosaData(rosaAbsCoords, fileName="rosaDisplacementDataTest1")
+
+    def testSaveRosaDataFor3Images(self):
+        db = ZiliaDB()
+        rosaImagesDict = db.getRGBImagesWithPaths(region="onh", content="rosa", limit=3)
+        self.assertEqual(len(rosaImagesDict), 3)
+        rosaAbsCoords: dict = computeRosaPositionForAllImages(rosaImagesDict)
+        self.assertEqual(len(rosaAbsCoords), 3)
+        # print('rosaAbsCoords =', rosaAbsCoords)
+        saveRosaData(rosaAbsCoords, fileName="rosaDisplacementDataTest2")
+
+    def testSaveRosaDataFor10Images(self):
+        db = ZiliaDB()
+        rosaImagesDict = db.getRGBImagesWithPaths(region="onh", content="rosa", limit=10)
+        self.assertEqual(len(rosaImagesDict), 10)
+        rosaAbsCoords: dict = computeRosaPositionForAllImages(rosaImagesDict)
+        self.assertEqual(len(rosaAbsCoords), 10)
+        # print('rosaAbsCoords =', rosaAbsCoords)
+        saveRosaData(rosaAbsCoords, fileName="rosaDisplacementDataTest3")
+
+    # @envtest.skip("Very long test!")
+    def testGetNumberOfRosaImages(self):
+        db = ZiliaDB()
+        rosaImagesDict = db.getRGBImagesWithPaths(region="onh", content="rosa")
+        print(len(rosaImagesDict))
+
 
 if __name__=="__main__":
     envtest.main()

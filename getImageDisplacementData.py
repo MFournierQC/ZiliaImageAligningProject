@@ -19,7 +19,7 @@ def computeRosaPositionForAllImages(imageDict):
             rosaAbsCoords[path] = rosaX, rosaY
     return rosaAbsCoords
 
-def saveRosaData(rosaAbsCoords: dict, fileName="displacementData"):
+def saveRosaData(rosaAbsCoords: dict, fileName="rosaDisplacementData"):
     if os.path.exists(fileName+".csv"):
         # the file already exists
         fileMode = 'a'
@@ -29,7 +29,6 @@ def saveRosaData(rosaAbsCoords: dict, fileName="displacementData"):
     with open(fileName+'.csv', fileMode, newline='') as csvfile:
         writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         for path, coords in rosaAbsCoords.items():
-            for path, valueY in rosaAbsXDict.items():
             writer.writerow([path, 'rosaAbsX', coords[0]])
             writer.writerow([path, 'rosaAbsY', coords[1]])
 
