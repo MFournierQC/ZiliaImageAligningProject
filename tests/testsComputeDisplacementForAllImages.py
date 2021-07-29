@@ -7,7 +7,6 @@ from zilia import *
 
 # Global variables to decide if some tests will run or not.
 showPlots = False
-dontRecreateFiles = True
 
 class TestComputeDisplacementForAllImages(envtest.ZiliaTestCase):
 
@@ -111,8 +110,14 @@ class TestComputeDisplacementForAllImages(envtest.ZiliaTestCase):
     def testGetNumberOfRosaImages(self):
         db = ZiliaDB()
         rosaImagesDict = db.getRGBImagesWithPaths(region="onh", content="rosa")
-        print(len(rosaImagesDict))
+        print("number of rosa =", len(rosaImagesDict))
 
+    @envtest.skip("Very long test!")
+    def testSaveRosaDataForAllImages(self):
+        db = ZiliaDB()
+        rosaImagesDict = db.getRGBImagesWithPaths(region="onh", content="rosa")
+        rosaAbsCoords: dict = computeRosaPositionForAllImages(rosaImagesDict)
+        saveRosaData(rosaAbsCoords, fileName="allRosaDisplacementData")
 
 if __name__=="__main__":
     envtest.main()
