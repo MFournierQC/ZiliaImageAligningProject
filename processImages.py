@@ -304,8 +304,8 @@ def defineGrid(grayImages, xThresh=0.5, yThresh=0.5):
     yMeans = np.mean(normalizedImg, axis=1)
     normalizedYMeans = (yMeans - np.min(yMeans)) / (np.max(yMeans) - np.min(yMeans))
     H = np.round(normalizedYMeans, 2)
-    # onhHeight = np.max(np.where(H > np.min([meanVal * 4, 0.50]))) - np.min(np.where(H > meanVal * 2))
-    # onhCenterY = int( (np.min(np.where(H > meanVal * 2)) + onhHeight/2)-(onhHeight-onhWidth)/2 )
+    # onhHeight = np.max(np.where(H > yThresh)) - np.min(np.where(H > yThresh))
+    # onhCenterY = int( (np.min(np.where(H > meanVal * 2)) + onhHeight/2) )
     onhHeight = np.max(np.where(H > yThresh)) - np.min(np.where(H > yThresh))
     onhCenterY = int( (np.min(np.where(H > yThresh)) + onhHeight/2) )
 
