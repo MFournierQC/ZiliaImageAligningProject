@@ -180,7 +180,7 @@ class ZiliaDB(Database):
 
     def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None, mirrorLeftEye=True):
         images = self.getRGBImagesWithPaths(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content=content, eye=eye, limit=limit, mirrorLeftEye=mirrorLeftEye)
-        return images.values()
+        return list(images.values())
 
     def getRGBImagesWithPaths(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None, mirrorLeftEye=True):
         if self.root is None:
@@ -211,7 +211,7 @@ class ZiliaDB(Database):
 
     def getGrayscaleEyeImages(self, monkey=None, timeline=None, rlp=None, region=None, eye=None, limit=None, mirrorLeftEye=True):
         images = self.getGrayscaleEyeImagesWithPaths(monkey=monkey, timeline=timeline, rlp=rlp, region=region, eye=eye, limit=limit, mirrorLeftEye=mirrorLeftEye)
-        return images.values()
+        return list(images.values())
 
     def getGrayscaleEyeImagesWithPaths(self, monkey=None, timeline=None, rlp=None, region=None, eye=None, limit=None, mirrorLeftEye=True):
         images = self.getRGBImagesWithPaths(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content='eye', eye=eye, limit=limit, mirrorLeftEye=mirrorLeftEye)
