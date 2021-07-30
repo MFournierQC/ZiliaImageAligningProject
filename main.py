@@ -14,10 +14,19 @@ rosaImages = db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', regi
 rosaAbsoluteXY=getRosaProperties(rosaImages)
 # useful info:  int(['center']['x']) , int(['center']['y']) , ['rradius'] , and ['found']
 
-shift = calculateShiftInOneAcquisition (retinaImages)
-# Calculate shifts regarding the first good image in an acquisition
+print(rosaAbsoluteXY[10]['found'])
 
+shiftValueFromReferenceImage , imageIsValid = calculateValidShiftsInOneAcquisition(retinaImages)
 
+print(shiftValueFromReferenceImage)
+print(imageIsValid)
+
+# shift = calculateShiftInOneAcquisition (retinaImages)
+# # Calculate shifts regarding the first good image in an acquisition
+# print(shift)
+#
+# sr = applyShiftOnRosaCenter(rosaAbsoluteXY,shift)
+# print(sr)
 
 ########
 # what else to consider?

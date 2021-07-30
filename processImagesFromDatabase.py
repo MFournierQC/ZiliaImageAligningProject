@@ -97,8 +97,57 @@ def calculateShiftInOneAcquisition (images : np.ndarray , Margin=250, N=100 ):
     return shiftValueFromReferenceImage
 
 
+def calculateValidShiftsInOneAcquisition(images: np.ndarray, Margin=250, N=100):
+    """Calculated the shift in x and y direction in two consecutive images
+        Input: list of 2D numpy arrays (series of retina images)
+        The shift in the first image is considered to be zero
+        Output: 2D numpy array with the shifts in each image regarding the first image
+        """
+    blurryImagesLabel = findBlurryImages(images)
+    goodImagesNumber = findGoodImagesIndex(blurryImagesLabel)
+
+    imageIsValid = [None] * len(blurryImagesLabel)
+    imageIsValid [goodImagesNumber[0]] = True
+    shiftValueFromReferenceImage = [None] * len(blurryImagesLabel)
+    shiftValueFromReferenceImage[goodImagesNumber[0]] = np.array([0, 0])
+    tempShiftVariable=np.array([0,0])
+
+    if (len(goodImagesNumber) > 1):
+        for firstImage in range(len(goodImagesNumber) - 1):
+            shiftValue = np.array([1000,1000])
+            firstSkeletonImage = calculateSkeletonImage(images[goodImagesNumber[firstImage+1]])
+            for secondImage in range(firstImage+1):
+                if (shiftValue[0]>200 or shiftValue[1]>200):
+                    if imageIsValid[goodImagesNumber[firstImage - secondImage]]:
+                        secondSkeletonImage = calculateSkeletonImage(images[goodImagesNumber[firstImage - secondImage]])
+                        crossCorrelationResult = crossImage(firstSkeletonImage, secondSkeletonImage)
+                        maxValueIndexFlat = np.argmax(crossCorrelationResult, axis=None)
+                        maxValueIndex2D = np.unravel_index(maxValueIndexFlat, crossCorrelationResult.shape)
+                        halfImageSize = np.array([firstSkeletonImage.shape[0] / 2, firstSkeletonImage.shape[1] / 2])
+                        shiftValue = np.array(maxValueIndex2D) - halfImageSize
     
-def applyShift(xLaser: np.ndarray, yLaser:np.ndarray, shift:np.ndarray) -> tuple:
+            if(shiftValue[0] < 200 and shiftValue[1] < 200):
+                imageIsValid[goodImagesNumber[firstImage+1]] = True
+                tempShiftVariable += shiftValue.astype(np.int)
+                shiftValueFromReferenceImage[goodImagesNumber[firstImage + 1]] = tempShiftVariable
+
+    return shiftValueFromReferenceImage , imageIsValid
+
+
+def applyShiftOnRosaCenter ( rosaInfoAbsolute , shiftValuesFromReferenceImage):
+    """
+    Apply the shift value on the x and y of the rosa
+    """
+    rosaOnRefImage = [None] * len(shiftValuesFromReferenceImage)
+
+    for i in range(len(shiftValuesFromReferenceImage)):
+        if rosaInfoAbsolute[i]['found'] == 'True' and shiftValuesFromReferenceImage[i] != None:
+            rosaOnRefImage [i] = [int(rosaInfoAbsolute['center']['x']-shiftValuesFromReferenceImage[i][:,1]) , 
+                                  int(rosaInfoAbsolute['center']['y']-shiftValuesFromReferenceImage[i][:,1])]
+    return  rosaOnRefImage
+
+    
+def applyShift(xLaser: np.ndarray, yLaser:np.ndarray, shift:np.ndarray):
     """
     Apply the shift value on the x and y of the rosa
     """
