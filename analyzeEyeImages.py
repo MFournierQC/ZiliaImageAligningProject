@@ -3,7 +3,6 @@ from skimage.color import rgb2gray
 from skimage.transform import resize, hough_ellipse
 from skimage.feature import canny
 
-
 class EllipseDetector:
     """
     The relative size of the ellipse is defined as a fraction of the largest
@@ -16,7 +15,7 @@ class EllipseDetector:
         bestEllipse = detector.findBestEllipse()
         (xCenter, yCenter), minorAxis, majorAxis, orientation = bestEllipse
     """
-    def __init__(self, image, relativeMinMajorAxis=1/6, relativeMaxMinorAxis=1/3, accuracy=10):
+    def __init__(self, image, relativeMinMajorAxis=1/6, relativeMaxMinorAxis=1/3, accuracy=5):
         self.image = image
         self.relativeMinMajorAxis = relativeMinMajorAxis
         self.relativeMaxMinorAxis = relativeMaxMinorAxis
@@ -40,14 +39,6 @@ class EllipseDetector:
         If no ellipse is found, returns None.
         Else, returns a tuple of the best ellipse parameters.
         """
-        bestEllipse = self.getBestHoughEllipseResult(self.contours)
-        if bestEllipse is None:
-            print("No match was found")
-            return None
-        (xCenter, yCenter), minorAxis, majorAxis, orientation = bestEllipse
-        return bestEllipse
-
-    def getBestHoughEllipseResult(self, contours):
         houghResult = self.applyHoughTransform(contours)
         bestHoughEllipse = self.sortBestHoughEllipse(houghResult)
         bestEllipse = self.getBestEllipseParameters(bestHoughEllipse)
@@ -74,8 +65,8 @@ class EllipseDetector:
     def sortBestHoughEllipse(self, houghResult):
         houghResult.sort(order='accumulator')
         try:
-            best = list(houghResult[-1])
-            return best
+            bestEllipse = list(houghResult[-1])
+            return bestEllipse
         except IndexError:
             # No ellipse corresponding to the input parameters was found
             return None
@@ -86,7 +77,6 @@ class EllipseDetector:
         yCenter, xCenter, minorAxis, majorAxis = [int(round(x)) for x in bestHoughEllipse[1:5]]
         orientation = np.pi - bestHoughEllipse[5]
         return (int(xCenter), int(yCenter)), int(minorAxis), int(majorAxis), orientation
-
 
 class ZiliaONHDetector(EllipseDetector):
     """
@@ -101,7 +91,7 @@ class ZiliaONHDetector(EllipseDetector):
         (xCenter, yCenter), minorAxis, majorAxis, orientation = bestEllipse
     """
     def __init__(self, image, scaleFactor=5, relativeMinMajorAxis=1/6,
-                    relativeMaxMinorAxis=1/3, accuracy=10):
+                    relativeMaxMinorAxis=1/3, accuracy=5):
         super().__init__(image, relativeMinMajorAxis, relativeMaxMinorAxis, accuracy)
         self.fullSizeGrayImage = np.array(self.grayImage, copy=True)
         self.scaleFactor = scaleFactor
@@ -109,24 +99,12 @@ class ZiliaONHDetector(EllipseDetector):
 
     def findOpticNerveHead(self):
         """
-        If no ellipse is found, returns None.
+        If no ONH is found, returns None.
         Else, returns a tuple of the best ellipse parameters.
         """
-        print("Doing hough transform")
-        bestEllipse = self.getBestHoughEllipseResult(self.contours)
-        if bestEllipse is None:
-            print("No match was found")
-            return None
-        (xCenter, yCenter), minorAxis, majorAxis, orientation = bestEllipse
-        minAxis = min([minorAxis, majorAxis])
-        maxAxis = max([minorAxis, majorAxis])
-        if self.ellipseHasTheRightSize(minAxis, maxAxis):
-            # a match has been found using the Hough transform
-            pass
-        else:
-            return None
-        result = self.upscaleResult(bestEllipse)
-        return result
+        smallBestEllipse = super().findBestEllipse()
+        bestEllipseFit = self.upscaleResult(smallBestEllipse)
+        return bestEllipseFit
 
     def getGrayRescaledImage(self):
         ySize = self.fullSizeGrayImage.shape[0]//self.scaleFactor
@@ -135,6 +113,8 @@ class ZiliaONHDetector(EllipseDetector):
         return resize(self.fullSizeGrayImage, outputSize)
 
     def upscaleResult(self, smallScaleResult):
+        if smallScaleResult is None:
+            return None
         (xCenter, yCenter), minAxis, majAxis, orientation = smallScaleResult
         xCenter *= self.scaleFactor
         yCenter *= self.scaleFactor
