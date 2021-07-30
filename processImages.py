@@ -291,70 +291,23 @@ def oldDefineGrid(images):
 
 
 
-
-def defineGrid(grayImages):
+def defineGrid(grayImages, xThresh=0.5, yThresh=0.5):
     imgGray = grayImages[0,:,:]
-    meanVal = np.mean(imgGray)
-    imgGray = (imgGray - np.min(imgGray)) / (np.max(imgGray) - np.min(imgGray))
-    W = np.mean(imgGray, axis=0)
-    W = (W - np.min(W)) / (np.max(W) - np.min(W))
-    W = np.round(W, 2)
-    onhWidth = np.max(np.where(W > 0.50)) - np.min(np.where(W > 0.50))
-    onhCenterXCoords = int ( np.min(np.where(W > 0.50)) + onhWidth/2 )
+    normalizedImg = (imgGray - np.min(imgGray)) / (np.max(imgGray) - np.min(imgGray))
+    xMeans = np.mean(normalizedImg, axis=0)
+    normalizedXMeans = (xMeans - np.min(xMeans)) / (np.max(xMeans) - np.min(xMeans))
+    W = np.round(normalizedXMeans, 2)
+    onhWidth = np.max(np.where(W > xThresh)) - np.min(np.where(W > xThresh))
+    onhCenterXCoords = int ( np.min(np.where(W > xThresh)) + onhWidth/2 )
 
-    H = np.mean(imgGray, axis=1)
-    H = (H - np.min(H)) / (np.max(H) - np.min(H))
-    H = np.round(H, 2)
+    meanVal = np.mean(imgGray)
+    yMeans = np.mean(normalizedImg, axis=1)
+    normalizedYMeans = (yMeans - np.min(yMeans)) / (np.max(yMeans) - np.min(yMeans))
+    H = np.round(normalizedYMeans, 2)
     onhHeight = np.max(np.where(H > np.min([meanVal * 4, 0.50]))) - np.min(np.where(H > meanVal * 2))
     onhCenterYCoords = int( (np.min(np.where(H > meanVal * 2)) + onhHeight/2)-(onhHeight-onhWidth)/2 )
     length = int((np.min([onhHeight, onhWidth])) / 2)
     return onhCenterXCoords, onhCenterYCoords, length
-
-
-
-
-
-
-def defineGridParams(images, xThreshConst=.7, yThreshConst=.7):
-    if len(images.shape) == 2:
-        # for testing purposes
-        plotImage = images
-    else:
-        plotImage = images[0,:,:]
-    sumX = []
-    sumY = []
-    yIndexes = range(plotImage.shape[0])
-    xIndexes = range(plotImage.shape[1])
-    for i in yIndexes:
-        sumY.append(sum(plotImage[i,:]))
-    for j in xIndexes:
-        sumX.append(sum(plotImage[:,j]))
-
-    xWidth, xCenterGrid = findONHParamsFromAxisSums(sumX, xIndexes, xThreshConst)
-    yWidth, yCenterGrid = findONHParamsFromAxisSums(sumY, yIndexes, yThreshConst)
-
-    gridLength = max(xWidth, yWidth)
-    return xCenterGrid, yCenterGrid, gridLength
-
-def findONHParamsFromAxisSums(sumAx, axIndexes, axThreshConst):
-    sumAx = np.array(sumAx)
-    sumAxNorm = (sumAx - min(sumAx))/(max(sumAx) - min(sumAx))
-    # plt.plot(axIndexes, sumAxNorm)
-    # plt.plot([0, 900], [axThreshConst, axThreshConst])
-    # plt.show()
-    maxAxIndex = np.argmax(sumAxNorm)
-    leftAxPointIdx = findNearest(sumAxNorm[:maxAxIndex], axThreshConst)
-    rightAxPointIdx = findNearest(sumAxNorm[maxAxIndex:], axThreshConst) + maxAxIndex
-    axWidth = int(abs(rightAxPointIdx - leftAxPointIdx))
-    axCenterGrid = int((rightAxPointIdx + leftAxPointIdx)/2)
-    return axWidth, axCenterGrid
-
-def findNearest(array, value):
-    idx = (np.abs(array - value)).argmin()
-    return idx
-
-
-
 
 
 
