@@ -71,32 +71,6 @@ def calculateSkeletonImage (image , margin = 250 , n = 100 ):
 def findGoodImagesIndex (blurryFlag):
     return np.where(np.array(blurryFlag) != 'True')[0]
 
-def calculateShiftInOneAcquisition (images : np.ndarray , Margin=250, N=100 ):
-    """Calculated the shift in x and y direction in two consecutive images
-        Input: list of 2D numpy arrays (series of retina images)
-        The shift in the first image is considered to be zero
-        Output: 2D numpy array with the shifts in each image regarding the first image
-        """
-    blurryImagesLabel = findBlurryImages(images)
-    goodImagesNumber = findGoodImagesIndex(blurryImagesLabel)
-
-    shiftValueFromReferenceImage = [None] * len(blurryImagesLabel)    
-    shiftValueFromReferenceImage[goodImagesNumber[0]]=np.array([0,0])
-
-    for image in range(len(goodImagesNumber)-1):
-        firstSkeletonImage = calculateSkeletonImage(images[goodImagesNumber[image]])
-        secondSkeletonImage = calculateSkeletonImage(images[goodImagesNumber[image+1]])
-        crossCorrelationResult = crossImage(firstSkeletonImage, secondSkeletonImage)
-        maxValueIndexFlat = np.argmax(crossCorrelationResult, axis=None)
-        maxValueIndex2D = np.unravel_index(maxValueIndexFlat, crossCorrelationResult.shape)
-        halfImageSize = np.array([firstSkeletonImage.shape[0] / 2, firstSkeletonImage.shape[1] / 2])
-        shiftValue = np.array(maxValueIndex2D) - halfImageSize
-        shiftValueFromReferenceImage[goodImagesNumber[image+1]]= shiftValue + \
-                                                                 shiftValueFromReferenceImage[goodImagesNumber[image]]
-        
-    return shiftValueFromReferenceImage
-
-
 def calculateValidShiftsInOneAcquisition(images: np.ndarray, Margin=250, N=100):
     """Calculated the shift in x and y direction in two consecutive images
         Input: list of 2D numpy arrays (series of retina images)
@@ -139,32 +113,28 @@ def applyShiftOnRosaCenter ( rosaInfoAbsolute , shiftValuesFromReferenceImage):
     Apply the shift value on the x and y of the rosa
     """
     rosaOnRefImage = [None] * len(shiftValuesFromReferenceImage)
-
     for i in range(len(shiftValuesFromReferenceImage)):
-        if rosaInfoAbsolute[i]['found'] == 'True' and shiftValuesFromReferenceImage[i] != None:
-            rosaOnRefImage [i] = [int(rosaInfoAbsolute['center']['x']-shiftValuesFromReferenceImage[i][:,1]) , 
-                                  int(rosaInfoAbsolute['center']['y']-shiftValuesFromReferenceImage[i][:,1])]
+        if rosaInfoAbsolute[i]['found'] == True:
+            if shiftValuesFromReferenceImage[i] is not None :
+                rosaOnRefImage [i] = [int(rosaInfoAbsolute[i]['center']['x']-shiftValuesFromReferenceImage[i][1]) ,
+                                  int(rosaInfoAbsolute[i]['center']['y']-shiftValuesFromReferenceImage[i][0])]
     return  rosaOnRefImage
 
-    
-def applyShift(xLaser: np.ndarray, yLaser:np.ndarray, shift:np.ndarray):
-    """
-    Apply the shift value on the x and y of the rosa
-    """
-    totalShift = (xLaser - shift[:,1]), (yLaser - shift[:,0])
-    return totalShift
 
-def crossImage(im1, im2) -> np.ndarray:
+def crossImage(firstImage, secondImage) -> np.ndarray:
     """
     Calculate the cross correlation between two images
     Get rid of the averages, otherwise the results are not good
     Input: two 2D numpy arrays
     Output: cross correlation
     """
-    im1 -= np.mean(im1)
-    im2 -= np.mean(im2)
-    cross = scipy.signal.fftconvolve(im1, im2[::-1,::-1], mode='same')
-    return cross
+    firstImage -= np.mean(firstImage)
+    secondImage -= np.mean(secondImage)
+    crossCorrelationValues = scipy.signal.fftconvolve(firstImage, secondImage[::-1,::-1], mode='same')
+    return crossCorrelationValues
+
+
+
 
 def getRosaLabels(gridParameters, shiftParameters, dataDictionary) -> list:
     xCenterGrid = gridParameters[0]

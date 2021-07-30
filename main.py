@@ -18,15 +18,14 @@ print(rosaAbsoluteXY[10]['found'])
 
 shiftValueFromReferenceImage , imageIsValid = calculateValidShiftsInOneAcquisition(retinaImages)
 
-print(shiftValueFromReferenceImage)
-print(imageIsValid)
+sr = applyShiftOnRosaCenter(rosaAbsoluteXY,shiftValueFromReferenceImage)
+print(sr)
 
 # shift = calculateShiftInOneAcquisition (retinaImages)
 # # Calculate shifts regarding the first good image in an acquisition
 # print(shift)
 #
-# sr = applyShiftOnRosaCenter(rosaAbsoluteXY,shift)
-# print(sr)
+#
 
 ########
 # what else to consider?
