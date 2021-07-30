@@ -126,16 +126,16 @@ class ZiliaONHDetector(EllipseDetector):
             return smallScaleResult
         else:
             result = self.upscaleResult(smallScaleResult)
-            print("bestEllipse =", result)
+            # print("bestEllipse =", result)
             return result
 
     def detectGammaNecessity(self, gammaThresh=0.5):
         # Has to be improved with testing!!!
         tempThresh = self.getThreshold()
-        print("tempThresh =", tempThresh)
+        # print("tempThresh =", tempThresh)
         if tempThresh > gammaThresh:
             gamma = self.highGamma
-            print("gamma done!")
+            # print("gamma done!")
         else:
             gamma = 1
         return gamma
