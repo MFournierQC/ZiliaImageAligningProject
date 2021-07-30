@@ -1,21 +1,21 @@
 import numpy as np
 from skimage.color import rgb2gray
 from skimage.transform import resize, hough_ellipse
+from skimage.filters import threshold_otsu
 from skimage.feature import canny
+from skimage.exposure import adjust_gamma
+
 
 class EllipseDetector:
     """
-    The relative size of the ellipse is defined as a fraction of the largest
-    side of the input image.
-    Ellipse orientation in radians, counterclockwise.
-
     This is the order in which this should be used:
         detector = EllipseDetector(image)
         detector.preProcessImage()
         bestEllipse = detector.findBestEllipse()
         (xCenter, yCenter), minorAxis, majorAxis, orientation = bestEllipse
     """
-    def __init__(self, image, relativeMinMajorAxis=1/6, relativeMaxMinorAxis=1/3, accuracy=5):
+
+    def __init__(self, image, relativeMinMajorAxis=1/6, relativeMaxMinorAxis=0.5, accuracy=10):
         self.image = image
         self.relativeMinMajorAxis = relativeMinMajorAxis
         self.relativeMaxMinorAxis = relativeMaxMinorAxis
@@ -29,7 +29,7 @@ class EllipseDetector:
         return len(self.image.shape) == 2
 
     def preProcessImage(self):
-        self.contours = self.applyCannyFilter(self.grayImage)
+        self.contours = self.applyCannyFilter()
         ellipseExpectedSize = self.defineEllipseExpectedSize()
         self.minMajorAxis = ellipseExpectedSize[0]
         self.maxMinorAxis = ellipseExpectedSize[1]
@@ -39,24 +39,23 @@ class EllipseDetector:
         If no ellipse is found, returns None.
         Else, returns a tuple of the best ellipse parameters.
         """
-        houghResult = self.applyHoughTransform(contours)
+        houghResult = self.applyHoughTransform()
         bestHoughEllipse = self.sortBestHoughEllipse(houghResult)
         bestEllipse = self.getBestEllipseParameters(bestHoughEllipse)
         return bestEllipse
 
-    def applyCannyFilter(self, grayImage):
-        return canny(grayImage)
+    def applyCannyFilter(self):
+        return canny(self.grayImage)
 
     def defineEllipseExpectedSize(self):
-        xSize = self.grayImage.shape[1]
-        ySize = self.grayImage.shape[0]
-        maxSide = max([xSize, ySize])
-        minMajorAxis = int(self.relativeMinMajorAxis*maxSide)
-        maxMinorAxis = int(self.relativeMaxMinorAxis*maxSide)
+        xSize = self.grayImage.shape[0]
+        ySize = self.grayImage.shape[1]
+        minMajorAxis = int(self.relativeMinMajorAxis*ySize)
+        maxMinorAxis = int(self.relativeMaxMinorAxis*xSize)
         return minMajorAxis, maxMinorAxis
 
-    def applyHoughTransform(self, contours):
-        houghResult = hough_ellipse(contours,
+    def applyHoughTransform(self):
+        houghResult = hough_ellipse(self.contours,
                                     min_size=self.minMajorAxis,
                                     max_size=self.maxMinorAxis,
                                     accuracy=self.accuracy)
@@ -65,8 +64,8 @@ class EllipseDetector:
     def sortBestHoughEllipse(self, houghResult):
         houghResult.sort(order='accumulator')
         try:
-            bestEllipse = list(houghResult[-1])
-            return bestEllipse
+            best = list(houghResult[-1])
+            return best
         except IndexError:
             # No ellipse corresponding to the input parameters was found
             return None
@@ -74,37 +73,78 @@ class EllipseDetector:
     def getBestEllipseParameters(self, bestHoughEllipse):
         if bestHoughEllipse is None:
             return None
-        yCenter, xCenter, minorAxis, majorAxis = [int(round(x)) for x in bestHoughEllipse[1:5]]
+        yc, xc, a, b = [int(round(x)) for x in bestHoughEllipse[1:5]]
         orientation = np.pi - bestHoughEllipse[5]
-        return (int(xCenter), int(yCenter)), int(minorAxis), int(majorAxis), orientation
+        yCenter = yc
+        xCenter = xc
+        minorAxis = a
+        majorAxis = b
+        return (xCenter, yCenter), minorAxis, majorAxis, orientation
+
 
 class ZiliaONHDetector(EllipseDetector):
     """
-    The relative size of the ellipse is defined as a fraction of the largest
-    side of the input image.
-    Ellipse orientation in radians, counterclockwise.
-
     This is the order in which this should be used:
         onhDetector = ZiliaONHDetector(image)
+        onhDetector.getParamsCorrections()
         onhDetector.preProcessImage()
         bestEllipse = onhDetector.findOpticNerveHead()
         (xCenter, yCenter), minorAxis, majorAxis, orientation = bestEllipse
     """
-    def __init__(self, image, scaleFactor=5, relativeMinMajorAxis=1/6,
-                    relativeMaxMinorAxis=1/3, accuracy=5):
-        super().__init__(image, relativeMinMajorAxis, relativeMaxMinorAxis, accuracy)
+
+    def __init__(self, image, scaleFactor=3, gamma=True, relativeMinMajorAxis=1/6, relativeMaxMinorAxis=0.5, accuracy=10):
+        super(ZiliaONHDetector, self).__init__(image, relativeMinMajorAxis, relativeMaxMinorAxis, accuracy)
         self.fullSizeGrayImage = np.array(self.grayImage, copy=True)
         self.scaleFactor = scaleFactor
+        self.gamma = gamma
         self.grayImage = self.getGrayRescaledImage()
 
+    def getParamsCorrections(self, highGamma=3, gammaThresh=0.5):
+        """Find the required gamma correction (min=1, max=?)"""
+        self.highGamma = highGamma
+        if self.gamma is True:
+            # Automatically check if gamma correction is needed
+            self.gamma = self.detectGammaNecessity(gammaThresh=gammaThresh)
+        elif self.gamma is False:
+            # Don't apply gamma correction whatsoever
+            pass
+        elif int(self.gamma) == 1:
+            # No need to apply gamma correction
+            self.gamma = False
+        else:
+            # Apply gamma correction with the input gamma value
+            self.grayImage = self.adjustGamma()
+
+    def preProcessImage(self):
+        self.grayImage = self.adjustGamma()
+        self.threshold = self.getThreshold()
+        super(ZiliaONHDetector, self).preProcessImage()
+
     def findOpticNerveHead(self):
-        """
-        If no ONH is found, returns None.
-        Else, returns a tuple of the best ellipse parameters.
-        """
-        smallBestEllipse = super().findBestEllipse()
-        bestEllipseFit = self.upscaleResult(smallBestEllipse)
-        return bestEllipseFit
+        smallScaleResult = super(ZiliaONHDetector, self).findBestEllipse()
+        if smallScaleResult is None:
+            return smallScaleResult
+        else:
+            result = self.upscaleResult(smallScaleResult)
+            print("bestEllipse =", result)
+            return result
+
+    def detectGammaNecessity(self, gammaThresh=0.5):
+        # Has to be improved with testing!!!
+        tempThresh = self.getThreshold()
+        print("tempThresh =", tempThresh)
+        if tempThresh > gammaThresh:
+            gamma = self.highGamma
+            print("gamma done!")
+        else:
+            gamma = 1
+        return gamma
+
+    def adjustGamma(self):
+        if self.gamma is False:
+            return self.grayImage
+        else:
+            return adjust_gamma(self.grayImage, gamma=self.gamma)
 
     def getGrayRescaledImage(self):
         ySize = self.fullSizeGrayImage.shape[0]//self.scaleFactor
@@ -112,12 +152,18 @@ class ZiliaONHDetector(EllipseDetector):
         outputSize = ySize, xSize
         return resize(self.fullSizeGrayImage, outputSize)
 
+    def getThreshold(self):
+        # Between 0 and 1
+        return threshold_otsu(self.grayImage)
+
+    def applyCannyFilter(self):
+        binaryImage = self.grayImage > self.threshold
+        return canny(binaryImage)
+
     def upscaleResult(self, smallScaleResult):
-        if smallScaleResult is None:
-            return None
         (xCenter, yCenter), minAxis, majAxis, orientation = smallScaleResult
-        xCenter *= self.scaleFactor
-        yCenter *= self.scaleFactor
-        minAxis *= self.scaleFactor
-        majAxis *= self.scaleFactor
+        xCenter = self.scaleFactor*xCenter
+        yCenter = self.scaleFactor*yCenter
+        minAxis = self.scaleFactor*minAxis
+        majAxis = self.scaleFactor*majAxis
         return (xCenter, yCenter), minAxis, majAxis, orientation
