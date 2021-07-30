@@ -298,16 +298,20 @@ def defineGrid(grayImages, xThresh=0.5, yThresh=0.5):
     normalizedXMeans = (xMeans - np.min(xMeans)) / (np.max(xMeans) - np.min(xMeans))
     W = np.round(normalizedXMeans, 2)
     onhWidth = np.max(np.where(W > xThresh)) - np.min(np.where(W > xThresh))
-    onhCenterXCoords = int ( np.min(np.where(W > xThresh)) + onhWidth/2 )
+    onhCenterX = int ( np.min(np.where(W > xThresh)) + onhWidth/2 )
 
     meanVal = np.mean(imgGray)
     yMeans = np.mean(normalizedImg, axis=1)
     normalizedYMeans = (yMeans - np.min(yMeans)) / (np.max(yMeans) - np.min(yMeans))
     H = np.round(normalizedYMeans, 2)
-    onhHeight = np.max(np.where(H > np.min([meanVal * 4, 0.50]))) - np.min(np.where(H > meanVal * 2))
-    onhCenterYCoords = int( (np.min(np.where(H > meanVal * 2)) + onhHeight/2)-(onhHeight-onhWidth)/2 )
-    length = int((np.min([onhHeight, onhWidth])) / 2)
-    return onhCenterXCoords, onhCenterYCoords, length
+    # onhHeight = np.max(np.where(H > np.min([meanVal * 4, 0.50]))) - np.min(np.where(H > meanVal * 2))
+    # onhCenterY = int( (np.min(np.where(H > meanVal * 2)) + onhHeight/2)-(onhHeight-onhWidth)/2 )
+    onhHeight = np.max(np.where(H > yThresh)) - np.min(np.where(H > yThresh))
+    onhCenterY = int( (np.min(np.where(H > yThresh)) + onhHeight/2) )
+
+    gridRegionSize = int((np.min([onhHeight, onhWidth])) / 2)
+
+    return onhCenterX, onhCenterY, gridRegionSize
 
 
 
