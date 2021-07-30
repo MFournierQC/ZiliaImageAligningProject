@@ -292,7 +292,10 @@ def oldDefineGrid(images):
 
 
 def defineGrid(grayImages, xThresh=0.5, yThresh=0.5):
-    imgGray = grayImages[0,:,:]
+    if len(grayImages.shape) == 2:
+        imgGray = grayImages
+    else:
+        imgGray = grayImages[0,:,:]
     normalizedImg = (imgGray - np.min(imgGray)) / (np.max(imgGray) - np.min(imgGray))
     xMeans = np.mean(normalizedImg, axis=0)
     normalizedXMeans = (xMeans - np.min(xMeans)) / (np.max(xMeans) - np.min(xMeans))
