@@ -65,35 +65,35 @@ class TestZilia(env.DCCLabTestCase):
     #         allResults = p.map(computeForPath, list(paths))
     #     print(allResults)
 
-    def test06GetGrayscaleEyeImagesWithPathsMultiProcessing(self):
-        paths = self.db.getImagePaths(region='onh', limit=10)
-        pathQueue = SimpleQueue()
-        resultsQueue = SimpleQueue()
+    # def test06GetGrayscaleEyeImagesWithPathsMultiProcessing(self):
+    #     paths = self.db.getImagePaths(region='onh', limit=10)
+    #     pathQueue = SimpleQueue()
+    #     resultsQueue = SimpleQueue()
 
-        for path in paths:
-            pathQueue.put(path)
+    #     for path in paths:
+    #         pathQueue.put(path)
 
-        runningProcesses = []
-        while not pathQueue.empty():
-            while len(runningProcesses) <= multiprocessing.cpu_count():
-                p=Process(target=computeMeanForPathWithQueue, args=(pathQueue, resultsQueue))
-                runningProcesses.append(p)
-                p.start()
+    #     runningProcesses = []
+    #     while not pathQueue.empty():
+    #         while len(runningProcesses) <= multiprocessing.cpu_count():
+    #             p=Process(target=computeMeanForPathWithQueue, args=(pathQueue, resultsQueue))
+    #             runningProcesses.append(p)
+    #             p.start()
 
-            while not resultsQueue.empty():
-                results = resultsQueue.get()
-                print(results)
+    #         while not resultsQueue.empty():
+    #             results = resultsQueue.get()
+    #             print(results)
 
-            runningProcesses = [ process for process in runningProcesses if process.is_alive()]
-            time.sleep(1)
+    #         runningProcesses = [ process for process in runningProcesses if process.is_alive()]
+    #         time.sleep(1)
 
-        while len(runningProcesses) > 0:
-            p = runningProcesses.pop(0)
-            p.join()
+    #     while len(runningProcesses) > 0:
+    #         p = runningProcesses.pop(0)
+    #         p.join()
 
-        while not resultsQueue.empty():
-            results = resultsQueue.get()
-            print(results)
+    #     while not resultsQueue.empty():
+    #         results = resultsQueue.get()
+    #         print(results)
 
     def test07GetGrayscaleEyeImagesWithPathsFullONCalculations(self):
         paths = self.db.getImagePaths(region='onh',limit=10)
@@ -105,7 +105,9 @@ class TestZilia(env.DCCLabTestCase):
 
         runningProcesses = []
         while not pathQueue.empty():
-            while len(runningProcesses) <= multiprocessing.cpu_count()-2:
+            print(runningProcesses)
+
+            while len(runningProcesses) <= multiprocessing.cpu_count():
                 p=Process(target=computeForPathWithQueues, args=(pathQueue, resultsQueue))
                 runningProcesses.append(p)
                 p.start()
@@ -114,15 +116,16 @@ class TestZilia(env.DCCLabTestCase):
                 results = resultsQueue.get()
                 print(results)
 
+            time.sleep(1)
+
+        print("out waiting")
+        while len(runningProcesses) >0:
+            while not resultsQueue.empty():
+                results = resultsQueue.get()
+                print(results)
             runningProcesses = [ process for process in runningProcesses if process.is_alive()]
-
-        while len(runningProcesses) > 0:
-            p = runningProcesses.pop(0)
-            p.join()
-
-        while not resultsQueue.empty():
-            results = resultsQueue.get()
-            print(results)
+            time.sleep(1)
+            print(looping)
 
 
 def getLen(self, path):
