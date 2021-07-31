@@ -125,7 +125,7 @@ class TestZilia(env.DCCLabTestCase):
                 print(results)
             runningProcesses = [ process for process in runningProcesses if process.is_alive()]
             time.sleep(1)
-            print(looping)
+            print("Looping")
 
 
 def getLen(self, path):
