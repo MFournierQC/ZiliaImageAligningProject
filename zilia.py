@@ -158,12 +158,14 @@ class ZiliaDB(Database):
             paths.append(row['acquisitionId'])
         return rows
 
-    def getImagePaths(self):
-        self.execute("select path from imagefiles order by path")
+    def getImagePaths(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
+        stmnt = self.buildImageSelectStatement(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content=content, eye=eye, limit=limit)
+        self.execute(stmnt)
         rows = self.fetchAll()
         paths = []
         for row in rows:
-            paths.append(row['path'])
+            absolutePath = "{0}/{1}".format(self.root, row['path'])
+            paths.append( str(absolutePath) )
         return paths
 
     def getSpectraPaths(self):
@@ -201,6 +203,21 @@ class ZiliaDB(Database):
             self.showProgressBar(i+1, nTotal)
 
         return images
+
+    def getRGBImageFromPath(self, path):
+        if not os.path.isabs(path):
+            absolutePath = "{0}/{1}".format(self.root, relativePath)
+        else:
+            absolutePath = path
+        if not os.path.exists(absolutePath):
+            raise FileNotFoundError(absolutePath)
+
+        return imread(absolutePath)
+
+    def getGrayscaleImageFromRelativePath(self, relativePath):
+        image = self.getRGBImageFromRelativePath(relativePath)
+        image[:,:,2] = 0 # For eye images, always strip blue channel before conversion
+        return rgb2gray(image)
 
     def mirrorImageHorizontally(self, image):
         return image[:,::-1,:]
