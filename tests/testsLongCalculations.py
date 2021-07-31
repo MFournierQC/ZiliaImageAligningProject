@@ -96,7 +96,7 @@ class TestZilia(env.DCCLabTestCase):
             print(results)
 
     def test07GetGrayscaleEyeImagesWithPathsFullONCalculations(self):
-        paths = self.db.getImagePaths(region='onh')
+        paths = self.db.getImagePaths(region='onh',limit=10)
         pathQueue = SimpleQueue()
         resultsQueue = SimpleQueue()
 
@@ -115,7 +115,6 @@ class TestZilia(env.DCCLabTestCase):
                 print(results)
 
             runningProcesses = [ process for process in runningProcesses if process.is_alive()]
-            time.sleep(1)
 
         while len(runningProcesses) > 0:
             p = runningProcesses.pop(0)
