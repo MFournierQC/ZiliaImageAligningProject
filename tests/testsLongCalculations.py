@@ -97,12 +97,14 @@ class TestZilia(env.DCCLabTestCase):
 
     def test07GetGrayscaleEyeImagesWithPathsFullONCalculations(self):
         print("Getting paths")
-        paths = self.db.getImagePaths(region='onh')
-        pathQueue = SimpleQueue()
-        resultsQueue = SimpleQueue()
+        paths = self.db.getImagePaths(region='onh', limit=32000)
+        print("Obtained {0} paths".format(len(paths)))
+        pathQueue = Queue()
+        resultsQueue = Queue()
 
         print("Getting paths into queue")
         for path in paths:
+            print("Inserting {0}".format(path))
             pathQueue.put(path)
 
         runningProcesses = []
