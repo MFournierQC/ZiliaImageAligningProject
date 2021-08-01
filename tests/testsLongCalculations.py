@@ -96,36 +96,42 @@ class TestZilia(env.DCCLabTestCase):
     #         print(results)
 
     def test07GetGrayscaleEyeImagesWithPathsFullONCalculations(self):
+        print("Getting paths")
         paths = self.db.getImagePaths(region='onh')
         pathQueue = SimpleQueue()
         resultsQueue = SimpleQueue()
 
+        print("Getting paths into queue")
         for path in paths:
             pathQueue.put(path)
 
         runningProcesses = []
+        print("Starting computations")
         while not pathQueue.empty():
             while len(runningProcesses) < multiprocessing.cpu_count():
+                print("Starting new processes")
                 p=Process(target=computeForPathWithQueues, args=(pathQueue, resultsQueue))
                 runningProcesses.append(p)
                 p.start()
 
             while not resultsQueue.empty():
+                print("Printing results")
                 results = resultsQueue.get()
                 print(results)
 
             runningProcesses = [ process for process in runningProcesses if process.is_alive()]
             time.sleep(1)
-            print("{0} processes running.".format(len(runningProcesses)))
+            print("Looping {0} processes running.".format(len(runningProcesses)))
 
         print("out waiting")
         while len(runningProcesses) >0:
             while not resultsQueue.empty():
+                print("Printing results")
                 results = resultsQueue.get()
                 print(results)
             runningProcesses = [ process for process in runningProcesses if process.is_alive()]
             time.sleep(1)
-            print("Looping")
+            print("Waiting and looping {0} processes running.".format(len(runningProcesses)))
 
 
 def getLen(self, path):
