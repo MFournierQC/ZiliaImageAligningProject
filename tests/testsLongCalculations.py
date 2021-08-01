@@ -104,22 +104,30 @@ class TestZilia(env.DCCLabTestCase):
 
         print("Getting paths into queue")
         for path in paths:
-            print("Inserting {0}".format(path))
+            # print("Inserting {0}".format(path))
             pathQueue.put(path)
 
         runningProcesses = []
+        duration = {}
         print("Starting computations")
         while not pathQueue.empty():
             while len(runningProcesses) < multiprocessing.cpu_count():
-                print("Starting new processes")
+                print("Starting new processes, {0} paths left")
                 p=Process(target=computeForPathWithQueues, args=(pathQueue, resultsQueue))
                 runningProcesses.append(p)
+                duration[p] = time.time()
                 p.start()
 
             while not resultsQueue.empty():
                 print("Printing results")
                 results = resultsQueue.get()
                 print(results)
+
+            # Kill very long processes (10 minutes)
+            for p,startTime in duration.items():
+                if time.time() > startTime+10*60:
+                    print("Killing {0}".format(p))
+                    p.terminate()
 
             runningProcesses = [ process for process in runningProcesses if process.is_alive()]
             time.sleep(1)
