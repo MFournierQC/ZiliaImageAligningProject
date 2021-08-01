@@ -28,7 +28,63 @@ def computeONHParams(grayImage):
     return ellipseDict
 
 
-class TestZilia(env.DCCLabTestCase):
+class CalcEngine:
+    def __init__(self, database):
+        self.db = database
+        self.recordsQueue = Queue()
+        self.resultsQueue = Queue()
+        self.runningTasks = []
+
+    def compute(self, target, selectStatement, timeOut=3*60, taskCount=None):
+        if taskCount is None:
+            taskCount = multiprocessing.cpu_count()
+
+        self.enqueueRecordsForTask(selectStatement)
+
+        while self.hasTasksStillRunning():
+            while len(self.runningTasks) < taskCount and self.hasTasksLeftToLaunch():
+                self.launchTask(target=target)
+
+            self.printAvailableTaskResults()
+            self.terminateTimedOutTasks(timeout=timeOut)
+            self.pruneTerminatedTasks()
+
+    def hasTasksLeftToLaunch(self):
+        return not self.recordsQueue.empty()
+
+    def hasTasksStillRunning(self):
+        return len(self.runningTasks) > 0
+
+    def enqueueRecordsForTask(self, selectStatement):
+        self.db.execute(selectStatement)
+        rows = self.fetchAll()
+        if len(rows) >= 32767:
+            print("Warning: queue may be limited to 32768 elements")
+
+        for row in rows:
+            recordsQueue.put(row)
+
+    def launchTask(self, target):
+        p=Process(target=target, args=(self.recordsQueue, self.resultsQueue))
+        self.runningTasks.append((p, time.time()))
+        p.start()
+
+    def printAvailableTaskResults(self):
+        while not self.resultsQueue.empty():
+            results = self.resultsQueue.get()
+            print(results)
+
+    def terminateTimedOutTasks(self, timeoutInSeconds):
+        for (p, startTime) in self.runningTasks:
+            if time.time() > startTime+timeoutInSeconds:
+                p.terminate()
+
+    def pruneTerminatedTasks(self):
+        self.runningTasks = [ (p,startTime) for p,startTime in self.runningTasks if p.is_alive()]
+
+
+
+class TestZiliaCalculation(env.DCCLabTestCase):
 
     def setUp(self):
         self.db = ZiliaDB()
@@ -141,6 +197,7 @@ class TestZilia(env.DCCLabTestCase):
             runningProcesses = [ process for process in runningProcesses if process.is_alive()]
             time.sleep(1)
             print("Waiting and looping {0} processes running.".format(len(runningProcesses)))
+
 
 
 def getLen(self, path):
