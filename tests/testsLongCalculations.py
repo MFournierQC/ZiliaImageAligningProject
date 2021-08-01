@@ -125,7 +125,7 @@ class TestZilia(env.DCCLabTestCase):
 
             # Kill very long processes (10 minutes)
             for p,startTime in duration.items():
-                if time.time() > startTime+3:
+                if time.time() > startTime+3*60:
                     print("Killing {0}".format(p))
                     p.terminate()
                     del duration[p]
