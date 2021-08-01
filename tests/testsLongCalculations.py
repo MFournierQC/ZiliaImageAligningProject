@@ -114,8 +114,7 @@ class TestZilia(env.DCCLabTestCase):
             while len(runningProcesses) < multiprocessing.cpu_count():
                 print("Starting new processes")
                 p=Process(target=computeForPathWithQueues, args=(pathQueue, resultsQueue))
-                runningProcesses.append(p)
-                duration[p] = time.time()
+                runningProcesses.append((p, time.time()))
                 p.start()
 
             while not resultsQueue.empty():
@@ -124,12 +123,12 @@ class TestZilia(env.DCCLabTestCase):
                 print(results)
 
             # Kill very long processes (10 minutes)
-            for p,startTime in duration.items():
+            for (p, startTime) in runningProcesses:
                 if time.time() > startTime+3*60:
                     print("Killing {0}".format(p))
                     p.terminate()
 
-            runningProcesses = [ process for process in runningProcesses if process.is_alive()]
+            runningProcesses = [ (p,startTime) for p,startTime in runningProcesses if p.is_alive()]
             time.sleep(1)
             print("Looping {0} processes running.".format(len(runningProcesses)))
 
