@@ -120,7 +120,7 @@ class TestZiliaCalculation(env.DCCLabTestCase):
         self.assertIsNotNone(self.db)
 
     def tearDown(self):
-        del self.db
+        # del self.db
         self.db = None
 
     def test101EngineInit(self):
@@ -319,7 +319,6 @@ def computeForPathWithQueues(recordsQueue, resultsQueue):
         resultsQueue.put(results)
     except Exception as err:
         print(err)
-        return 0.0
         
 def computeMeanForPathWithQueues(recordsQueue, resultsQueue):
     try:
@@ -337,7 +336,6 @@ def computeMeanForPathWithQueues(recordsQueue, resultsQueue):
         resultsQueue.put(results)
     except Exception as err:
         print(err)
-        return 0.0
 
 if __name__ == '__main__':
     unittest.main()
