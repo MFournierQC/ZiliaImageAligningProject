@@ -104,6 +104,16 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
     #     pass
 
 
+    def test200OutputResultDicts(self):
+        data = {"ohnCenterX":1, "ohnCenterY":2}
+        for key, value in data.items():
+            print("insert into calculations (property, value, date, algorithm) values('{0}', {1}, '{2}', 'hough');".format(key, value, '2021-08-01'))
+
+    def test201OutputResultDicts(self):
+        data = {"ohnCenterX":1, "ohnCenterY":2}
+        for key, value in data.items():
+            print("insert into calculations (property, value, date, algorithm) values('{0}', {1}, '{2}', 'hough');".format(key, value, '2021-08-01'))
+
     def test01GetGrayscaleEyeImagesFromDatabase(self):
         images = self.db.getGrayscaleEyeImages(monkey='Bresil' , rlp=6, timeline='baseline 3', region='onh', limit=10)
         self.assertTrue(len(images) == 10)
