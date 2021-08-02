@@ -151,6 +151,8 @@ preResult3.jpg
 
 .DS_Store
 zilia.db
+zilia/*
 *.jpg
 *.png
 *.json
+March2021

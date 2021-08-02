@@ -83,8 +83,8 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
 
     def test107ComputeONHFor10(self):
         engine = CalcEngine(self.db)
-        engine.enqueueRecords(region='onh', limit=10)
-        engine.compute(target=computeForPathWithQueues)
+        engine.enqueueRecords(region='onh', limit=32000)
+        engine.compute(target=computeForPathWithQueues,timeoutInSeconds=120)
         self.assertFalse(engine.hasTasksStillRunning())
 
     def test01GetGrayscaleEyeImagesFromDatabase(self):
