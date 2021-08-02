@@ -11,7 +11,6 @@ import re
 from multiprocessing import Pool, Queue, Process, SimpleQueue
 import multiprocessing
 from analyzeEyeImages import *
-from skimage.io import imread
 import time
 
 
@@ -52,7 +51,8 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
         self.assertIsNotNone(p)
         p.join()
         self.assertFalse(p.is_alive())
-        
+
+    @unittest.skip("temporary skip")
     def test103EnqueueRecords(self):
         engine = CalcEngine(self.db)
         self.assertIsNotNone(engine)
@@ -62,18 +62,21 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
             engine.recordsQueue.get()
         self.assertFalse(engine.hasTasksLeftToLaunch())
 
+    @unittest.skip("temporary skip")
     def test105ComputeAll(self):
         engine = CalcEngine(self.db)
         engine.enqueueRecordsWithStatement(selectStatement="select path from imagefiles limit 10")
         engine.compute(target=getLen)
         self.assertFalse(engine.hasTasksStillRunning())
 
+    @unittest.skip("temporary skip")
     def test106ComputeAllWithCustomProcess(self):
         engine = CalcEngine(self.db)
         engine.enqueueRecordsWithStatement(selectStatement="select path from imagefiles limit 10")
         engine.compute(target=getLen, processTaskResults=printRecord)
         self.assertFalse(engine.hasTasksStillRunning())
 
+    @unittest.skip("temporary skip")
     def test107Compute10WithCustomProcess(self):
         engine = CalcEngine(self.db)
         statement = engine.db.buildImageSelectStatement(region='onh', limit=10)
@@ -81,11 +84,28 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
         engine.compute(target=computeMeanForPathWithQueues, processTaskResults=printRecord)
         self.assertFalse(engine.hasTasksStillRunning())
 
+    @unittest.skip("temporary skip")
     def test107ComputeONHFor10(self):
         engine = CalcEngine(self.db)
         engine.enqueueRecords(region='onh', limit=10)
         engine.compute(target=computeForPathWithQueues,timeoutInSeconds=120)
         self.assertFalse(engine.hasTasksStillRunning())
+
+
+
+
+    def test108ComputeMaxIntensityFor10(self):
+        engine = CalcEngine(self.db)
+        engine.enqueueRecords(region='onh', content='eye', limit=10)
+        engine.compute(target=computeMaxValForPathWithQueues,timeoutInSeconds=120)
+        self.assertFalse(engine.hasTasksStillRunning())
+
+    # def test109ComputeMaxInstensityFor100(self):
+    #     pass
+
+    # def test110ComputeMaxIntensityForAllONHImages(self):
+    #     pass
+
 
     def test01GetGrayscaleEyeImagesFromDatabase(self):
         images = self.db.getGrayscaleEyeImages(monkey='Bresil' , rlp=6, timeline='baseline 3', region='onh', limit=10)
@@ -199,6 +219,21 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
             runningProcesses = [ process for process in runningProcesses if process.is_alive()]
             time.sleep(1)
             print("Waiting and looping {0} processes running.".format(len(runningProcesses)))
+
+
+def computeMaxValForPathWithQueues(recordsQueue, resultsQueue):
+    try:
+        record = recordsQueue.get()
+        path = record["abspath"]
+        result = {}
+        result['path'] = record['path']
+        startTime = time.time()
+        image = imread(path, as_gray=True)
+        result["maxValue"] = np.amax(image)
+        result['duration'] = time.time() - startTime
+        resultsQueue.put(result)
+    except Exception as err:
+        print(f"An error has occured: {err}.")
 
 
 def getLen(recordsQueue, resultsQueue):
