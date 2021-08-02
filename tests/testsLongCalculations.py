@@ -68,7 +68,11 @@ class CalcEngine:
     def hasTasksStillRunning(self):
         return len(self.runningTasks) > 0
 
-    def enqueueRecordsForTask(self, selectStatement):
+    def enqueueRecords(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
+        selectStatement = self.db.buildImageSelectStatement(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content=content, eye=eye, limit=limit)
+        self.enqueueRecordsWithStatement(selectStatement)
+
+    def enqueueRecordsWithStatement(self, selectStatement):
         self.db.execute(selectStatement)
         rows = self.db.fetchAll()
         if len(rows) >= 32767:
@@ -136,7 +140,7 @@ class TestZiliaCalculation(env.DCCLabTestCase):
     def test103EnqueueRecords(self):
         engine = CalcEngine(self.db)
         self.assertIsNotNone(engine)
-        engine.enqueueRecordsForTask(selectStatement="select path from imagefiles limit 10")
+        engine.enqueueRecordsWithStatement(selectStatement="select path from imagefiles limit 10")
         self.assertTrue(engine.hasTasksLeftToLaunch())
         for i in range(10):
             engine.recordsQueue.get()
@@ -144,27 +148,26 @@ class TestZiliaCalculation(env.DCCLabTestCase):
 
     def test105ComputeAll(self):
         engine = CalcEngine(self.db)
-        engine.enqueueRecordsForTask(selectStatement="select path from imagefiles limit 10")
+        engine.enqueueRecordsWithStatement(selectStatement="select path from imagefiles limit 10")
         engine.compute(target=getLen)
         self.assertFalse(engine.hasTasksStillRunning())
 
     def test106ComputeAllWithCustomProcess(self):
         engine = CalcEngine(self.db)
-        engine.enqueueRecordsForTask(selectStatement="select path from imagefiles limit 10")
+        engine.enqueueRecordsWithStatement(selectStatement="select path from imagefiles limit 10")
         engine.compute(target=getLen, processTaskResults=printRecord)
         self.assertFalse(engine.hasTasksStillRunning())
 
     def test107Compute10WithCustomProcess(self):
         engine = CalcEngine(self.db)
         statement = engine.db.buildImageSelectStatement(region='onh', limit=10)
-        engine.enqueueRecordsForTask(selectStatement=statement)
+        engine.enqueueRecordsWithStatement(selectStatement=statement)
         engine.compute(target=computeMeanForPathWithQueues, processTaskResults=printRecord)
         self.assertFalse(engine.hasTasksStillRunning())
 
     def test107ComputeONHFor10(self):
         engine = CalcEngine(self.db)
-        statement = engine.db.buildImageSelectStatement(region='onh', limit=10)
-        engine.enqueueRecordsForTask(selectStatement=statement)
+        engine.enqueueRecords(region='onh', limit=10)
         engine.compute(target=computeForPathWithQueues)
         self.assertFalse(engine.hasTasksStillRunning())
 
@@ -297,7 +300,6 @@ def computeForPath(path):
         results = {}
         imageData = imread(path)
         results = computeONHParams(imageData)
-        results["path"] = path
         return results
     except Exception as err:
         return None
@@ -309,9 +311,11 @@ def computeForPathWithQueues(recordsQueue, resultsQueue):
         record = recordsQueue.get()
         path = record["abspath"]
         results = {}
+        startTime = time.time()
         imageData = imread(path)
         results = computeONHParams(imageData)
-        results["path"] = path
+        results["path"] = record["path"]
+        results["duration"] = time.time()-startTime
         resultsQueue.put(results)
     except Exception as err:
         print(err)
@@ -324,9 +328,12 @@ def computeMeanForPathWithQueues(recordsQueue, resultsQueue):
         record = recordsQueue.get()
         path = record["abspath"]
         results = {}
+        startTime = time.time()
         imageData = imread(path)
         results["mean"] = np.mean(imageData)
-        results["path"] = path
+        # results["abspath"] = record["abspath"]
+        results["path"] = record["path"]
+        results["duration"] = time.time()-startTime
         resultsQueue.put(results)
     except Exception as err:
         print(err)
