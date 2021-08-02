@@ -3,7 +3,7 @@ from analyzeRetinaImages import EllipseDetector
 from skimage.io import imread
 from skimage.color import rgb2gray, gray2rgb
 from skimage import img_as_ubyte
-from skimage.draw import ellipse_perimeter, ellipse
+from skimage.draw import ellipse
 import matplotlib.pyplot as plt
 
 class TestEllipseDetectorClass(envtest.ZiliaTestCase):
@@ -69,6 +69,7 @@ class TestEllipseDetectorClass(envtest.ZiliaTestCase):
         detector = EllipseDetector(image)
         detector.preProcessImage()
         result = detector.findBestEllipse()
+        print(result)
         self.plotHoughEllipseWithRescale(result, image, detector.contours)
 
     @envtest.skip("skip plots")
@@ -77,14 +78,16 @@ class TestEllipseDetectorClass(envtest.ZiliaTestCase):
         detector = EllipseDetector(image)
         detector.preProcessImage()
         result = detector.findBestEllipse()
+        print(result)
         self.plotHoughEllipseWithRescale(result, image, detector.contours)
 
-    # @envtest.skip("skip plots")
+    @envtest.skip("skip plots")
     def testWeirdEllipse(self):
         image = imread(self.testStudentDirectory+"/testImage4.png")
         detector = EllipseDetector(image)
         detector.preProcessImage()
         result = detector.findBestEllipse()
+        print(result)
         self.plotHoughEllipseWithRescale(result, image, detector.contours)
 
 if __name__ == "__main__":

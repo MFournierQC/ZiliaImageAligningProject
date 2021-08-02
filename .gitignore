@@ -151,10 +151,8 @@ preResult3.jpg
 
 .DS_Store
 zilia.db
+zilia/*
 *.jpg
 *.png
 *.json
-tests/rosaDisplacementDataTest1.csv
-tests/rosaDisplacementDataTest2.csv
-tests/rosaDisplacementDataTest3.csv
-tests/allRosaDisplacementData.csv
+March2021

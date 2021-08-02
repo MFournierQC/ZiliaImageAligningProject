@@ -5,6 +5,8 @@ from skimage.color import rgb2gray
 import time
 import subprocess
 
+from computeengine import *
+
 class ZiliaDB(Database):
     statementFromAllJoin = "from spectra as s, spectralfiles as f, monkeys as m where s.md5 = f.md5 and f.monkeyId = m.monkeyId"
     statementFromSpectra = "from spectra as s"
@@ -162,12 +164,14 @@ class ZiliaDB(Database):
             paths.append(row['acquisitionId'])
         return rows
 
-    def getImagePaths(self):
-        self.execute("select path from imagefiles order by path")
+    def getImagePaths(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
+        stmnt = self.buildImageSelectStatement(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content=content, eye=eye, limit=limit)
+        self.execute(stmnt)
         rows = self.fetchAll()
         paths = []
         for row in rows:
-            paths.append(row['path'])
+            absolutePath = "{0}/{1}".format(self.root, row['path'])
+            paths.append( str(absolutePath) )
         return paths
 
     def getSpectraPaths(self):
@@ -205,6 +209,21 @@ class ZiliaDB(Database):
             self.showProgressBar(i+1, nTotal)
 
         return images
+
+    def getRGBImageFromPath(self, path):
+        if not os.path.isabs(path):
+            absolutePath = "{0}/{1}".format(self.root, relativePath)
+        else:
+            absolutePath = path
+        if not os.path.exists(absolutePath):
+            raise FileNotFoundError(absolutePath)
+
+        return imread(absolutePath)
+
+    def getGrayscaleImageFromRelativePath(self, relativePath):
+        image = self.getRGBImageFromPath(relativePath)
+        image[:,:,2] = 0 # For eye images, always strip blue channel before conversion
+        return rgb2gray(image)
 
     def mirrorImageHorizontally(self, image):
         return image[:,::-1,:]
@@ -250,8 +269,8 @@ class ZiliaDB(Database):
         return records
 
     def buildImageSelectStatement(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
-        stmnt = r"""select f.*, m.*, group_concat(c.property) as properties, group_concat(c.value) as floatValues, group_concat(c.stringValue) as stringValues
-        from imagefiles as f left join monkeys as m on m.monkeyId = f.monkeyId left join calculations as c on c.path = f.path where 1 = 1 """
+        stmnt = r"""select ('{0}/' || f.path) as abspath, f.*, m.*, group_concat(c.property) as properties, group_concat(c.value) as floatValues, group_concat(c.stringValue) as stringValues
+        from imagefiles as f left join monkeys as m on m.monkeyId = f.monkeyId left join calculations as c on c.path = f.path where 1 = 1 """.format(self.root)
 
         if monkey is not None:
             stmnt += " and (m.monkeyId = '{0}' or m.name = '{0}')".format(monkey)
@@ -365,3 +384,11 @@ class ZiliaDB(Database):
         
         if iteration == total: 
             self.progressStart = None
+
+class ZiliaComputeEngine(DBComputeEngine):
+    def __init__(self, database=ZiliaDB(), maxTaskCount=None):
+        super().__init__(database=database, maxTaskCount=maxTaskCount)
+
+    def enqueueRecords(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
+        selectStatement = self.db.buildImageSelectStatement(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content=content, eye=eye, limit=limit)
+        self.enqueueRecordsWithStatement(selectStatement)

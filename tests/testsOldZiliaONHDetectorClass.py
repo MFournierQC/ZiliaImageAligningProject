@@ -1,5 +1,5 @@
 import envtest
-from analyzeEyeImages import *
+from analyzeRetinaImages import *
 from skimage.io import imread
 import matplotlib.pyplot as plt
 from skimage.color import rgb2gray, gray2rgb
@@ -65,7 +65,7 @@ class TestZiliaONHDetectorClass(envtest.ZiliaTestCase):
     def testFindONH_ellipse(self):
         image = imread(self.testStudentDirectory+"/testImage5.png")
         print(image.shape)
-        detector = ZiliaONHDetector(image)
+        detector = ZiliaONHDetector(image, gamma=False, accuracy=5)
         detector.getParamsCorrections()
         detector.preProcessImage()
         result = detector.findOpticNerveHead()
@@ -101,7 +101,6 @@ class TestZiliaONHDetectorClass(envtest.ZiliaTestCase):
         result = detector.findOpticNerveHead()
         self.plotHoughEllipseWithRescale(result, image, canny(rgb2gray(image)))
         # not great... big oval, center too high, but could be worse...
-        # not working...
 
     @envtest.skip("skip plot")
     def testFindONH_somalieHigh(self):
