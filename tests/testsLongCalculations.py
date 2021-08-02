@@ -29,25 +29,38 @@ def computeONHParams(grayImage):
 
 
 class CalcEngine:
-    def __init__(self, database):
+    def __init__(self, database, maxTaskCount=None):
         self.db = database
         self.recordsQueue = Queue()
         self.resultsQueue = Queue()
         self.runningTasks = []
 
-    def compute(self, target, selectStatement, timeOut=3*60, taskCount=None):
+        if maxTaskCount is None:
+            self.maxTaskCount = multiprocessing.cpu_count()
+        else:
+            self.maxTaskCount = maxTaskCount
+
+    def __del__(self):
+        self.terminateTimedOutTasks(timeoutInSeconds=0)
+        self.recordsQueue.close()
+        self.resultsQueue.close()
+
+    def compute(self, target, processTaskResults=None, timeoutInSeconds=3*60, taskCount=None):
         if taskCount is None:
-            taskCount = multiprocessing.cpu_count()
+            taskCount = self.maxTaskCount
 
-        self.enqueueRecordsForTask(selectStatement)
-
-        while self.hasTasksStillRunning():
+        while self.hasTasksStillRunning() or self.hasTasksLeftToLaunch():
             while len(self.runningTasks) < taskCount and self.hasTasksLeftToLaunch():
                 self.launchTask(target=target)
 
-            self.printAvailableTaskResults()
-            self.terminateTimedOutTasks(timeout=timeOut)
+            if processTaskResults is None:
+                self.processTaskResults(self.resultsQueue)
+            else:
+                processTaskResults(self.resultsQueue)
+
+            self.terminateTimedOutTasks(timeoutInSeconds=timeoutInSeconds)
             self.pruneTerminatedTasks()
+            time.sleep(0.1)
 
     def hasTasksLeftToLaunch(self):
         return not self.recordsQueue.empty()
@@ -57,27 +70,39 @@ class CalcEngine:
 
     def enqueueRecordsForTask(self, selectStatement):
         self.db.execute(selectStatement)
-        rows = self.fetchAll()
+        rows = self.db.fetchAll()
         if len(rows) >= 32767:
             print("Warning: queue may be limited to 32768 elements")
+        elif len(rows) == 0:
+            raise ValueError("Warning: no records returned from {0}".format(selectStatement))
 
         for row in rows:
-            recordsQueue.put(row)
+            record = {}
+            for key in row.keys():
+                record[key] = row[key]
+            self.recordsQueue.put(record)
+
+        # it takes a fraction of a second for the queue to appear non-empty.  We make sure it is ok before returning
+        while self.recordsQueue.empty():
+            pass
 
     def launchTask(self, target):
         p=Process(target=target, args=(self.recordsQueue, self.resultsQueue))
-        self.runningTasks.append((p, time.time()))
+        startTime = time.time()
+        self.runningTasks.append((p, startTime))
         p.start()
+        return p, startTime
 
-    def printAvailableTaskResults(self):
-        while not self.resultsQueue.empty():
-            results = self.resultsQueue.get()
+    def processTaskResults(self, queue):
+        while not queue.empty():
+            results = queue.get()
             print(results)
 
     def terminateTimedOutTasks(self, timeoutInSeconds):
         for (p, startTime) in self.runningTasks:
             if time.time() > startTime+timeoutInSeconds:
                 p.terminate()
+                p.join()
 
     def pruneTerminatedTasks(self):
         self.runningTasks = [ (p,startTime) for p,startTime in self.runningTasks if p.is_alive()]
@@ -89,6 +114,52 @@ class TestZiliaCalculation(env.DCCLabTestCase):
     def setUp(self):
         self.db = ZiliaDB()
         self.assertIsNotNone(self.db)
+
+    def tearDown(self):
+        del self.db
+        self.db = None
+
+    def test101EngineInit(self):
+        engine = CalcEngine(self.db)
+        self.assertIsNotNone(engine)
+        self.assertTrue(engine.recordsQueue.empty())
+        self.assertTrue(engine.resultsQueue.empty())
+        self.assertTrue(len(engine.runningTasks) == 0)
+    
+    def test102LaunchTask(self):
+        engine = CalcEngine(self.db)
+        p,startTime = engine.launchTask(target=getLen)
+        self.assertIsNotNone(p)
+        p.join()
+        self.assertFalse(p.is_alive())
+        
+    def test103EnqueueRecords(self):
+        engine = CalcEngine(self.db)
+        self.assertIsNotNone(engine)
+        engine.enqueueRecordsForTask(selectStatement="select path from imagefiles limit 10")
+        self.assertTrue(engine.hasTasksLeftToLaunch())
+        for i in range(10):
+            engine.recordsQueue.get()
+        self.assertFalse(engine.hasTasksLeftToLaunch())
+
+    def test105ComputeAll(self):
+        engine = CalcEngine(self.db)
+        engine.enqueueRecordsForTask(selectStatement="select path from imagefiles limit 10")
+        engine.compute(target=getLen)
+        self.assertFalse(engine.hasTasksStillRunning())
+
+    def test106ComputeAllWithCustomProcess(self):
+        engine = CalcEngine(self.db)
+        engine.enqueueRecordsForTask(selectStatement="select path from imagefiles limit 10")
+        engine.compute(target=getLen, processTaskResults=printRecord)
+        self.assertFalse(engine.hasTasksStillRunning())
+
+    def test107ComputeAllWithCustomProcess(self):
+        engine = CalcEngine(self.db)
+        statement = engine.db.buildImageSelectStatement(region='onh', limit=10)
+        engine.enqueueRecordsForTask(selectStatement=statement)
+        engine.compute(target=computeMeanForPathWithQueue, processTaskResults=printRecord)
+        self.assertFalse(engine.hasTasksStillRunning())
 
     # def test01GetGrayscaleEyeImagesFromDatabase(self):
     #     images = self.db.getGrayscaleEyeImages(monkey='Bresil' , rlp=6, timeline='baseline 3', region='onh', limit=10)
@@ -151,57 +222,68 @@ class TestZiliaCalculation(env.DCCLabTestCase):
     #         results = resultsQueue.get()
     #         print(results)
 
-    def test07GetGrayscaleEyeImagesWithPathsFullONCalculations(self):
-        print("Getting paths")
-        paths = self.db.getImagePaths(region='onh', limit=32000)
-        print("Obtained {0} paths".format(len(paths)))
-        pathQueue = Queue()
-        resultsQueue = Queue()
+    # def test07GetGrayscaleEyeImagesWithPathsFullONCalculations(self):
+    #     print("Getting paths")
+    #     paths = self.db.getImagePaths(region='onh', limit=32000)
+    #     print("Obtained {0} paths".format(len(paths)))
+    #     pathQueue = Queue()
+    #     resultsQueue = Queue()
 
-        print("Getting paths into queue")
-        for path in paths:
-            # print("Inserting {0}".format(path))
-            pathQueue.put(path)
+    #     print("Getting paths into queue")
+    #     for path in paths:
+    #         # print("Inserting {0}".format(path))
+    #         pathQueue.put(path)
 
-        runningProcesses = []
-        duration = {}
-        print("Starting computations")
-        while not pathQueue.empty():
-            while len(runningProcesses) < multiprocessing.cpu_count():
-                print("Starting new processes")
-                p=Process(target=computeForPathWithQueues, args=(pathQueue, resultsQueue))
-                runningProcesses.append((p, time.time()))
-                p.start()
+    #     runningProcesses = []
+    #     duration = {}
+    #     print("Starting computations")
+    #     while not pathQueue.empty():
+    #         while len(runningProcesses) < multiprocessing.cpu_count():
+    #             print("Starting new processes")
+    #             p=Process(target=computeForPathWithQueues, args=(pathQueue, resultsQueue))
+    #             runningProcesses.append((p, time.time()))
+    #             p.start()
 
-            while not resultsQueue.empty():
-                print("Printing results")
-                results = resultsQueue.get()
-                print(results)
+    #         while not resultsQueue.empty():
+    #             print("Printing results")
+    #             results = resultsQueue.get()
+    #             print(results)
 
-            # Kill very long processes (10 minutes)
-            for (p, startTime) in runningProcesses:
-                if time.time() > startTime+3*60:
-                    print("Killing {0}".format(p))
-                    p.terminate()
+    #         # Kill very long processes (10 minutes)
+    #         for (p, startTime) in runningProcesses:
+    #             if time.time() > startTime+3*60:
+    #                 print("Killing {0}".format(p))
+    #                 p.terminate()
 
-            runningProcesses = [ (p,startTime) for p,startTime in runningProcesses if p.is_alive()]
-            time.sleep(1)
-            print("Looping {0} processes running.".format(len(runningProcesses)))
+    #         runningProcesses = [ (p,startTime) for p,startTime in runningProcesses if p.is_alive()]
+    #         time.sleep(1)
+    #         print("Looping {0} processes running.".format(len(runningProcesses)))
 
-        print("out waiting")
-        while len(runningProcesses) >0:
-            while not resultsQueue.empty():
-                print("Printing results")
-                results = resultsQueue.get()
-                print(results)
-            runningProcesses = [ process for process in runningProcesses if process.is_alive()]
-            time.sleep(1)
-            print("Waiting and looping {0} processes running.".format(len(runningProcesses)))
+    #     print("out waiting")
+    #     while len(runningProcesses) >0:
+    #         while not resultsQueue.empty():
+    #             print("Printing results")
+    #             results = resultsQueue.get()
+    #             print(results)
+    #         runningProcesses = [ process for process in runningProcesses if process.is_alive()]
+    #         time.sleep(1)
+    #         print("Waiting and looping {0} processes running.".format(len(runningProcesses)))
 
 
 
-def getLen(self, path):
-    return len(path)
+
+def getLen(recordsQueue, resultsQueue):
+    if recordsQueue.empty():
+        return
+    record = recordsQueue.get()
+    length = len(record["path"])
+    time.sleep(0.2)
+    resultsQueue.put(length)
+
+def printRecord(queue):
+    while not queue.empty():
+        results = queue.get()
+        print(results)
 
 def computeForPath(path):
     try:
@@ -227,11 +309,12 @@ def computeForPathWithQueues(pathQueue, resultsQueue):
         print(err)
         return 0.0
         
-def computeMeanForPathWithQueue(pathQueue, resultsQueue):
+def computeMeanForPathWithQueue(recordsQueue, resultsQueue):
     try:
-        if pathQueue.empty():
+        if recordsQueue.empty():
             return
-        path = pathQueue.get()
+        record = recordsQueue.get()
+        path = record["path"]
         results = {}
         imageData = imread(path)
         results["mean"] = np.mean(imageData)
