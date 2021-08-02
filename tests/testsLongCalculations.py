@@ -115,7 +115,7 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
         self.assertEqual(aDictionary["onhCenterX"], 1)
         self.assertEqual(aDictionary["onhCenterY"], 2)
 
-    def test202ReadDictsFromFile(self):
+    def test202ReadDictsFromFileAndOutputCSVForCalculations(self):
         with open('calc-durations.txt') as f:
             lines = f.readlines()
 
@@ -126,13 +126,8 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
             self.assertIsNotNone(data["onhCenterY"])
             for key, value in data.items():
                 if key != 'path' and key != 'duration':
-                    print("insert into calculations (path, property, value, date, algorithm) values('{3}', '{0}', {1}, '{2}', 'hough');".format(key, value, '2021-08-01', data['path']))
-        # # you may also want to remove whitespace characters like `\n` at the end of each line
-        # content = [x.strip() for x in content] 
-
-        # data = {"ohnCenterX":1, "ohnCenterY":2}
-        # for key, value in data.items():
-        #     print("insert into calculations (property, value, date, algorithm) values('{0}', {1}, '{2}', 'hough');".format(key, value, '2021-08-01'))
+                    print("{3}|{0}|{1}||||hough|{2}".format(key, value, '2021-08-01', data['path']))
+                    #print("insert into calculations (path, property, value, date, algorithm) values('{3}', '{0}', {1}, '{2}', 'hough');".format(key, value, '2021-08-01', data['path']))
 
     def test01GetGrayscaleEyeImagesFromDatabase(self):
         images = self.db.getGrayscaleEyeImages(monkey='Bresil' , rlp=6, timeline='baseline 3', region='onh', limit=10)
