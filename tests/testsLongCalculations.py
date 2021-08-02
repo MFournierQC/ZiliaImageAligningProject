@@ -154,11 +154,18 @@ class TestZiliaCalculation(env.DCCLabTestCase):
         engine.compute(target=getLen, processTaskResults=printRecord)
         self.assertFalse(engine.hasTasksStillRunning())
 
-    def test107ComputeAllWithCustomProcess(self):
+    def test107Compute10WithCustomProcess(self):
         engine = CalcEngine(self.db)
         statement = engine.db.buildImageSelectStatement(region='onh', limit=10)
         engine.enqueueRecordsForTask(selectStatement=statement)
-        engine.compute(target=computeMeanForPathWithQueue, processTaskResults=printRecord)
+        engine.compute(target=computeMeanForPathWithQueues, processTaskResults=printRecord)
+        self.assertFalse(engine.hasTasksStillRunning())
+
+    def test107ComputeONHFor10(self):
+        engine = CalcEngine(self.db)
+        statement = engine.db.buildImageSelectStatement(region='onh', limit=10)
+        engine.enqueueRecordsForTask(selectStatement=statement)
+        engine.compute(target=computeForPathWithQueues)
         self.assertFalse(engine.hasTasksStillRunning())
 
     # def test01GetGrayscaleEyeImagesFromDatabase(self):
@@ -295,11 +302,12 @@ def computeForPath(path):
     except Exception as err:
         return None
 
-def computeForPathWithQueues(pathQueue, resultsQueue):
+def computeForPathWithQueues(recordsQueue, resultsQueue):
     try:
-        if pathQueue.empty():
+        if recordsQueue.empty():
             return
-        path = pathQueue.get()
+        record = recordsQueue.get()
+        path = record["abspath"]
         results = {}
         imageData = imread(path)
         results = computeONHParams(imageData)
@@ -309,12 +317,12 @@ def computeForPathWithQueues(pathQueue, resultsQueue):
         print(err)
         return 0.0
         
-def computeMeanForPathWithQueue(recordsQueue, resultsQueue):
+def computeMeanForPathWithQueues(recordsQueue, resultsQueue):
     try:
         if recordsQueue.empty():
             return
         record = recordsQueue.get()
-        path = record["path"]
+        path = record["abspath"]
         results = {}
         imageData = imread(path)
         results["mean"] = np.mean(imageData)

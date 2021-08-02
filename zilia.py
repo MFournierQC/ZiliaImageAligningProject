@@ -215,7 +215,7 @@ class ZiliaDB(Database):
         return imread(absolutePath)
 
     def getGrayscaleImageFromRelativePath(self, relativePath):
-        image = self.getRGBImageFromRelativePath(relativePath)
+        image = self.getRGBImageFromPath(relativePath)
         image[:,:,2] = 0 # For eye images, always strip blue channel before conversion
         return rgb2gray(image)
 
@@ -263,8 +263,8 @@ class ZiliaDB(Database):
         return records
 
     def buildImageSelectStatement(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
-        stmnt = r"""select f.*, m.*, group_concat(c.property) as properties, group_concat(c.value) as floatValues, group_concat(c.stringValue) as stringValues
-        from imagefiles as f left join monkeys as m on m.monkeyId = f.monkeyId left join calculations as c on c.path = f.path where 1 = 1 """
+        stmnt = r"""select ('{0}/' || f.path) as abspath, f.*, m.*, group_concat(c.property) as properties, group_concat(c.value) as floatValues, group_concat(c.stringValue) as stringValues
+        from imagefiles as f left join monkeys as m on m.monkeyId = f.monkeyId left join calculations as c on c.path = f.path where 1 = 1 """.format(self.root)
 
         if monkey is not None:
             stmnt += " and (m.monkeyId = '{0}' or m.name = '{0}')".format(monkey)
