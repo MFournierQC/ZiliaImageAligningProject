@@ -2,35 +2,30 @@ import envtest
 from processImages import defineGrid
 from zilia import *
 import numpy as np
+from skimage.io import imread
+from skimage.color import rgb2gray
+
+def importGrayImageFromPath(imagePath):
+    image = imread(imagePath)
+    image[:,:,2] = 0 # For eye images, always strip blue channel before conversion
+    return rgb2gray(image)
+
 
 class TestDefineGrid(envtest.ZiliaTestCase):
 
-    def testImport(self):
+    def testImportDefineGrid(self):
         self.assertIsNotNone(defineGrid)
 
-    def testImportDatabase(self):
-        db = ZiliaDB()
-        self.assertIsNotNone(db)
+    def testImportImageAsGrayscale(self):
+        imagePath = self.testCannyDirectory+"/kenyaLow.jpg"
+        grayImage = importGrayImageFromPath(imagePath)
+        self.assertIsNotNone(grayImage)
+        self.assertEqual(len(grayImage.shape), 2)
 
-    def testImport10GrayRetinaImages(self):
-        db = ZiliaDB()
-        eyeImages = db.getGrayscaleEyeImages(limit=10)
-        for image in eyeImages:
-            self.assertIsInstance(image, np.ndarray)
-            self.assertEqual(len(image.shape), 2)
-
-    def testImport1RetinaImage(self):
-        db = ZiliaDB()
-        eyeImage = db.getGrayscaleEyeImages(limit=1)
-        self.assertEqual(len(eyeImage), 1)
-        print(eyeImage[0].shape)
-
-    def testImport2RetinaImages(self):
-        db = ZiliaDB()
-        eyeImage = db.getGrayscaleEyeImages(limit=2)
-        self.assertEqual(len(eyeImage), 2)
-        print(eyeImage[0].shape)
-
+    def testDefineGridOnLowLightImage(self):
+        imagePath = self.testCannyDirectory+"/kenyaLow.jpg"
+        grayImage = importGrayImageFromPath(imagePath)
+        
 
 
 if __name__=="__main__":

@@ -289,10 +289,9 @@ def oldDefineGrid(images):
     length = int((np.min([onhHeight, onhWidth]))/2)
     return xCenterGrid, yCenterGrid, length
 
-
-
 def defineGrid(grayImages, xThresh=0.5, yThresh=0.5):
     if len(grayImages.shape) == 2:
+        # There is only 1 image
         imgGray = grayImages
     else:
         imgGray = grayImages[0,:,:]
@@ -315,8 +314,6 @@ def defineGrid(grayImages, xThresh=0.5, yThresh=0.5):
     gridRegionSize = int((np.min([onhHeight, onhWidth])) / 2)
 
     return onhCenterX, onhCenterY, gridRegionSize
-
-
 
 def plotResult(image, shiftParameters, gridParameters,saturationsO2, rosaRadius=4, thickness=8,leftEye = False):
     print("Preparing plot of the result")
