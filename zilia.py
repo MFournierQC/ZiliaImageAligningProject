@@ -44,7 +44,7 @@ class ZiliaDB(Database):
         return None
 
     @classmethod
-    def addCyberduckPathsIfPresent(cls):
+    def addCyberduckPathsIfPresent(cls) -> bool:
         try:
             result = subprocess.run(['duck', '-h'], capture_output=True, text=True)
             lines = result.stdout.split('\n')
@@ -56,8 +56,9 @@ class ZiliaDB(Database):
                     ziliaPath = ("{0}/Volumes/Zilia".format(duckDir))
                     if os.path.exists(ziliaPath):
                         ZiliaDB.rootCandidates.append(ziliaPath)
+            return True # present
         except:
-            pass # cyberduck not installed or available
+            return False # cyberduck not installed or available
 
     def __init__(self, ziliaDbPath=None, root=None):  
         """
