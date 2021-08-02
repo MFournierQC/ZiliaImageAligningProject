@@ -13,6 +13,8 @@ import multiprocessing
 from analyzeEyeImages import *
 import time
 import json
+import cv2
+from analyzeRosaImages import analyzeRosa
 
 def computeONHParams(grayImage):
     detector = ZiliaONHDetector(grayImage)
@@ -91,18 +93,18 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
         engine.compute(target=computeForPathWithQueues,timeoutInSeconds=120)
         self.assertFalse(engine.hasTasksStillRunning())
 
+    @unittest.skip("temporary skip")
     def test108ComputeMaxIntensityFor10(self):
         engine = ZiliaComputeEngine(self.db)
         engine.enqueueRecords(region='onh', content='eye', limit=10)
         engine.compute(target=computeMaxValForPathWithQueues,timeoutInSeconds=120)
         self.assertFalse(engine.hasTasksStillRunning())
 
-    # def test109ComputeMaxInstensityFor100(self):
-    #     pass
-
-    # def test110ComputeMaxIntensityForAllONHImages(self):
-    #     pass
-
+    def test109ComputeRosaPositionFor10(self):
+        engine = ZiliaComputeEngine(self.db)
+        engine.enqueueRecords(region='onh', content='eye', limit=10)
+        engine.compute(target=computeRosaParamsForPathWithQueues,timeoutInSeconds=120)
+        self.assertFalse(engine.hasTasksStillRunning())
 
     def test200OutputResultDicts(self):
         data = {"ohnCenterX":1, "ohnCenterY":2}
@@ -248,8 +250,26 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
             print("Waiting and looping {0} processes running.".format(len(runningProcesses)))
 
 
+def computeRosaParamsForPathWithQueues(recordsQueue, resultsQueue):
+    try:
+        if recordsQueue.empty():
+            return
+        record = recordsQueue.get()
+        path = record["abspath"]
+        result = {}
+        result['path'] = record['path']
+        startTime = time.time()
+        blob = analyzeRosa(path)
+        result['duration'] = time.time() - startTime
+        result['rosaAbsX'] = blob["center"]['rx']
+        result['rosaAbsY'] = blob["center"]['ry']
+    except Exception as err:
+        print(f"An error has occured: {err}.")
+
 def computeMaxValForPathWithQueues(recordsQueue, resultsQueue):
     try:
+        if recordsQueue.empty():
+            return
         record = recordsQueue.get()
         path = record["abspath"]
         result = {}
@@ -261,7 +281,6 @@ def computeMaxValForPathWithQueues(recordsQueue, resultsQueue):
         resultsQueue.put(result)
     except Exception as err:
         print(f"An error has occured: {err}.")
-
 
 def getLen(recordsQueue, resultsQueue):
     if recordsQueue.empty():
@@ -300,7 +319,7 @@ def computeForPathWithQueues(recordsQueue, resultsQueue):
         resultsQueue.put(results)
     except Exception as err:
         print(err)
-        
+
 def computeMeanForPathWithQueues(recordsQueue, resultsQueue):
     try:
         if recordsQueue.empty():
