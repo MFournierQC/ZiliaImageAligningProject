@@ -107,12 +107,12 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
         self.assertFalse(engine.hasTasksStillRunning())
 
     def test200OutputResultDicts(self):
-        data = {"ohnCenterX":1, "ohnCenterY":2}
+        data = {"onhCenterX":1, "onhCenterY":2}
         for key, value in data.items():
             print("insert into calculations (property, value, date, algorithm) values('{0}', {1}, '{2}', 'hough');".format(key, value, '2021-08-01'))
 
     def test201ReadDictsFromString(self):
-        text = '{"ohnCenterX":1, "ohnCenterY":2}'
+        text = '{"onhCenterX":1, "onhCenterY":2}'
         aDictionary = json.loads(text)
         self.assertEqual(aDictionary["onhCenterX"], 1)
         self.assertEqual(aDictionary["onhCenterY"], 2)
