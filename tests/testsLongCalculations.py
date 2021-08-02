@@ -39,14 +39,14 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
         self.db = None
 
     def test101EngineInit(self):
-        engine = CalcEngine(self.db)
+        engine = ZiliaComputeEngine(self.db)
         self.assertIsNotNone(engine)
         self.assertTrue(engine.recordsQueue.empty())
         self.assertTrue(engine.resultsQueue.empty())
         self.assertTrue(len(engine.runningTasks) == 0)
     
     def test102LaunchTask(self):
-        engine = CalcEngine(self.db)
+        engine = ZiliaComputeEngine(self.db)
         p,startTime = engine.launchTask(target=getLen)
         self.assertIsNotNone(p)
         p.join()
@@ -54,7 +54,7 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
 
     @unittest.skip("temporary skip")
     def test103EnqueueRecords(self):
-        engine = CalcEngine(self.db)
+        engine = ZiliaComputeEngine(self.db)
         self.assertIsNotNone(engine)
         engine.enqueueRecordsWithStatement(selectStatement="select path from imagefiles limit 10")
         self.assertTrue(engine.hasTasksLeftToLaunch())
@@ -64,21 +64,21 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
 
     @unittest.skip("temporary skip")
     def test105ComputeAll(self):
-        engine = CalcEngine(self.db)
+        engine = ZiliaComputeEngine(self.db)
         engine.enqueueRecordsWithStatement(selectStatement="select path from imagefiles limit 10")
         engine.compute(target=getLen)
         self.assertFalse(engine.hasTasksStillRunning())
 
     @unittest.skip("temporary skip")
     def test106ComputeAllWithCustomProcess(self):
-        engine = CalcEngine(self.db)
+        engine = ZiliaComputeEngine(self.db)
         engine.enqueueRecordsWithStatement(selectStatement="select path from imagefiles limit 10")
         engine.compute(target=getLen, processTaskResults=printRecord)
         self.assertFalse(engine.hasTasksStillRunning())
 
     @unittest.skip("temporary skip")
     def test107Compute10WithCustomProcess(self):
-        engine = CalcEngine(self.db)
+        engine = ZiliaComputeEngine(self.db)
         statement = engine.db.buildImageSelectStatement(region='onh', limit=10)
         engine.enqueueRecordsWithStatement(selectStatement=statement)
         engine.compute(target=computeMeanForPathWithQueues, processTaskResults=printRecord)
@@ -86,16 +86,13 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
 
     @unittest.skip("temporary skip")
     def test107ComputeONHFor10(self):
-        engine = CalcEngine(self.db)
+        engine = ZiliaComputeEngine(self.db)
         engine.enqueueRecords(region='onh', limit=10)
         engine.compute(target=computeForPathWithQueues,timeoutInSeconds=120)
         self.assertFalse(engine.hasTasksStillRunning())
 
-
-
-
     def test108ComputeMaxIntensityFor10(self):
-        engine = CalcEngine(self.db)
+        engine = ZiliaComputeEngine(self.db)
         engine.enqueueRecords(region='onh', content='eye', limit=10)
         engine.compute(target=computeMaxValForPathWithQueues,timeoutInSeconds=120)
         self.assertFalse(engine.hasTasksStillRunning())
