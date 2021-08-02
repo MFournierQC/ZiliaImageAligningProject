@@ -32,9 +32,10 @@ class ZiliaDB(Database):
         someRelativePath = "./March2021" # FIXME: don't hardcode path
 
         for root in cls.rootCandidates:
-            absolutePath = "{0}/{1}".format(root, someRelativePath)
+            absRoot = os.path.abspath(root)
+            absolutePath = "{0}/{1}".format(absRoot, someRelativePath)
             if os.path.exists(absolutePath):
-                return root
+                return absRoot
 
         return None
 
@@ -51,7 +52,9 @@ class ZiliaDB(Database):
                     ziliaPath = ("{0}/Volumes/Zilia".format(duckDir))
                     if os.path.exists(ziliaPath):
                         ZiliaDB.rootCandidates.append(ziliaPath)
-            return True # present
+                        return True
+                    else:
+                        return False
         except:
             return False # cyberduck not installed or available
 
@@ -181,7 +184,7 @@ class ZiliaDB(Database):
 
     def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None, mirrorLeftEye=True):
         images = self.getRGBImagesWithPaths(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content=content, eye=eye, limit=limit, mirrorLeftEye=mirrorLeftEye)
-        return images.values()
+        return list(images.values())
 
     def getRGBImagesWithPaths(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None, mirrorLeftEye=True):
         if self.root is None:
@@ -227,7 +230,7 @@ class ZiliaDB(Database):
 
     def getGrayscaleEyeImages(self, monkey=None, timeline=None, rlp=None, region=None, eye=None, limit=None, mirrorLeftEye=True):
         images = self.getGrayscaleEyeImagesWithPaths(monkey=monkey, timeline=timeline, rlp=rlp, region=region, eye=eye, limit=limit, mirrorLeftEye=mirrorLeftEye)
-        return images.values()
+        return list(images.values())
 
     def getGrayscaleEyeImagesWithPaths(self, monkey=None, timeline=None, rlp=None, region=None, eye=None, limit=None, mirrorLeftEye=True):
         images = self.getRGBImagesWithPaths(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content='eye', eye=eye, limit=limit, mirrorLeftEye=mirrorLeftEye)

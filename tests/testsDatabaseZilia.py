@@ -8,6 +8,7 @@ import numpy as np
 from skimage.io import imread
 import subprocess
 import re
+from multiprocessing import Pool
 
 class TestZilia(env.DCCLabTestCase):
 
@@ -132,6 +133,22 @@ class TestZilia(env.DCCLabTestCase):
     def testGetAcquisitionIdList(self):
         acqIds = self.db.getAcquisitionIdList()
         self.assertTrue(len(acqIds) == 205)
+
+    def computeSomething(self, data):
+        return {"mean":np.mean(data)}
+
+    def testComputeManyThings(self):
+        a = [1,2,3]
+        result = self.computeSomething(a)
+        self.assertAlmostEqual(result["mean"], 2)
+
+    def testComputeThingsOnManyImageData(self):
+        images = self.db.getGrayscaleEyeImagesWithPaths(limit=10)
+        self.assertIsNotNone(images)
+
+        for path, imageData in images.items():
+            result = self.computeSomething(imageData)
+            print(path, result["mean"])
 
 if __name__ == '__main__':
     unittest.main()
