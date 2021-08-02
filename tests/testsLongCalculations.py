@@ -12,7 +12,7 @@ from multiprocessing import Pool, Queue, Process, SimpleQueue
 import multiprocessing
 from analyzeEyeImages import *
 import time
-
+import json
 
 def computeONHParams(grayImage):
     detector = ZiliaONHDetector(grayImage)
@@ -109,10 +109,30 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
         for key, value in data.items():
             print("insert into calculations (property, value, date, algorithm) values('{0}', {1}, '{2}', 'hough');".format(key, value, '2021-08-01'))
 
-    def test201OutputResultDicts(self):
-        data = {"ohnCenterX":1, "ohnCenterY":2}
-        for key, value in data.items():
-            print("insert into calculations (property, value, date, algorithm) values('{0}', {1}, '{2}', 'hough');".format(key, value, '2021-08-01'))
+    def test201ReadDictsFromString(self):
+        text = '{"ohnCenterX":1, "ohnCenterY":2}'
+        aDictionary = json.loads(text)
+        self.assertEqual(aDictionary["onhCenterX"], 1)
+        self.assertEqual(aDictionary["onhCenterY"], 2)
+
+    def test202ReadDictsFromFile(self):
+        with open('calc-durations.txt') as f:
+            lines = f.readlines()
+
+        for line in lines:
+            line = line.replace("'", '"')
+            data = json.loads(line)
+            self.assertIsNotNone(data["onhCenterX"])
+            self.assertIsNotNone(data["onhCenterY"])
+            for key, value in data.items():
+                if key != 'path' and key != 'duration':
+                    print("insert into calculations (path, property, value, date, algorithm) values('{3}', '{0}', {1}, '{2}', 'hough');".format(key, value, '2021-08-01', data['path']))
+        # # you may also want to remove whitespace characters like `\n` at the end of each line
+        # content = [x.strip() for x in content] 
+
+        # data = {"ohnCenterX":1, "ohnCenterY":2}
+        # for key, value in data.items():
+        #     print("insert into calculations (property, value, date, algorithm) values('{0}', {1}, '{2}', 'hough');".format(key, value, '2021-08-01'))
 
     def test01GetGrayscaleEyeImagesFromDatabase(self):
         images = self.db.getGrayscaleEyeImages(monkey='Bresil' , rlp=6, timeline='baseline 3', region='onh', limit=10)
