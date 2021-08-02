@@ -3,6 +3,7 @@ import multiprocessing
 from analyzeEyeImages import *
 from skimage.io import imread
 import time
+import json
 
 class ComputeEngine:
     def __init__(self, maxTaskCount=None):
@@ -53,7 +54,10 @@ class ComputeEngine:
     def processTaskResults(self, queue):
         while not queue.empty():
             results = queue.get()
-            print(results)
+            try:
+                json.dumps(results)
+            except:
+                print(results)
 
     def terminateTimedOutTasks(self, timeoutInSeconds):
         for (p, startTime) in self.runningTasks:
