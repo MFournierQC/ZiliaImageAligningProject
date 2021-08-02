@@ -26,6 +26,8 @@ update spectralfiles set region='mac' where path like '%mac%';
 # Add eye
 update spectralfiles set eye='os' where path like '%-os-%';
 update spectralfiles set eye='od' where path like '%-od-%';
+update spectralfiles set eye='os' where path like '%_OS_ONH%';
+update spectralfiles set eye='od' where path like '%_OD_ONH%';
 
 
 # CLeanup import
@@ -50,6 +52,8 @@ update imagefiles set region='mac' where path like '%mac%';
 # Add eye
 update imagefiles set eye='os' where path like '%-os-%';
 update imagefiles set eye='od' where path like '%-od-%';
+update imagefiles set eye='os' where path like '%_OS_ONH%';
+update imagefiles set eye='od' where path like '%_OD_ONH%';
 
 
 
