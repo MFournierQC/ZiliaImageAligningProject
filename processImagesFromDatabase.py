@@ -183,8 +183,6 @@ def calculateRosaDistanceFromOnhInRefImage (onhXCenter, onhYCenter , rosaLocatio
                                          rosaLocationOnRefImage[rosa][1] - onhYCenter]
             # this part might have some problem with axis!
     return rosaDistanceFromOnh
-            
-            
 
 ################  OLD FUNCTIONS (DONT REMOVE THEM SVP)  ######################
 def getRosaLabels(gridParameters, shiftParameters, dataDictionary) -> list:
@@ -273,11 +271,6 @@ def findONHParamsFromAxisSums(sumAx, axIndexes, axThreshConst):
 def findNearest(array, value):
     idx = (np.abs(array - value)).argmin()
     return idx
-
-
-
-
-
 
 def plotResult(image, shiftParameters, gridParameters,saturationsO2, rosaRadius=4, thickness=8,leftEye = False):
     print("Preparing plot of the result")
