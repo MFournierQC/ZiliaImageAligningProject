@@ -6,10 +6,13 @@ from zilia import *
 import matplotlib.pyplot as plt
 
 eye='os'
-
+#testLongCalculation test 108
 db = ZiliaDB()
 retinaImages = db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh', eye=eye)
 rosaImages = db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh', content='rosa', eye=eye)
+
+dark = findDarkImages(retinaImages)
+
 
 rosaAbsoluteXY=getRosaProperties(rosaImages)
 # useful info:  int(['center']['x']) , int(['center']['y']) , ['rradius'] , and ['found']
@@ -18,8 +21,15 @@ print(rosaAbsoluteXY[10]['found'])
 
 shiftValueFromReferenceImage , imageIsValid = calculateValidShiftsInOneAcquisition(retinaImages)
 
-sr = applyShiftOnRosaCenter(rosaAbsoluteXY,shiftValueFromReferenceImage)
-print(sr)
+rosaLocationOnRefImage = applyShiftOnRosaCenter(rosaAbsoluteXY,shiftValueFromReferenceImage)
+
+refImage = findRefImage(imageIsValid , retinaImages)
+
+xONH,yONH,length = findRosaParamsInRefImage(refImage)
+
+absoluteRosaValue = calculateRosaDistanceFromOnhInRefImage (xONH, yONH , rosaLocationOnRefImage)
+
+
 
 # shift = calculateShiftInOneAcquisition (retinaImages)
 # # Calculate shifts regarding the first good image in an acquisition

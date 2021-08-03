@@ -28,6 +28,20 @@ def getRosaProperties (rosaImages):
         raise ImportError("No laser spot was found. Try with different data.")
     return rosaProperties
 
+def findDarkImages (retinaImages):
+    max = np.max(retinaImages)
+    min = np.min(retinaImages)
+    for image in range(len(retinaImages)):
+        print('number : ', image)
+        print('mean   :  ', np.mean(retinaImages[image]))
+        print('max   :  ', np.max(retinaImages[image]))
+        print('sum ** 2   :  ', np.sum(retinaImages[image] ** 2))
+        print('mean ** 2   :  ', np.mean(retinaImages[image] ** 2))
+        print('normalize sum  :  ', np.sum((normalize(retinaImages[image], max, min))**2))
+        print('normalize var  :  ', np.var((normalize(retinaImages[image])) ** 2))
+    return max
+
+
 def findBlurryImages (retinaImages):
     """see if the image is blurry based on the average laplacian std
     returns a label that is true if the image is blurry and false if it is not!"""
@@ -114,12 +128,11 @@ def applyShiftOnRosaCenter ( rosaInfoAbsolute , shiftValuesFromReferenceImage):
     """
     rosaOnRefImage = [None] * len(shiftValuesFromReferenceImage)
     for i in range(len(shiftValuesFromReferenceImage)):
-        if rosaInfoAbsolute[i]['found'] == True:
+        if rosaInfoAbsolute[i]['found']:
             if shiftValuesFromReferenceImage[i] is not None :
                 rosaOnRefImage [i] = [int(rosaInfoAbsolute[i]['center']['x']-shiftValuesFromReferenceImage[i][1]) ,
                                   int(rosaInfoAbsolute[i]['center']['y']-shiftValuesFromReferenceImage[i][0])]
     return  rosaOnRefImage
-
 
 def crossImage(firstImage, secondImage) -> np.ndarray:
     """
@@ -134,8 +147,46 @@ def crossImage(firstImage, secondImage) -> np.ndarray:
     return crossCorrelationValues
 
 
+def findRefImage (isValidFlag, images ):
+    validImagesIndex = np.where(np.array(isValidFlag) != 'True')[0]
+    return images[validImagesIndex[0]]
 
+def normalize (data , max = None , min = None):
+    if max is None and min is None:
+        return (data - np.min(data)) / (np.max(data) - np.min(data))
+    else:
+        return (data - min) / (max - min)
+    
+def findOHNParamsInRefImage (refImage):
+    meanValueOfRefImage = np.mean(refImage)
+    normalizeImage = normalize(refImage)
+    meanRowsValues = np.mean(normalizeImage , axis=0)
+    normalizeRows = normalize(meanRowsValues)
+    normalizeRows = np.round(normalizeRows, 2)
+    onhWidth = np.max(np.where(normalizeRows > 0.50)) - np.min(np.where(normalizeRows > 0.50))
+    onhCenterXCoords = int(np.min(np.where(normalizeRows > 0.50)) + onhWidth / 2)
 
+    meanColumnsvalues = np.mean(normalizeImage, axis=1)
+    normalizeColumns = normalize(meanColumnsvalues)
+    normalizeColumns = np.round(normalizeColumns, 2)
+    onhHeight = np.max(np.where(normalizeColumns > np.min([meanValueOfRefImage * 4, 0.50]))
+                       ) - np.min(np.where(normalizeColumns > meanValueOfRefImage * 2))
+    onhCenterYCoords = int((np.min(np.where(normalizeColumns > meanValueOfRefImage * 2)) + onhHeight / 2))
+    length = int((np.min([onhHeight, onhWidth])) / 2)
+    return  onhCenterXCoords,onhCenterYCoords,length
+
+def calculateRosaDistanceFromOnhInRefImage (onhXCenter, onhYCenter , rosaLocationOnRefImage):
+    rosaDistanceFromOnh = [None] * len(rosaLocationOnRefImage)
+    for rosa in range(len(rosaLocationOnRefImage)):
+        if rosaLocationOnRefImage[rosa] is not None:
+            rosaDistanceFromOnh[rosa] = [rosaLocationOnRefImage[rosa][0] - onhXCenter ,
+                                         rosaLocationOnRefImage[rosa][1] - onhYCenter]
+            # this part might have some problem with axis!
+    return rosaDistanceFromOnh
+            
+            
+
+################  OLD FUNCTIONS (DONT REMOVE THEM SVP)  ######################
 def getRosaLabels(gridParameters, shiftParameters, dataDictionary) -> list:
     xCenterGrid = gridParameters[0]
     yCenterGrid = gridParameters[1]
@@ -184,78 +235,6 @@ def getRosaLabels(gridParameters, shiftParameters, dataDictionary) -> list:
         imageDataDictionary = dataDictionary
 
     return outputLabels, imageDataDictionary, shiftParameters
-
-def removeImagesFromIndex(dataDictionary, indexes):
-    image = dataDictionary["image"]
-    laserImage = dataDictionary["laserImage"]
-    xCenter = dataDictionary["xCenter"]
-    yCenter = dataDictionary["yCenter"]
-    radius = dataDictionary["radius"]
-    imageNumber = dataDictionary["imageNumber"]
-
-    image = np.delete(image, indexes, axis=0)
-    laserImage = np.delete(laserImage, indexes, axis=0)
-    xCenter = np.delete(xCenter, indexes, axis=0)
-    yCenter = np.delete(yCenter, indexes, axis=0)
-    radius = np.delete(radius, indexes, axis=0)
-    imageNumber = np.delete(imageNumber, indexes, axis=0)
-
-    imageDataDictionary = {
-        "image": image,
-        "laserImage": laserImage,
-        "xCenter": xCenter,
-        "yCenter": yCenter,
-        "radius": radius,
-        "imageNumber": imageNumber
-    }
-
-    return imageDataDictionary
-
-def cleanShiftParameters(shiftParameters, indexesToRemove):
-    xShift = shiftParameters[1]
-    xShift = np.delete(xShift, indexesToRemove)
-    yShift = shiftParameters[0]
-    yShift = np.delete(yShift, indexesToRemove)
-    return xShift, yShift
-
-def oldDefineGrid(images):
-    temp = np.zeros(images.shape)
-    temp[np.where(images >= np.mean(images)*1.9)] = 1
-    kernel = np.ones((5,5), np.uint8)
-    openingTemp = cv2.morphologyEx(temp[0,:,:], cv2.MORPH_OPEN, kernel)
-    nonZero = np.nonzero(openingTemp)
-    onhHeight = np.max(nonZero[0]) - np.min(nonZero[0])
-    onhWidth = np.max(nonZero[1]) - np.min(nonZero[1])
-    yCenterGrid = int(((np.max(nonZero[0]) + np.min(nonZero[0]))/2) - (onhHeight-onhWidth))
-    xCenterGrid = int((np.max(nonZero[1]) + np.min(nonZero[1]))/2)
-    length = int((np.min([onhHeight, onhWidth]))/2)
-    return xCenterGrid, yCenterGrid, length
-
-
-
-
-def defineGrid(grayImages):
-    imgGray = grayImages[0,:,:]
-    meanVal = np.mean(imgGray)
-    imgGray = (imgGray - np.min(imgGray)) / (np.max(imgGray) - np.min(imgGray))
-    W = np.mean(imgGray, axis=0)
-    W = (W - np.min(W)) / (np.max(W) - np.min(W))
-    W = np.round(W, 2)
-    onhWidth = np.max(np.where(W > 0.50)) - np.min(np.where(W > 0.50))
-    onhCenterXCoords = int ( np.min(np.where(W > 0.50)) + onhWidth/2 )
-
-    H = np.mean(imgGray, axis=1)
-    H = (H - np.min(H)) / (np.max(H) - np.min(H))
-    H = np.round(H, 2)
-    onhHeight = np.max(np.where(H > np.min([meanVal * 4, 0.50]))) - np.min(np.where(H > meanVal * 2))
-    onhCenterYCoords = int( (np.min(np.where(H > meanVal * 2)) + onhHeight/2)-(onhHeight-onhWidth)/2 )
-    length = int((np.min([onhHeight, onhWidth])) / 2)
-    return onhCenterXCoords, onhCenterYCoords, length
-
-
-
-
-
 
 def defineGridParams(images, xThreshConst=.7, yThreshConst=.7):
     if len(images.shape) == 2:
