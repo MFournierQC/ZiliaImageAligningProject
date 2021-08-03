@@ -301,7 +301,7 @@ class ZiliaDB(Database):
 
         return stmnt
 
-    def getRawIntensities(self, monkey=None, timeline=None ,region=None, column=None):
+    def getRawIntensities(self, monkey=None, timeline=None, rlp=None, region=None, eye=None):
         stmnt = r"select s.wavelength, s.intensity, s.md5, s.column {0} ".format(self.statementFromAllJoin)
 
         if monkey is not None:
@@ -316,6 +316,12 @@ class ZiliaDB(Database):
         if timeline is not None:
             stmnt += " and f.timeline = '{0}'".format(timeline)
 
+        if rlp is not None:
+            stmnt += " and f.rlp = '{0}'".format(rlp)
+
+        if eye is not None:
+            stmnt += " and f.eye = '{0}'".format(eye)
+
         self.execute(stmnt)
         rows = self.fetchAll()
         nWavelengths = len(self.wavelengths)
@@ -325,6 +331,25 @@ class ZiliaDB(Database):
             spectra[i%nWavelengths, i//nWavelengths] = float(row['intensity'])
 
         return spectra
+
+    def getBackgroundIntensities(self, rlp=None):
+        stmnt = r"select s.wavelength, s.intensity, s.md5, s.column {0} ".format(self.statementFromAllJoin)
+
+        if column is not None:
+            stmnt += " and s.column like '{0}%'".format(column)
+
+        if rlp is not None:
+            stmnt += " and f.rlp = '{0}'".format(rlp)
+
+        self.execute(stmnt)
+        rows = self.fetchAll()
+        nWavelengths = len(self.wavelengths)
+        nSamples = len(rows)//nWavelengths
+        backgroung = np.zeros(shape=(nWavelengths, nSamples))
+        for i,row in enumerate(rows):
+            backgroung[i%nWavelengths, i//nWavelengths] = float(row['intensity'])
+
+        return backgroung
 
     def getBloodIntensities(self, range=(None,None)):
         if range[0] is None:
