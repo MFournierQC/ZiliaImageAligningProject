@@ -80,8 +80,16 @@ class TestZilia(env.DCCLabTestCase):
         self.assertEqual(regions, ['mac','onh'])
 
     def testGetSpectra(self):
-        spectra = self.db.getRawIntensities(monkey='Rwanda', region='onh', timeline='baseline', column='raw')
+        spectra = self.db.getRawIntensities(monkey='Rwanda', region='onh', timeline='baseline')
         self.assertIsNotNone(spectra)
+
+    def testGetBackgroundSpectra(self):
+        spectra = self.db.getBackgroundIntensities(rlp=4)
+        self.assertIsNotNone(spectra)
+        print(spectra)
+        # select s.path, s.wavelength, s.intensity, s.md5, s.column from spectra as s inner join spectralfiles as f on f.md5 = f.md5  where f.timeline like '%background%' and f.rlp = 4 order by s.wavelength
+        self.assertTrue(len(spectra) > 4)
+
 
     @unittest.skip("Was used for initial development")
     def testGetEyeImages(self):
@@ -148,7 +156,6 @@ class TestZilia(env.DCCLabTestCase):
 
         for path, imageData in images.items():
             result = self.computeSomething(imageData)
-            print(path, result["mean"])
 
 if __name__ == '__main__':
     unittest.main()

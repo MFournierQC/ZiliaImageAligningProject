@@ -302,13 +302,10 @@ class ZiliaDB(Database):
         return stmnt
 
     def getRawIntensities(self, monkey=None, timeline=None, rlp=None, region=None, eye=None):
-        stmnt = r"select s.wavelength, s.intensity, s.md5, s.column {0} ".format(self.statementFromAllJoin)
+        stmnt = r"select s.wavelength, s.intensity, s.md5, s.column {0} and s.column like '%raw%' ".format(self.statementFromAllJoin)
 
         if monkey is not None:
             stmnt += " and (m.monkeyId = '{0}' or m.name = '{0}')".format(monkey)
-
-        if column is not None:
-            stmnt += " and s.column like '{0}%'".format(column)
 
         if region is not None:
             stmnt += " and f.region = '{0}'".format(region)
@@ -335,12 +332,11 @@ class ZiliaDB(Database):
     def getBackgroundIntensities(self, rlp=None):
         stmnt = r"select s.wavelength, s.intensity, s.md5, s.column {0} ".format(self.statementFromAllJoin)
 
-        if column is not None:
-            stmnt += " and s.column like '{0}%'".format(column)
+        stmnt += " and f.timeline like '%Background%' "
 
         if rlp is not None:
-            stmnt += " and f.rlp = '{0}'".format(rlp)
-
+            stmnt += " and f.rlp = {0} ".format(rlp)
+        print(stmnt)
         self.execute(stmnt)
         rows = self.fetchAll()
         nWavelengths = len(self.wavelengths)
