@@ -289,7 +289,7 @@ def oldDefineGrid(images):
     length = int((np.min([onhHeight, onhWidth]))/2)
     return xCenterGrid, yCenterGrid, length
 
-def defineGrid(grayImages, xThresh=0.5, yThresh=0.5):
+def defineGrid(grayImages, xThresh=0.5, yThresh=0.5, showPlots=True):
     if len(grayImages.shape) == 2:
         # There is only 1 image
         imgGray = grayImages
@@ -299,19 +299,40 @@ def defineGrid(grayImages, xThresh=0.5, yThresh=0.5):
     xMeans = np.mean(normalizedImg, axis=0)
     normalizedXMeans = (xMeans - np.min(xMeans)) / (np.max(xMeans) - np.min(xMeans))
     W = np.round(normalizedXMeans, 2)
+
+    # xThresh = xThresh*np.mean(xMeans)
+    # xThresh = 2*np.mean(xMeans)
+
     onhWidth = np.max(np.where(W > xThresh)) - np.min(np.where(W > xThresh))
     onhCenterX = int ( np.min(np.where(W > xThresh)) + onhWidth/2 )
+
 
     meanVal = np.mean(imgGray)
     yMeans = np.mean(normalizedImg, axis=1)
     normalizedYMeans = (yMeans - np.min(yMeans)) / (np.max(yMeans) - np.min(yMeans))
     H = np.round(normalizedYMeans, 2)
+
+    # yThresh = yThresh*np.mean(yMeans)
+    # yThresh = 2*np.mean(yMeans)
+
     # onhHeight = np.max(np.where(H > yThresh)) - np.min(np.where(H > yThresh))
     # onhCenterY = int( (np.min(np.where(H > meanVal * 2)) + onhHeight/2) )
     onhHeight = np.max(np.where(H > yThresh)) - np.min(np.where(H > yThresh))
     onhCenterY = int( (np.min(np.where(H > yThresh)) + onhHeight/2) )
 
     gridRegionSize = int((np.min([onhHeight, onhWidth])) / 2)
+
+    if showPlots:
+        plt.figure()
+        plt.subplot(1,2,1)
+        plt.plot(normalizedXMeans)
+        plt.plot([0, len(normalizedXMeans)], [xThresh, xThresh], "r-")
+        plt.title("horizontal means")
+        plt.subplot(1,2,2)
+        plt.plot(normalizedYMeans)
+        plt.plot([0, len(normalizedYMeans)], [yThresh, yThresh], "r-")
+        plt.title("vertical means")
+        plt.show()
 
     return onhCenterX, onhCenterY, gridRegionSize
 
