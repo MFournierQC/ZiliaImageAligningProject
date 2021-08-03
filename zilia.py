@@ -85,7 +85,7 @@ class ZiliaDB(Database):
         return self._wavelengths
 
     def getWavelengths(self):
-        self.execute(r"select distinct(wavelength) from spectra order by wavelength")
+        self.execute(r"select distinct(wavelength) from spectra where path not like '%background%' order by wavelength")
         rows = self.fetchAll()
         nTotal = len(rows)
 
@@ -94,6 +94,18 @@ class ZiliaDB(Database):
             wavelengths[i] = row['wavelength']
 
         return wavelengths
+
+    def getBackgroundWavelengths(self):
+        self.execute(r"select distinct(wavelength) from spectra where path like '%background%' order by wavelength")
+        rows = self.fetchAll()
+        nTotal = len(rows)
+
+        wavelengths = np.zeros(shape=(nTotal))
+        for i,row in enumerate(rows):
+            wavelengths[i] = row['wavelength']
+
+        return wavelengths
+
 
     def getBloodWavelengths(self, range=(None,None)):
         if range[0] is None:
@@ -336,7 +348,9 @@ class ZiliaDB(Database):
 
         if rlp is not None:
             stmnt += " and f.rlp = {0} ".format(rlp)
-        print(stmnt)
+
+        stmnt += " order by s.column"
+
         self.execute(stmnt)
         rows = self.fetchAll()
         nWavelengths = len(self.wavelengths)

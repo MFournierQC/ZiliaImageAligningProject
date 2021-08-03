@@ -64,6 +64,11 @@ class TestZilia(env.DCCLabTestCase):
 
     def testGetWavelengths(self):
         wavelengths = self.db.getWavelengths()
+        print(wavelengths.shape)
+        self.assertTrue(wavelengths.shape == (512,))
+
+    def testGetBackgroundWavelengths(self):
+        wavelengths = self.db.getBackgroundWavelengths()
         self.assertTrue(wavelengths.shape == (512,))
 
     def testGetTimelines(self):
@@ -86,9 +91,7 @@ class TestZilia(env.DCCLabTestCase):
     def testGetBackgroundSpectra(self):
         spectra = self.db.getBackgroundIntensities(rlp=4)
         self.assertIsNotNone(spectra)
-        print(spectra)
-        # select s.path, s.wavelength, s.intensity, s.md5, s.column from spectra as s inner join spectralfiles as f on f.md5 = f.md5  where f.timeline like '%background%' and f.rlp = 4 order by s.wavelength
-        self.assertTrue(len(spectra) > 4)
+        self.assertTrue(len(spectra) > 2)
 
 
     @unittest.skip("Was used for initial development")
