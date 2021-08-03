@@ -7,7 +7,7 @@ from skimage.color import rgb2gray
 import matplotlib.pyplot as plt
 
 showPlots = False
-showPlots = True
+# showPlots = True
 
 def importGrayImageFromPath(imagePath):
     image = imread(imagePath)
@@ -51,6 +51,13 @@ class TestDefineGrid(envtest.ZiliaTestCase):
         if showPlots:
             showGridSizeOnGrayPicture(grayImage, gridParams)
 
+    def testDefineGridOnLowLightImage2(self):
+        # This one has a good grid size, but not good center
+        imagePath = self.testCannyDirectory+"/rwandaLow.jpg"
+        grayImage = importGrayImageFromPath(imagePath)
+        gridParams = defineGrid(grayImage, xThresh=0.35, yThresh=0.35, showPlots=showPlots)
+        if showPlots:
+            showGridSizeOnGrayPicture(grayImage, gridParams)
 
     def testDefineGridOnMidLightImage1(self):
         # Good!
@@ -69,13 +76,11 @@ class TestDefineGrid(envtest.ZiliaTestCase):
             showGridSizeOnGrayPicture(grayImage, gridParams)
 
     def testDefineGridOnMidLightImage3(self):
-        # Good!
         imagePath = self.testCannyDirectory+"/rwandaMedium.jpg"
         grayImage = importGrayImageFromPath(imagePath)
-        gridParams = defineGrid(grayImage, xThresh=0.4, yThresh=0.4, showPlots=showPlots)
+        gridParams = defineGrid(grayImage, xThresh=0.35, yThresh=0.35, showPlots=showPlots)
         if showPlots:
             showGridSizeOnGrayPicture(grayImage, gridParams)
-
 
     def testDefineGridOnHighLightImage1(self):
         # Good!
@@ -85,30 +90,11 @@ class TestDefineGrid(envtest.ZiliaTestCase):
         if showPlots:
             showGridSizeOnGrayPicture(grayImage, gridParams)
 
-
-
-
-
     def testDefineGridOnHighLightImage2(self):
         # Good!
         imagePath = self.testCannyDirectory+"/rwandaHigh.jpg"
         grayImage = importGrayImageFromPath(imagePath)
         gridParams = defineGrid(grayImage, xThresh=.7, yThresh=.7, showPlots=showPlots)
-        if showPlots:
-            showGridSizeOnGrayPicture(grayImage, gridParams)
-
-    def testDefineGridOnLowLightImage2(self):
-        # This one has a good grid size, but not good center
-        imagePath = self.testCannyDirectory+"/rwandaLow.jpg"
-        grayImage = importGrayImageFromPath(imagePath)
-        gridParams = defineGrid(grayImage, xThresh=0.35, yThresh=0.35, showPlots=showPlots)
-        if showPlots:
-            showGridSizeOnGrayPicture(grayImage, gridParams)
-
-    def testDefineGridOnMidLightImage3(self):
-        imagePath = self.testCannyDirectory+"/rwandaMedium.jpg"
-        grayImage = importGrayImageFromPath(imagePath)
-        gridParams = defineGrid(grayImage, xThresh=0.37, yThresh=0.37, showPlots=showPlots)
         if showPlots:
             showGridSizeOnGrayPicture(grayImage, gridParams)
 
