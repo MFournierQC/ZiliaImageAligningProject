@@ -91,9 +91,8 @@ class TestZilia(env.DCCLabTestCase):
     def testGetBackgroundSpectra(self):
         wavelengths, spectra = self.db.getBackgroundIntensities(rlp=4)
         self.assertIsNotNone(spectra)
-        self.assertTrue(len(spectra) > 2)
+        self.assertTrue(spectra.shape[0] > 2)
         self.assertIsNotNone(wavelengths)
-        self.assertTrue(len(wavelengths) > 2)
         self.assertEqual(wavelengths.shape[0], spectra.shape[0])
 
     @unittest.skip("Was used for initial development")
