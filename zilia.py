@@ -356,10 +356,11 @@ class ZiliaDB(Database):
         nWavelengths = len(self.wavelengths)
         nSamples = len(rows)//nWavelengths
         background = np.zeros(shape=(nWavelengths, nSamples))
+        wavelengths = np.zeros(shape=(nWavelengths, ))
         for i,row in enumerate(rows):
             background[i%nWavelengths, i//nWavelengths] = float(row['intensity'])
-
-        return background
+            wavelengths[i%nWavelengths] = float(row['wavelength'])
+        return wavelengths, background
 
     def getBloodIntensities(self, range=(None,None)):
         if range[0] is None:
