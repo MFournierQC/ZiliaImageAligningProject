@@ -109,7 +109,7 @@ def loadSpectrum(spectrumPath=None, skipRows=4, wavelengthColumn=0, firstSpecCol
 
 def setSaturationFlag(spectrum):
     """If the spectrum is saturated the flag will be 1, other wise it will be 0"""
-    saturationFlag=np.zeros(spectrum.data.shape[1])
+    saturationFlag = np.zeros(spectrum.data.shape[1])
     for i in range(spectrum.data.shape[1]):
         if np.max(spectrum.data[:,i]) == saturatedValue :
             saturationFlag[i] = 1
@@ -119,8 +119,8 @@ def setSaturationFlag(spectrum):
 def normalizeSpectrum(spec,darkRef):
     """returns the normalized spectrum for the data"""
     dRefTile = np.tile(darkRef.data, (spec.data.shape[1], 1)).T
-    spectrumData=spec.data-dRefTile
-    STDspectrum=np.std(spectrumData,axis=0)
+    spectrumData = spec.data - dRefTile
+    STDspectrum = np.std(spectrumData,axis=0)
     spectrumDataNormalized = Spectrum()
     spectrumDataNormalized.data = (spectrumData.T/STDspectrum[:,None]).T
     spectrumDataNormalized.wavelength = spec.wavelength
@@ -128,7 +128,7 @@ def normalizeSpectrum(spec,darkRef):
     return croppedSpectrumOxymetry
 
 
-def find_nearest(array, value):
+def findNearest(array, value):
     """find the nearest value to a value in an array and returns the index"""
     array = np.asarray(array)
     idx = (np.abs(array - value)).argmin()
@@ -138,7 +138,7 @@ def absorbanceSpectrum(refSpec, normalizedSpec):
     """calculate the absorbance spectrum using white reference and normalized spectrum"""
     modifiedData = np.zeros(normalizedSpec.data.shape)
     for i in range(normalizedSpec.wavelength.shape[0]):
-        modifiedData[i,:] = refSpec.data[find_nearest(refSpec.wavelength, normalizedSpec.wavelength[i])]
+        modifiedData[i,:] = refSpec.data[findNearest(refSpec.wavelength, normalizedSpec.wavelength[i])]
     modifiedSpec = Spectrum()
     normalizedSpec.data[normalizedSpec.data==0] = 0.0001
     modifiedSpec.data = np.log(np.divide(modifiedData, normalizedSpec.data, out=None, where=True, casting= 'same_kind',
@@ -166,11 +166,11 @@ def cropComponents(absorbanceSpectrum, componentsSpectra):
     scat = scattering(absorbanceSpectrum)
     ref = reflection(absorbanceSpectrum)
     for i in range(absorbanceSpectrum.wavelength.shape[0]):
-        oxyhemoglobin[i] = Components["oxyhemoglobin"][find_nearest(Components["wavelengths"],
+        oxyhemoglobin[i] = Components["oxyhemoglobin"][findNearest(Components["wavelengths"],
                                                                     absorbanceSpectrum.wavelength[i])]
-        deoxyhemoglobin[i] = Components["deoxyhemoglobin"][find_nearest(Components["wavelengths"],
+        deoxyhemoglobin[i] = Components["deoxyhemoglobin"][findNearest(Components["wavelengths"],
                                                                       absorbanceSpectrum.wavelength[i])]
-        melanin[i] = Components["eumelanin"][find_nearest(Components["wavelengths"],
+        melanin[i] = Components["eumelanin"][findNearest(Components["wavelengths"],
                                                           absorbanceSpectrum.wavelength[i])]
     componentsCrop = {
         "scattering": scat,
@@ -209,7 +209,7 @@ def saveData(saturationFlag , oxygenSat , imageNumber , rosaLabel):
     return dataDic
 
 
-def mainAnalysis(darkRefPath = None, spectrumPath = None, componentsSpectra=r'_components_spectra.csv',
+def mainAnalysis(darkRefPath=None, spectrumPath=None, componentsSpectra=r'_components_spectra.csv',
                 whiteRefName=r"int75_WHITEREFERENCE.csv", refNameNothinInfront=r"int75_LEDON_nothingInFront.csv"):
     """load data, do all the analysis, get coefs as concentration"""
     whiteRef = loadWhiteRef(refNameNothinInfront=refNameNothinInfront, whiteRefName=whiteRefName)
@@ -239,7 +239,7 @@ def mainAnalysis(darkRefPath = None, spectrumPath = None, componentsSpectra=r'_c
     concentration = 100 * coef[:,1] /(coef[:,1]+coef[:,2])
     concentration[np.isnan(concentration)] = 0
 
-    return concentration,saturationFlags
+    return concentration, saturationFlags
 
 #
 # darkRefPath = r"./tests/TestSpectrums/bresilODrlp14/background.csv"
@@ -289,9 +289,9 @@ def bloodTest(refNameNothinInfront='./tests/TestSpectrums/blood/int75_LEDON_noth
 # bloodTest()
 
 def meanSO2 (concentrationValues,labels):
-    uniqueLabel=np.unique(labels)
-    meanConcentration=np.zeros(uniqueLabel.shape)
+    uniqueLabel = np.unique(labels)
+    meanConcentration = np.zeros(uniqueLabel.shape)
     for i in range(uniqueLabel.shape[0]):
-        meanConcentration[i]=np.mean(concentrationValues[(np.where(labels==np.array(uniqueLabel[i]))[0])])
+        meanConcentration[i] = np.mean(concentrationValues[(np.where(labels==np.array(uniqueLabel[i]))[0])])
 
     return meanConcentration,uniqueLabel
