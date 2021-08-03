@@ -6,18 +6,14 @@ from zilia import *
 import matplotlib.pyplot as plt
 
 eye='os'
-#testLongCalculation test 108
 db = ZiliaDB()
 retinaImages = db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh', eye=eye)
 rosaImages = db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh', content='rosa', eye=eye)
 
 dark = findDarkImages(retinaImages)
 
-
 rosaAbsoluteXY=getRosaProperties(rosaImages)
 # useful info:  int(['center']['x']) , int(['center']['y']) , ['rradius'] , and ['found']
-
-print(rosaAbsoluteXY[10]['found'])
 
 shiftValueFromReferenceImage , imageIsValid = calculateValidShiftsInOneAcquisition(retinaImages)
 
@@ -29,13 +25,8 @@ xONH,yONH,length = findRosaParamsInRefImage(refImage)
 
 absoluteRosaValue = calculateRosaDistanceFromOnhInRefImage (xONH, yONH , rosaLocationOnRefImage)
 
-
-
 # shift = calculateShiftInOneAcquisition (retinaImages)
 # # Calculate shifts regarding the first good image in an acquisition
-# print(shift)
-#
-#
 
 ########
 # what else to consider?
@@ -45,7 +36,6 @@ absoluteRosaValue = calculateRosaDistanceFromOnhInRefImage (xONH, yONH , rosaLoc
 ## OLD FUNCTIONS
 # collectionDir = r"/Users/elahe/Documents/GitHub/Human acquisition/20210715-165559-og-scan-veineartere-rlp50"
 # grayImage = loadImages(collectionDir, leftEye=False, newImages=True)
-## change function name
 # dataDictionary = seperateImages(grayImage, collectionDir)
 # dataDictionary = removeBadImages(dataDictionary)
 # image = dataDictionary["image"]
