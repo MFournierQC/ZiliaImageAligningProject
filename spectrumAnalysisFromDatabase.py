@@ -83,18 +83,14 @@ def formatDarkRef(darkRefData, lowerLimitNormalization=510, upperLimitNormalizat
     croppedDarkRef = cropFunction(darkRefSpec, lowerLimitNormalization, upperLimitNormalization)
     return croppedDarkRef
 
-def loadSpectrum(spectrumPath=None, skipRows=4, wavelengthColumn=0, firstSpecColumn=3):
+def formatSpectra(spectraData, lowerLimitNormalization=510, upperLimitNormalization=590):
     ''' returns dark reference and the wavelength'''
-    filetypes = [("csv files", "*.csv")]
-    if spectrumPath is None:
-        csv_file_path = askopenfilename(title="select the spectrum .csv file", filetypes=filetypes)
-    else:
-        csv_file_path = spectrumPath
-    spectrumData = pd.read_csv(csv_file_path, sep=',', skiprows=skipRows).to_numpy()
+    wavelengths = spectraData[0]
+    spectra = spectraData[1]
     spec = Spectrum()
-    spec.data = spectrumData[:, firstSpecColumn:]
-    spec.wavelength = spectrumData[:, wavelengthColumn]
-    croppedSpectrum = cropFunction(spec,lowerLimitNormalization,upperLimitNormalization)
+    spec.data = spectra
+    spec.wavelength = wavelengths
+    croppedSpectrum = cropFunction(spec, lowerLimitNormalization, upperLimitNormalization)
     return croppedSpectrum
 
 def setSaturationFlag(spectrum, saturatedValue=65535):
@@ -191,16 +187,16 @@ def saveData(saturationFlag , oxygenSat , imageNumber , rosaLabel):
         "rosaLabel": rosaLabel}
     return dataDic
 
-def mainAnalysis(darkRefData, spectrumPath, componentsSpectra=r'_components_spectra.csv',
+def mainAnalysis(darkRefData, spectraData, componentsSpectra=r'_components_spectra.csv',
                 whiteRefPath=r"int75_WHITEREFERENCE.csv", whiteRefBackground=r"int75_LEDON_nothingInFront.csv"):
     """load data, do all the analysis, get coefs as concentration"""
     whiteRef = loadWhiteRef(whiteRefBackground=whiteRefBackground, whiteRefPath=whiteRefPath)
-    #######################
+
     darkRef = formatDarkRef(darkRefData)
     darkRef.data[np.isnan(darkRef.data)] = 0
-    spectra = loadSpectrum(spectrumPath)
+    spectra = formatSpectra(spectra)
     spectra.data[np.isnan(spectra.data)] = 0
-    #######################
+
     saturationFlags = setSaturationFlag(spectra)
     normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
     normalizedSpectrum.data[np.isnan(normalizedSpectrum.data)] = 0
@@ -211,7 +207,7 @@ def mainAnalysis(darkRefData, spectrumPath, componentsSpectra=r'_components_spec
     features = componentsToArray(croppedComponent)
     features[np.isnan(features)] = 0
     coef = getCoef(absorbance,features)
-    concentration = 100 * coef[:,1] /(coef[:,1]+coef[:,2])
+    concentration = 100 * coef[:,1] / (coef[:,1] + coef[:,2])
     concentration[np.isnan(concentration)] = 0
 
     return concentration, saturationFlags
