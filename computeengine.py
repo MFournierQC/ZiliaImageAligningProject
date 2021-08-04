@@ -7,8 +7,8 @@ import json
 
 class ComputeEngine:
     def __init__(self, maxTaskCount=None):
-        self.recordsQueue = Queue()
-        self.resultsQueue = Queue()
+        self.inputQueue = Queue()
+        self.outputQueue = Queue()
         self.runningTasks = []
 
         if maxTaskCount is None:
@@ -18,34 +18,36 @@ class ComputeEngine:
 
     def __del__(self):
         self.terminateTimedOutTasks(timeoutInSeconds=0)
-        self.recordsQueue.close()
-        self.resultsQueue.close()
+        self.inputQueue.close()
+        self.outputQueue.close()
 
     def compute(self, target, processTaskResults=None, timeoutInSeconds=3*60, taskCount=None):
         if taskCount is None:
             taskCount = self.maxTaskCount
+        if processTaskResults is None:
+            processTaskResults = self.processTaskResults
 
         while self.hasTasksStillRunning() or self.hasTasksLeftToLaunch():
             while len(self.runningTasks) < taskCount and self.hasTasksLeftToLaunch():
                 self.launchTask(target=target)
 
-            if processTaskResults is None:
-                self.processTaskResults(self.resultsQueue)
-            else:
-                processTaskResults(self.resultsQueue)
+            processTaskResults(self.outputQueue)
 
             self.terminateTimedOutTasks(timeoutInSeconds=timeoutInSeconds)
             self.pruneTerminatedTasks()
             time.sleep(0.1)
 
+        processTaskResults(self.outputQueue)
+
+
     def hasTasksLeftToLaunch(self):
-        return not self.recordsQueue.empty()
+        return not self.inputQueue.empty()
 
     def hasTasksStillRunning(self):
         return len(self.runningTasks) > 0
 
     def launchTask(self, target):
-        p=Process(target=target, args=(self.recordsQueue, self.resultsQueue))
+        p=Process(target=target, args=(self.inputQueue, self.outputQueue))
         startTime = time.time()
         self.runningTasks.append((p, startTime))
         p.start()
@@ -55,7 +57,7 @@ class ComputeEngine:
         while not queue.empty():
             results = queue.get()
             try:
-                json.dumps(results)
+                print(json.dumps(results))
             except:
                 print(results)
 
@@ -85,8 +87,31 @@ class DBComputeEngine(ComputeEngine):
             record = {}
             for key in row.keys():
                 record[key] = row[key]
-            self.recordsQueue.put(record)
+            self.inputQueue.put(record)
 
         # it takes a fraction of a second for the queue to appear non-empty.  We make sure it is ok before returning
-        while self.recordsQueue.empty():
+        while self.inputQueue.empty():
             pass
+
+def calculateFactorial(inputQueue, outputQueue):
+    if inputQueue.empty():
+        return
+
+    value = inputQueue.get()
+    product = 1
+    for i in range(value):
+        product *= (i+1)
+
+    outputQueue.put( (value,  product) )
+
+if __name__ == "__main__":
+
+    engine = ComputeEngine()
+
+    for i in range(100):
+        engine.inputQueue.put(i)
+
+    engine.compute(target=calculateFactorial)
+
+
+        
