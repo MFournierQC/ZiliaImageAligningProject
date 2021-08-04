@@ -14,12 +14,12 @@ saturatedValue = 65535
 
 
 # These 3 will always be the same for every test
-whiteRefName = r"int75_WHITEREFERENCE.csv"
-refNameNothinInfront = r"int75_LEDON_nothingInFront.csv"
+whiteRefPath = r"int75_WHITEREFERENCE.csv"
+whiteRefBackground = r"int75_LEDON_nothingInFront.csv"
 componentsSpectraGlobal = r'_components_spectra.csv'
 
-# whiteRefName = '/Users/elahe/Documents/GitHub/Human acquisition/1104_whiteRef.csv'
-# refNameNothinInfront = '/Users/elahe/Documents/GitHub/Human acquisition/spectro_data_DARKRLP60.csv'
+# whiteRefPath = '/Users/elahe/Documents/GitHub/Human acquisition/1104_whiteRef.csv'
+# whiteRefBackground = '/Users/elahe/Documents/GitHub/Human acquisition/spectro_data_DARKRLP60.csv'
 
 
 class Spectrum:
@@ -65,15 +65,15 @@ def normalizeRef(Spec):
     Spec.data = Spec.data/np.std(Spec.data)
     return Spec
 
-def loadWhiteRef(refNameNothinInfront, whiteRefName,
+def loadWhiteRef(whiteRefBackground, whiteRefPath,
                  skipRowsNothing=24, skipRowsWhite=24, wavelengthColumn=1,
                  firstSpecColumn=4):
     # returns cropped (between 500 to 600) white reference and the wavelength"
-    refNothingInfront = pd.read_csv(refNameNothinInfront, sep=',', skiprows=skipRowsNothing).to_numpy()
-    refWhite = pd.read_csv(whiteRefName, sep=',', skiprows=skipRowsWhite).to_numpy()
+    background = pd.read_csv(whiteRefBackground, sep=',', skiprows=skipRowsNothing).to_numpy()
+    refWhite = pd.read_csv(whiteRefPath, sep=',', skiprows=skipRowsWhite).to_numpy()
     refSpectrum = Spectrum()
     refSpectrum.wavelength = refWhite[:,wavelengthColumn]
-    refSpectrum.data = np.mean(refWhite[:,firstSpecColumn:],axis=1)-np.mean(refNothingInfront[:,firstSpecColumn:],axis=1)
+    refSpectrum.data = np.mean(refWhite[:,firstSpecColumn:],axis=1)-np.mean(background[:,firstSpecColumn:],axis=1)
     croppedRef = cropFunction(refSpectrum, lowerLimitNormalization, upperLimitNormalization)
     refCroppedNormalized = normalizeRef(croppedRef)
     refOximetry = cropFunction(refCroppedNormalized,lowerLimitOximetry,upperLimitOximetry)
@@ -165,13 +165,10 @@ def cropComponents(absorbanceSpectrum, componentsSpectra):
     melanin = np.zeros(absorbanceSpectrum.wavelength.shape)
     scat = scattering(absorbanceSpectrum)
     ref = reflection(absorbanceSpectrum)
-    for i in range(absorbanceSpectrum.wavelength.shape[0]):
-        oxyhemoglobin[i] = Components["oxyhemoglobin"][findNearest(Components["wavelengths"],
-                                                                    absorbanceSpectrum.wavelength[i])]
-        deoxyhemoglobin[i] = Components["deoxyhemoglobin"][findNearest(Components["wavelengths"],
-                                                                      absorbanceSpectrum.wavelength[i])]
-        melanin[i] = Components["eumelanin"][findNearest(Components["wavelengths"],
-                                                          absorbanceSpectrum.wavelength[i])]
+    for i, wavelength in enumerate(absorbanceSpectrum.wavelength):
+        oxyhemoglobin[i] = Components["oxyhemoglobin"][find_nearest(Components["wavelengths"], wavelength)]
+        deoxyhemoglobin[i] = Components["deoxyhemoglobin"][find_nearest(Components["wavelengths"], wavelength)]
+        melanin[i] = Components["eumelanin"][find_nearest(Components["wavelengths"], wavelength)]
     componentsCrop = {
         "scattering": scat,
         "reflection": ref,
@@ -210,9 +207,9 @@ def saveData(saturationFlag , oxygenSat , imageNumber , rosaLabel):
 
 
 def mainAnalysis(darkRefPath=None, spectrumPath=None, componentsSpectra=r'_components_spectra.csv',
-                whiteRefName=r"int75_WHITEREFERENCE.csv", refNameNothinInfront=r"int75_LEDON_nothingInFront.csv"):
+                whiteRefPath=r"int75_WHITEREFERENCE.csv", whiteRefBackground=r"int75_LEDON_nothingInFront.csv"):
     """load data, do all the analysis, get coefs as concentration"""
-    whiteRef = loadWhiteRef(refNameNothinInfront=refNameNothinInfront, whiteRefName=whiteRefName)
+    whiteRef = loadWhiteRef(whiteRefBackground=whiteRefBackground, whiteRefPath=whiteRefPath)
     if darkRefPath is None:
         darkRef = loadDarkRef()
     else:
@@ -229,10 +226,7 @@ def mainAnalysis(darkRefPath=None, spectrumPath=None, componentsSpectra=r'_compo
     absorbance = absorbanceSpectrum(whiteRef, normalizedSpectrum)
     absorbance.data[np.isnan(absorbance.data)] = 0
 
-    if componentsSpectra is None:
-        croppedComponent = cropComponents(absorbance, componentsSpectraGlobal)
-    else:
-        croppedComponent = cropComponents(absorbance, componentsSpectra)
+    croppedComponent = cropComponents(absorbance, componentsSpectra)
     features = componentsToArray(croppedComponent)
     features[np.isnan(features)] = 0
     coef = getCoef(absorbance,features)
@@ -241,7 +235,6 @@ def mainAnalysis(darkRefPath=None, spectrumPath=None, componentsSpectra=r'_compo
 
     return concentration, saturationFlags
 
-#
 # darkRefPath = r"./tests/TestSpectrums/bresilODrlp14/background.csv"
 # spectrumPath = r"./tests/TestSpectrums/bresilODrlp14/spectrum.csv"
 #
@@ -252,11 +245,11 @@ def mainAnalysis(darkRefPath=None, spectrumPath=None, componentsSpectra=r'_compo
 #### This is for test
 ####### blood sample test
 
-def bloodTest(refNameNothinInfront='./tests/TestSpectrums/blood/int75_LEDON_nothingInFront.csv',
-                whiteRefName='./tests/TestSpectrums/blood/int75_WHITEREFERENCE.csv',
+def bloodTest(whiteRefBackground='./tests/TestSpectrums/blood/int75_LEDON_nothingInFront.csv',
+                whiteRefPath='./tests/TestSpectrums/blood/int75_WHITEREFERENCE.csv',
                 darkRefPath=None, spectrumPath=None, componentsSpectra=None):
     """load data, do all the analysis, get coefs as concentration"""
-    whiteRef = loadWhiteRef(refNameNothinInfront=refNameNothinInfront, whiteRefName=whiteRefName)
+    whiteRef = loadWhiteRef(whiteRefBackground=whiteRefBackground, whiteRefPath=whiteRefPath)
     if darkRefPath is None:
         darkRef = loadDarkRef(skipRows=24, wavelengthColumn=1, firstSpecColumn=4)
     else:

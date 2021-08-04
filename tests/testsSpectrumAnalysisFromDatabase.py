@@ -9,14 +9,21 @@ class TestSpectrumAnalysisFromDatabase(envtest.ZiliaTestCase):
         self.assertIsNotNone(db)
 
     def setUp(self):
+        super().setUp()
         self.db = ZiliaDB()
         self.assertIsNotNone(self.db)
 
-    def testGetWavelengths(self):
-        pass
+    # def testGetWavelengths(self):
+    #     wavelengths = self.db.getWavelengths()
+    #     self.assertIsNotNone(wavelengths)
+    #     self.assertGreater(len(wavelengths), 50)
 
     def testGetSpectraFor10(self):
-        pass
+        # spectra = self.db.getRawIntensities(monkey='Rwanda', region='onh', timeline='baseline', column='raw')
+        spectra = self.db.getRawIntensities()
+        self.assertGreater(len(spectra), 500)
+        print("spectraType =", type(spectra))
+        # print(spectra)
 
     def testGetSpectraPathsFor10(self):
         pass
