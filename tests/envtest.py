@@ -116,7 +116,7 @@ class ZiliaTestCase(unittest.TestCase):
         cls.deleteTempDirectory()
 
     def tempFilePath(self, filename="temp.dat") -> str:
-        return os.path.join(RaytracingTestCase.tempDir, filename)
+        return os.path.join(self.tempDir, filename)
 
 
 def redirectStdOutToFile(_func=None, file=None, returnOnlyValue: bool = True):
