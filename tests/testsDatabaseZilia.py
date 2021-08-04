@@ -64,6 +64,11 @@ class TestZilia(env.DCCLabTestCase):
 
     def testGetWavelengths(self):
         wavelengths = self.db.getWavelengths()
+        print(wavelengths.shape)
+        self.assertTrue(wavelengths.shape == (512,))
+
+    def testGetBackgroundWavelengths(self):
+        wavelengths = self.db.getBackgroundWavelengths()
         self.assertTrue(wavelengths.shape == (512,))
 
     def testGetTimelines(self):
@@ -80,8 +85,15 @@ class TestZilia(env.DCCLabTestCase):
         self.assertEqual(regions, ['mac','onh'])
 
     def testGetSpectra(self):
-        spectra = self.db.getRawIntensities(monkey='Rwanda', region='onh', timeline='baseline', column='raw')
+        spectra = self.db.getRawIntensities(monkey='Rwanda', region='onh', timeline='baseline')
         self.assertIsNotNone(spectra)
+
+    def testGetBackgroundSpectra(self):
+        wavelengths, spectra = self.db.getBackgroundIntensities(rlp=4)
+        self.assertIsNotNone(spectra)
+        self.assertTrue(spectra.shape[0] > 2)
+        self.assertIsNotNone(wavelengths)
+        self.assertEqual(wavelengths.shape[0], spectra.shape[0])
 
     @unittest.skip("Was used for initial development")
     def testGetEyeImages(self):
@@ -148,7 +160,6 @@ class TestZilia(env.DCCLabTestCase):
 
         for path, imageData in images.items():
             result = self.computeSomething(imageData)
-            print(path, result["mean"])
 
 if __name__ == '__main__':
     unittest.main()
