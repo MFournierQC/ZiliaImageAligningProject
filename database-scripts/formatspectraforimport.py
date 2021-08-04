@@ -3,7 +3,7 @@ import hashlib
 import sys
 import re  
 
-# Use with : find . -name "*csv" -exec python3 importCSV.py {} \; > importall.csv
+# Use with : find . -name "*csv" -exec python3 formatspectroforimport.py {} \; > importall.csv
 if len(sys.argv) > 1:
     filepath = sys.argv[1]
 else:
