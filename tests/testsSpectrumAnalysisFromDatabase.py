@@ -12,6 +12,9 @@ class TestSpectrumAnalysisFromDatabase(envtest.ZiliaTestCase):
         self.db = ZiliaDB()
         self.assertIsNotNone(self.db)
 
+    def testGetWavelengths(self):
+        pass
+
     def testGetSpectraFor10(self):
         pass
 
