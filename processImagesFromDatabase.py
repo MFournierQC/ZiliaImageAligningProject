@@ -143,7 +143,7 @@ def crossImage(firstImage, secondImage) -> np.ndarray:
 
 
 def findRefImage (isValidFlag, images ):
-    validImagesIndex = np.where(np.array(isValidFlag) != 'True')[0]
+    validImagesIndex = np.where(np.array(isValidFlag) is 'True')[0]
     return images[validImagesIndex[0]]
 
 def normalize (data , max = None , min = None):
