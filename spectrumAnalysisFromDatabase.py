@@ -59,11 +59,14 @@ def normalizeRef(Spec):
     Spec.data = Spec.data/np.std(Spec.data)
     return Spec
 
-def loadWhiteRef(whiteRefBackground, whiteRefPath,
+
+
+
+def loadWhiteRef(backgroundPath, whiteRefPath,
                  skipRowsNothing=24, skipRowsWhite=24, wavelengthColumn=1,
                  firstSpecColumn=4):
     # returns cropped (between 500 to 600) white reference and the wavelength"
-    background = pd.read_csv(whiteRefBackground, sep=',', skiprows=skipRowsNothing).to_numpy()
+    background = pd.read_csv(backgroundPath, sep=',', skiprows=skipRowsNothing).to_numpy()
     refWhite = pd.read_csv(whiteRefPath, sep=',', skiprows=skipRowsWhite).to_numpy()
     refSpectrum = Spectrum()
     refSpectrum.wavelength = refWhite[:,wavelengthColumn]
@@ -72,6 +75,21 @@ def loadWhiteRef(whiteRefBackground, whiteRefPath,
     refCroppedNormalized = normalizeRef(croppedRef)
     refOximetry = cropFunction(refCroppedNormalized,lowerLimitOximetry,upperLimitOximetry)
     return refOximetry
+
+def formatWhiteRef(whiteRefData):
+    # returns cropped (between 500 to 600) white reference and the wavelength"
+    background = pd.read_csv(backgroundPath, sep=',', skiprows=skipRowsNothing).to_numpy()
+    refWhite = pd.read_csv(whiteRefPath, sep=',', skiprows=skipRowsWhite).to_numpy()
+    refSpectrum = Spectrum()
+    refSpectrum.wavelength = refWhite[:,wavelengthColumn]
+    refSpectrum.data = np.mean(refWhite[:,firstSpecColumn:],axis=1)-np.mean(background[:,firstSpecColumn:],axis=1)
+    croppedRef = cropFunction(refSpectrum, lowerLimitNormalization, upperLimitNormalization)
+    refCroppedNormalized = normalizeRef(croppedRef)
+    refOximetry = cropFunction(refCroppedNormalized,lowerLimitOximetry,upperLimitOximetry)
+    return refOximetry
+
+
+
 
 def formatDarkRef(darkRefData, lowerLimitNormalization=510, upperLimitNormalization=590):
     ''' returns cropped (between 500 to 600) dark reference and the wavelength'''
@@ -190,8 +208,8 @@ def saveData(saturationFlag , oxygenSat , imageNumber , rosaLabel):
 def mainAnalysis(darkRefData, spectraData, componentsSpectra=r'_components_spectra.csv',
                 whiteRefPath=r"int75_WHITEREFERENCE.csv", whiteRefBackground=r"int75_LEDON_nothingInFront.csv"):
     """load data, do all the analysis, get coefs as concentration"""
-    whiteRef = loadWhiteRef(whiteRefBackground=whiteRefBackground, whiteRefPath=whiteRefPath)
-
+    whiteRefData = loadWhiteRef(whiteRefBackground=whiteRefBackground, whiteRefPath=whiteRefPath)
+    whiteRef = formatWhiteRef(whiteRefData)
     darkRef = formatDarkRef(darkRefData)
     darkRef.data[np.isnan(darkRef.data)] = 0
     spectra = formatSpectra(spectra)
