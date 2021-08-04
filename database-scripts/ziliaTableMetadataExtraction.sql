@@ -29,6 +29,9 @@ update spectralfiles set eye='od' where path like '%-od-%';
 update spectralfiles set eye='os' where path like '%_OS_ONH%';
 update spectralfiles set eye='od' where path like '%_OD_ONH%';
 
+update spectralfiles set rlp=substr(path, instr(path, 'ck-')+3,1) where path like '%zoneback-_a%';
+update spectralfiles set rlp=substr(path, instr(path, 'ck-')+3,1) where path like '%zoneback-_b%';
+update spectralfiles set rlp=substr(path, instr(path, 'ck-')+3,1) where path like '%zoneback-_c%';
 
 # CLeanup import
 delete from imagefiles where path not like '%.jpg%';
@@ -68,6 +71,7 @@ update bloodfiles set intensity=substr(path, instr(path, 'int')+3,3) where path 
 
 update bloodfiles set comment='sample' where path like '%sample%';
 update bloodfiles set comment='calibration' where path not like '%sample%';
+
 
 
 
