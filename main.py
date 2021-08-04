@@ -28,31 +28,3 @@ absoluteRosaValue = calculateRosaDistanceFromOnhInRefImage (xONH, yONH , rosaLoc
 # shift = calculateShiftInOneAcquisition (retinaImages)
 # # Calculate shifts regarding the first good image in an acquisition
 
-########
-# what else to consider?
-# remove dark images? (it was there before but where is it now??)
-
-
-## OLD FUNCTIONS
-# collectionDir = r"/Users/elahe/Documents/GitHub/Human acquisition/20210715-165559-og-scan-veineartere-rlp50"
-# grayImage = loadImages(collectionDir, leftEye=False, newImages=True)
-# dataDictionary = seperateImages(grayImage, collectionDir)
-# dataDictionary = removeBadImages(dataDictionary)
-# image = dataDictionary["image"]
-# laser = dataDictionary["laserImage"]
-# xLaser = dataDictionary["xCenter"]
-# yLaser = dataDictionary["yCenter"]
-# rLaser = dataDictionary["radius"]
-# imageNumber = dataDictionary["imageNumber"]
-# indexShift = findImageShift(image)
-# shiftParameters = applyShift(xLaser, yLaser, indexShift)
-# gridParameters = defineGridParams(image)
-# Label, dataDictionary, shiftParameters = getRosaLabels(gridParameters, shiftParameters, dataDictionary)
-# concentration, saturationFlag = mainAnalysis()
-# a= plotResult(image, shiftParameters, gridParameters,concentration)
-# # so2 analysis
-# SO2Dictionary=saveData(saturationFlag, concentration , imageNumber , Label)
-# meanC,lab=meanSO2(SO2Dictionary["oxygenSat"],SO2Dictionary["rosaLabel"])
-# plotSO2_right= matrixSO2(lab,meanC)
-# #######################
-# display(a,b,plotSO2_right,plotSO2_left)

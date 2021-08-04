@@ -28,18 +28,13 @@ def getRosaProperties (rosaImages):
         raise ImportError("No laser spot was found. Try with different data.")
     return rosaProperties
 
-def findDarkImages (retinaImages):
-    max = np.max(retinaImages)
-    min = np.min(retinaImages)
-    for image in range(len(retinaImages)):
-        print('number : ', image)
-        print('mean   :  ', np.mean(retinaImages[image]))
-        print('max   :  ', np.max(retinaImages[image]))
-        print('sum ** 2   :  ', np.sum(retinaImages[image] ** 2))
-        print('mean ** 2   :  ', np.mean(retinaImages[image] ** 2))
-        print('normalize sum  :  ', np.sum((normalize(retinaImages[image], max, min))**2))
-        print('normalize var  :  ', np.var((normalize(retinaImages[image])) ** 2))
-    return max
+# def findDarkImages (retinaImages):
+#     max = np.max(retinaImages)
+#     min = np.min(retinaImages)
+#     for image in range(len(retinaImages)):
+#         print('number : ', image)
+#         print('mean   :  ', np.mean(retinaImages[image]))
+#     return max
 
 
 def findBlurryImages (retinaImages):
