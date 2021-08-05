@@ -107,13 +107,10 @@ class ComputeEngine:
         self.waitForInputQueue()
 
         while self.hasTasksStillRunning() or self.hasTasksLeftToLaunch():
-            while len(self.runningTasks) < taskCount and self.hasTasksLeftToLaunch():
+            while len(self.runningTasks) < self.maxTaskCount and self.hasTasksLeftToLaunch():
                 self.launchTask(target=target)
 
-            if processTaskResults is None:
-                self.processTaskResults(self.resultsQueue)
-            else:
-                processTaskResults(self.resultsQueue)
+            processTaskResults(self.resultsQueue)
 
             self.terminateTimedOutTasks(timeoutInSeconds=timeoutInSeconds)
             self.pruneCompletedTasks()
