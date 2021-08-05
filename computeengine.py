@@ -1,5 +1,6 @@
-from multiprocessing import Pool, Queue, Process, SimpleQueue
-import multiprocessing
+from multiprocessing import Pool, Queue, Process, SimpleQueue, cpu_count
+from threading import Thread
+from queue import Empty
 from analyzeEyeImages import *
 from skimage.io import imread
 import time
@@ -62,11 +63,14 @@ class ComputeEngine:
         self.inputQueue = Queue()
         self.outputQueue = Queue()
         self.runningTasks = []
+        self.useThreads = useThreads
 
         if maxTaskCount is None:
-            self.maxTaskCount = multiprocessing.cpu_count()
+            self.maxTaskCount = cpu_count()
         else:
             self.maxTaskCount = maxTaskCount
+
+        self.signalNames = dict((k, v) for v, k in reversed(sorted(signal.__dict__.items())) if v.startswith('SIG') and not v.startswith('SIG_'))
 
     def __del__(self):
         """
@@ -110,7 +114,7 @@ class ComputeEngine:
             while len(self.runningTasks) < self.maxTaskCount and self.hasTasksLeftToLaunch():
                 self.launchTask(target=target)
 
-            processTaskResults(self.resultsQueue)
+            processTaskResults(self.outputQueue)
 
             self.terminateTimedOutTasks(timeoutInSeconds=timeoutInSeconds)
             self.pruneCompletedTasks()
@@ -154,9 +158,9 @@ class ComputeEngine:
             task=Process(target=target, args=(self.inputQueue, self.outputQueue))
 
         startTime = time.time()
-        self.runningTasks.append((p, startTime))
-        p.start()
-        return p, startTime
+        self.runningTasks.append((task, startTime))
+        task.start()
+        return task, startTime
 
     def processTaskResults(self, queue):
         """
@@ -166,7 +170,7 @@ class ComputeEngine:
         while not queue.empty():
             results = queue.get()
             try:
-                json.dumps(results)
+                print(json.dumps(results))
             except:
                 print(results)
 
