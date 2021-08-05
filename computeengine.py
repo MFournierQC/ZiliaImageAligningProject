@@ -217,9 +217,6 @@ class ComputeEngine:
 
         self.processCompletedTasks(completedTasks)
 
-    def pruneTerminatedTasks(self):
-        self.runningTasks = [ (p,startTime) for p,startTime in self.runningTasks if p.is_alive()]
-
 class DBComputeEngine(ComputeEngine):
     def __init__(self, database, maxTaskCount=None):
         super().__init__(maxTaskCount=maxTaskCount)
