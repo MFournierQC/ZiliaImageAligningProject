@@ -1,4 +1,5 @@
 from multiprocessing import Pool, Queue, Process, SimpleQueue, cpu_count
+from queue import Empty
 from threading import Thread
 from analyzeEyeImages import *
 from skimage.io import imread
@@ -64,7 +65,9 @@ class ComputeEngine:
         self.inputQueue.close()
         self.outputQueue.close()
 
-    def compute(self, target, processTaskResults=None, processCompletedTask=None, 
+    def compute(self, target, 
+                      processTaskResults=None, 
+                      processCompletedTask=None, 
                       timeoutInSeconds=None):
         if processTaskResults is None:
             processTaskResults = self.processTaskResults
@@ -81,7 +84,7 @@ class ComputeEngine:
             processTaskResults(self.outputQueue)
 
             self.terminateTimedOutTasks(timeoutInSeconds=timeoutInSeconds)
-            self.pruneTerminatedTasks()
+            self.pruneCompletedTasks()
             time.sleep(0.1)
 
         processTaskResults(self.outputQueue)
@@ -90,7 +93,7 @@ class ComputeEngine:
     def waitForInputQueue(self, timeout=0.5):
         timeoutTime = time.time() + timeout
         while self.inputQueue.empty() and time.time() < timeoutTime:
-            pass
+            time.sleep(0.1)
 
     def hasTasksLeftToLaunch(self):
         return not self.inputQueue.empty()
@@ -111,11 +114,11 @@ class ComputeEngine:
 
     def processTaskResults(self, queue):
         while not queue.empty():
-            results = queue.get()
             try:
+                results = queue.get(block=False)
                 print(json.dumps(results))
-            except:
-                print(results)
+            except Empty as err:
+                print(err)
 
     def terminateTimedOutTasks(self, timeoutInSeconds):
         if timeoutInSeconds is None or self.useThreads:
@@ -124,7 +127,7 @@ class ComputeEngine:
         for (task, startTime) in self.runningTasks:
             if time.time() > startTime+timeoutInSeconds:
                 task.terminate()
-                task.join()
+                # task.join()
 
     def processCompletedTasks(self, completedTasks):
         for task, startTime in completedTasks:
@@ -139,7 +142,7 @@ class ComputeEngine:
                 # Threads do not have "an exit code". There is nothing to check.
                 pass
 
-    def pruneTerminatedTasks(self):
+    def pruneCompletedTasks(self):
         completedTasks = [ (task,startTime) for task,startTime in self.runningTasks if not task.is_alive()]
         self.runningTasks = [ (task,startTime) for task,startTime in self.runningTasks if task.is_alive()]
 
@@ -171,28 +174,31 @@ class DBComputeEngine(ComputeEngine):
             pass
 
 def calculateFactorial(inputQueue, outputQueue):
-    if inputQueue.empty():
-        return
+    try:
+        value = inputQueue.get_nowait()
+        product = 1
+        for i in range(value):
+            product *= (i+1)
+        outputQueue.put( (value,  product) )
+    except Empty as err:
+        pass # not an error
 
-    value = inputQueue.get()
-    product = 1
-    for i in range(value):
-        product *= (i+1)
-
-    outputQueue.put( (value,  product) )
 
 def slowCalculation(inputQueue, outputQueue):
-    if inputQueue.empty():
-        return
-
-    value = inputQueue.get()
-    time.sleep(10)
-    outputQueue.put( value )
+    try:
+        value = inputQueue.get_nowait()
+        time.sleep(10)
+        outputQueue.put( value )
+    except Empty as err:
+        pass # not an error
 
 def processSimple(queue):
     while not queue.empty():
-        (n, nfactorial) = queue.get()
-        print('Just finished calculating {0}!'.format(n))
+        try:
+            (n, nfactorial) = queue.get_nowait()
+            print('Just finished calculating {0}!'.format(n))
+        except Empty as err:
+            break # we are done
 
 def buggy(inputQueue, outputQueue):
     value = inputQueue.get()
@@ -200,41 +206,42 @@ def buggy(inputQueue, outputQueue):
     outputQueue.put(ouch)
 
 if __name__ == "__main__":
-    print("Calculating n! for numbers 0 to 20 (every calculation is independent)")
+    N = 11
+    print("Calculating n! for numbers 0 to {0} (every calculation is independent)".format(N-1))
     print("======================================================================")    
 
     print("Using threads: fast startup time appropriate for quick calculations")
     engine = ComputeEngine(useThreads=True)
-    for i in range(21):
+    for i in range(N):
         engine.inputQueue.put(i)
     engine.compute(target=calculateFactorial)
 
     print("Using processes: long startup time appropriate for longer calculations")
     engine = ComputeEngine(useThreads=False)
-    for i in range(21):
+    for i in range(N):
         engine.inputQueue.put(i)
     engine.compute(target=calculateFactorial)
 
     print("Using threads and replacing the processTaskResult function")
     engine = ComputeEngine(useThreads=True)
-    for i in range(21):
+    for i in range(N):
         engine.inputQueue.put(i)
     engine.compute(target=calculateFactorial, processTaskResults=processSimple)
 
     print("Using threads with very long calculations and timeout")
     engine = ComputeEngine(useThreads=False)
-    for i in range(21):
+    for i in range(N):
         engine.inputQueue.put(i)
     engine.compute(target=slowCalculation, timeoutInSeconds=2)
 
-    print("Using threads with buggy code")
-    engine = ComputeEngine(useThreads=True)
-    for i in range(21):
-        engine.inputQueue.put(i)
-    engine.compute(target=buggy)
+    # print("Using threads with buggy code")
+    # engine = ComputeEngine(useThreads=True)
+    # for i in range(N):
+    #     engine.inputQueue.put(i)
+    # engine.compute(target=buggy)
 
-    print("Using processes with buggy code")
-    engine = ComputeEngine(useThreads=False)
-    for i in range(21):
-        engine.inputQueue.put(i)
-    engine.compute(target=buggy)
+    # print("Using processes with buggy code")
+    # engine = ComputeEngine(useThreads=False)
+    # for i in range(N):
+    #     engine.inputQueue.put(i)
+    # engine.compute(target=buggy)
