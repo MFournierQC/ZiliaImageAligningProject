@@ -1,10 +1,8 @@
 from multiprocessing import Pool, Queue, Process, SimpleQueue, cpu_count
 from threading import Thread
 from queue import Empty
-from analyzeEyeImages import *
-from skimage.io import imread
-import time
-import json
+from time import time, sleep
+from json import dumps
 import signal
 
 """
@@ -118,7 +116,7 @@ class ComputeEngine:
 
             self.terminateTimedOutTasks(timeoutInSeconds=timeoutInSeconds)
             self.pruneCompletedTasks()
-            time.sleep(0.1)
+            sleep(0.1)
 
         processTaskResults(self.outputQueue)
 
@@ -129,9 +127,9 @@ class ComputeEngine:
         we really want to have a non-empty inputQueue for calculations so we check
         here with a short timeout in case it is really empty.
         """
-        timeoutTime = time.time() + timeout
-        while self.inputQueue.empty() and time.time() < timeoutTime:
-            time.sleep(0.1)
+        timeoutTime = time() + timeout
+        while self.inputQueue.empty() and time() < timeoutTime:
+            sleep(0.1)
 
     def hasTasksLeftToLaunch(self) -> bool:
         """
@@ -157,7 +155,7 @@ class ComputeEngine:
         else:
             task=Process(target=target, args=(self.inputQueue, self.outputQueue))
 
-        startTime = time.time()
+        startTime = time()
         self.runningTasks.append((task, startTime))
         task.start()
         return task, startTime
@@ -182,7 +180,7 @@ class ComputeEngine:
             return
 
         for (task, startTime) in self.runningTasks:
-            if time.time() > startTime+timeoutInSeconds:
+            if time() > startTime+timeoutInSeconds:
                 if not self.useThreads:
                     task.terminate()
                     task.join()
@@ -253,7 +251,7 @@ def calculateFactorial(inputQueue, outputQueue):
 def slowCalculation(inputQueue, outputQueue):
     try:
         value = inputQueue.get_nowait()
-        time.sleep(10)
+        sleep(10)
         outputQueue.put( value )
     except Empty as err:
         pass # not an error
