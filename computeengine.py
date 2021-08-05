@@ -1,6 +1,6 @@
 from multiprocessing import Pool, Queue, Process, SimpleQueue, cpu_count
-from queue import Empty
 from threading import Thread
+from queue import Empty
 from analyzeEyeImages import *
 from skimage.io import imread
 import time
@@ -39,7 +39,8 @@ To use this engine:
 4. that function will take its input data with inputQueue.get() and store the result
    on outputQueue.put(result)
 5. you can put whatever you want on queues (numbers, dictionaries, tuples, other objects, etc...)
-6. call engine.compute(), which will start many tasks (either processes or threads)
+6. call engine.compute(), which will start many tasks (either processes or threads).  The function
+   will return when all the tasks have run.
 7. As the calculation progresses, the compute() function will call processTaskResult() with
    your function or the default function (which prints the results to the screen).
 8. If using processes, it is possible to terminate a long running task with a timeout
@@ -49,6 +50,16 @@ To use this engine:
 
 class ComputeEngine:
     def __init__(self, maxTaskCount=None, useThreads=True):
+        """
+        ComputeEngine that will launch parallel tasks to compute a function on an input queue.
+
+        The engine willstart at most maxTaskCount (number of cpu/cores is the default).
+        useThreads=True will use threads and False will use processes.
+
+        When using processes, it is possible to terminate a task that is taking too long.
+        When using threads, it is possible to access shared memory (with you own locks).
+
+        """
         self.inputQueue = Queue()
         self.outputQueue = Queue()
         self.runningTasks = []
@@ -60,15 +71,38 @@ class ComputeEngine:
             self.maxTaskCount = maxTaskCount
         self.signalNames = dict((k, v) for v, k in reversed(sorted(signal.__dict__.items())) if v.startswith('SIG') and not v.startswith('SIG_'))
 
+        self.signalNames = dict((k, v) for v, k in reversed(sorted(signal.__dict__.items())) if v.startswith('SIG') and not v.startswith('SIG_'))
+
     def __del__(self):
+        """
+        Upon deleting this object, we terminate all tasks if we can.
+        """
         self.terminateTimedOutTasks(timeoutInSeconds=0)
-        self.inputQueue.close()
-        self.outputQueue.close()
 
     def compute(self, target, 
                       processTaskResults=None, 
                       processCompletedTask=None, 
                       timeoutInSeconds=None):
+        """
+        Call target from a separate task (thread or process) with the inputQueue and outputQueue
+        as parameters. Typically, the target function will get its arguments from the inputQueue
+        and will put the result on the outputQueue.
+
+        The target function must:
+            1. accept two queue arguments (inputQueue and outputQueue)
+            2. call inputQueue.get_nowait() or get() and assume the queue *could* be empty.
+            2. typically put its result on outputQueue.
+
+        As the calculation progresses, the outputQueue is processed.  The default processing
+        prints everything to screen. You can provide your own function processTaskResults(queue) that
+        must accept a queue as an argument.
+
+        When using processes, it is possible to kill a task that is taking too long. It is not
+        possible with threads.
+
+        When tasks are completed, you get a last chance to do something with them with 
+        processCompletedTask(listOfTasks).
+        """
         if processTaskResults is None:
             processTaskResults = self.processTaskResults
 
@@ -89,19 +123,35 @@ class ComputeEngine:
 
         processTaskResults(self.outputQueue)
 
-
-    def waitForInputQueue(self, timeout=0.5):
+    def waitForInputQueue(self, timeout=0.3):
+        """
+        A queue will not appear non-empty immediately after putting an element into it.
+        we really want to have a non-empty inputQueue for calculations so we check
+        here with a short timeout in case it is really empty.
+        """
         timeoutTime = time.time() + timeout
         while self.inputQueue.empty() and time.time() < timeoutTime:
             time.sleep(0.1)
 
-    def hasTasksLeftToLaunch(self):
+    def hasTasksLeftToLaunch(self) -> bool:
+        """
+        If the inputQueue is not empty, then we still have tasks to run.
+        """
         return not self.inputQueue.empty()
 
-    def hasTasksStillRunning(self):
-        return len(self.runningTasks) > 0
+    def hasTasksStillRunning(self) -> bool:
+        """
+        When tasks that are running are alive, then we obviously still have tasks running
+        """
+        return len([ task for task,startTime in self.runningTasks if task.is_alive()]) != 0
 
-    def launchTask(self, target):
+    def launchTask(self, target)  -> (object, float):
+        """
+        Launch either a Thread or a Process with the target processing the inputQueue and outputQueue.
+
+        We keep an internal timer with the start time of the task to determine if it has
+        timed out in the future.
+        """
         if self.useThreads:
             task=Thread(target=target, args=(self.inputQueue, self.outputQueue))
         else:
@@ -113,6 +163,10 @@ class ComputeEngine:
         return task, startTime
 
     def processTaskResults(self, queue):
+        """
+        We get (and remove) elements from the outputQueue. The default action is to print everything
+        to screen,but this function can be replaced by your own when calling compute().
+        """
         while not queue.empty():
             try:
                 results = queue.get(block=False)
@@ -121,15 +175,25 @@ class ComputeEngine:
                 print(err)
 
     def terminateTimedOutTasks(self, timeoutInSeconds):
-        if timeoutInSeconds is None or self.useThreads:
+        """
+        If tasks are taking too long, we terminate (kill) them. This is only possible with processes.
+        """
+        if timeoutInSeconds is None:
             return
 
         for (task, startTime) in self.runningTasks:
             if time.time() > startTime+timeoutInSeconds:
-                task.terminate()
-                # task.join()
+                if not self.useThreads:
+                    task.terminate()
+                    task.join()
+                else:
+                    print("Task has timed out but threads cannot be terminated")
 
     def processCompletedTasks(self, completedTasks):
+        """
+        The last chance to manipulate a completed task before it is deleted. Here
+        we simply warn the user if the task timedout.
+        """
         for task, startTime in completedTasks:
             if isinstance(task, Process):
                 if task.exitcode > 0:
@@ -143,12 +207,15 @@ class ComputeEngine:
                 pass
 
     def pruneCompletedTasks(self):
+        """
+        Internal function to keep a list of tasks that are alive (i.e. still running).
+        Completed tasks (normal or terminated) get processed by processCompletedTasks() before being 
+        deleted.
+        """
         completedTasks = [ (task,startTime) for task,startTime in self.runningTasks if not task.is_alive()]
         self.runningTasks = [ (task,startTime) for task,startTime in self.runningTasks if task.is_alive()]
 
         self.processCompletedTasks(completedTasks)
-
-
 
 class DBComputeEngine(ComputeEngine):
     def __init__(self, database, maxTaskCount=None):
@@ -183,7 +250,6 @@ def calculateFactorial(inputQueue, outputQueue):
     except Empty as err:
         pass # not an error
 
-
 def slowCalculation(inputQueue, outputQueue):
     try:
         value = inputQueue.get_nowait()
@@ -199,11 +265,6 @@ def processSimple(queue):
             print('Just finished calculating {0}!'.format(n))
         except Empty as err:
             break # we are done
-
-def buggy(inputQueue, outputQueue):
-    value = inputQueue.get()
-    ouch = "Some text" / value
-    outputQueue.put(ouch)
 
 if __name__ == "__main__":
     N = 11
@@ -228,20 +289,8 @@ if __name__ == "__main__":
         engine.inputQueue.put(i)
     engine.compute(target=calculateFactorial, processTaskResults=processSimple)
 
-    print("Using threads with very long calculations and timeout")
+    print("Using processes with very long calculations and timeout")
     engine = ComputeEngine(useThreads=False)
     for i in range(N):
         engine.inputQueue.put(i)
     engine.compute(target=slowCalculation, timeoutInSeconds=2)
-
-    # print("Using threads with buggy code")
-    # engine = ComputeEngine(useThreads=True)
-    # for i in range(N):
-    #     engine.inputQueue.put(i)
-    # engine.compute(target=buggy)
-
-    # print("Using processes with buggy code")
-    # engine = ComputeEngine(useThreads=False)
-    # for i in range(N):
-    #     engine.inputQueue.put(i)
-    # engine.compute(target=buggy)
