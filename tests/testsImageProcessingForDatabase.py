@@ -31,8 +31,14 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
         rosaImages = self.db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
                                      , content='rosa', eye='os', limit=10)
         rosaProperties = getRosaProperties(rosaImages)
-        self.assertIsNotNone(len(rosaProperties))
-        self.assertTrue(len(rosaProperties) == len(rosaImages))
+
+        self.assertIsNotNone(rosaProperties)
+        self.assertEqual(len(rosaProperties), len(rosaImages))
+        for rosa in rosaProperties:
+            self.assertTrue(rosa["found"])
+            self.assertIsNotNone(rosa["center"])
+            for key, value in rosa["center"].items():
+                self.assertTrue(value > 0)
 
     def testImportRetinaImages(self):
         retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
