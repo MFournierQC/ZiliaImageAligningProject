@@ -208,12 +208,21 @@ def saveData(saturationFlag , oxygenSat , imageNumber , rosaLabel):
         "rosaLabel": rosaLabel}
     return dataDic
 
+def meanSO2 (concentrationValues, labels):
+    uniqueLabel = np.unique(labels)
+    meanConcentration = np.zeros(uniqueLabel.shape)
+    for i in range(uniqueLabel.shape[0]):
+        meanConcentration[i] = np.mean(concentrationValues[(np.where(labels==np.array(uniqueLabel[i]))[0])])
+
+    return meanConcentration, uniqueLabel
+
 def mainAnalysis(darkRefData, spectraData, componentsSpectra=r'_components_spectra.csv',
                 whiteRefPath=r"int75_WHITEREFERENCE.csv", whiteRefBackground=r"int75_LEDON_nothingInFront.csv"):
     """
     Load data, do all the analysis, get coefs as concentration
     WARNING: For blood sample, another white reference and white ref background
     are needed.
+    Return concentration, absorbance if blood samples???
     """
     whiteRefData = loadWhiteRef(whiteRefBackground=whiteRefBackground, whiteRefPath=whiteRefPath)
     whiteRef = formatWhiteRef(whiteRefData)
@@ -222,96 +231,10 @@ def mainAnalysis(darkRefData, spectraData, componentsSpectra=r'_components_spect
 
     saturationFlags = setSaturationFlag(spectra)
     normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
-
     absorbance = absorbanceSpectrum(whiteRef, normalizedSpectrum)
-
     croppedComponent = cropComponents(absorbance, componentsSpectra)
     features = componentsToArray(croppedComponent)
     coefficients = getCoefficients(absorbance, features)
     concentration = getConcentration(coefficients)
 
     return concentration, saturationFlags
-
-
-
-
-def oldMainAnalysis(darkRefPath=None, spectrumPath=None, componentsSpectra=r'_components_spectra.csv',
-                whiteRefPath=r"int75_WHITEREFERENCE.csv", whiteRefBackground=r"int75_LEDON_nothingInFront.csv"):
-    """load data, do all the analysis, get coefs as concentration"""
-    whiteRef = loadWhiteRef(whiteRefBackground=whiteRefBackground, whiteRefPath=whiteRefPath)
-    if darkRefPath is None:
-        darkRef = loadDarkRef()
-    else:
-        darkRef = loadDarkRef()
-    darkRef.data[np.isnan(darkRef.data)] = 0
-    if spectrumPath is None:
-        spectrums = loadSpectrum()
-    else:
-        spectrums = loadSpectrum()
-    spectrums.data[np.isnan(spectrums.data)] = 0
-    saturationFlags = setSaturationFlag(spectrums)
-    normalizedSpectrum = normalizeSpectrum(spectrums, darkRef)
-    normalizedSpectrum.data[np.isnan(normalizedSpectrum.data)] = 0
-    absorbance = absorbanceSpectrum(whiteRef, normalizedSpectrum)
-    absorbance.data[np.isnan(absorbance.data)] = 0
-
-    croppedComponent = cropComponents(absorbance, componentsSpectra)
-    features = componentsToArray(croppedComponent)
-    features[np.isnan(features)] = 0
-    coef = getCoefficients(absorbance,features)
-    concentration = 100 * coef[:,1] /(coef[:,1]+coef[:,2])
-    concentration[np.isnan(concentration)] = 0
-
-    return concentration, saturationFlags
-
-# darkRefPath = r"./tests/TestSpectrums/bresilODrlp14/background.csv"
-# spectrumPath = r"./tests/TestSpectrums/bresilODrlp14/spectrum.csv"
-#
-# mainAnalysis(darkRefPath, spectrumPath)
-# concent= mainAnalysis()
-# print(concent)
-
-#### This is for test
-####### blood sample test
-
-def oldBloodTest(whiteRefBackground='./tests/TestSpectrums/blood/int75_LEDON_nothingInFront.csv',
-                whiteRefPath='./tests/TestSpectrums/blood/int75_WHITEREFERENCE.csv',
-                darkRefPath=None, spectrumPath=None, componentsSpectra=None):
-    """load data, do all the analysis, get coefs as concentration"""
-    whiteRef = loadWhiteRef(whiteRefBackground=whiteRefBackground, whiteRefPath=whiteRefPath)
-    if darkRefPath is None:
-        darkRef = loadDarkRef(skipRows=24, wavelengthColumn=1, firstSpecColumn=4)
-    else:
-        darkRef = loadDarkRef(darkRefPath=darkRefPath, skipRows=24, wavelengthColumn=1, firstSpecColumn=4)
-    darkRef.data[np.isnan(darkRef.data)] = 0
-    if spectrumPath is None:
-        spectrums = loadSpectrum(skipRows=24, wavelengthColumn=1, firstSpecColumn=4)
-    else:
-        spectrums = loadSpectrum(spectrumPath=spectrumPath, skipRows=24, wavelengthColumn=1, firstSpecColumn=4)
-    spectrums.data[np.isnan(spectrums.data)] = 0
-    normalizedSpectrum = normalizeSpectrum(spectrums,darkRef)
-    normalizedSpectrum.data[np.isnan(normalizedSpectrum.data)] = 0
-    absorbance = absorbanceSpectrum(whiteRef,normalizedSpectrum)
-    absorbance.data[np.isnan(absorbance.data)] = 0
-
-    if componentsSpectra is None:
-        croppedComponent = cropComponents(absorbance, componentsSpectraGlobal)
-    else:
-        croppedComponent = cropComponents(absorbance, componentsSpectra)
-    features = componentsToArray(croppedComponent)
-    features[np.isnan(features)] = 0
-    coef = getCoefficients(absorbance, features)
-    concentration = 100 * coef[:,1] /(coef[:,1]+coef[:,2])
-    concentration[np.isnan(concentration)] = 0
-
-    return concentration, absorbance
-
-# bloodTest()
-
-def meanSO2 (concentrationValues,labels):
-    uniqueLabel = np.unique(labels)
-    meanConcentration = np.zeros(uniqueLabel.shape)
-    for i in range(uniqueLabel.shape[0]):
-        meanConcentration[i] = np.mean(concentrationValues[(np.where(labels==np.array(uniqueLabel[i]))[0])])
-
-    return meanConcentration,uniqueLabel
