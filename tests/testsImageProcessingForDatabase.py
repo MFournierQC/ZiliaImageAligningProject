@@ -29,7 +29,7 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
         
     def testGetRosaProperties(self):
         rosaImages = self.db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
-                                     , content='rosa', eye='os', limit=2)
+                                     , content='rosa', eye='os', limit=10)
         rosaProperties = getRosaProperties(rosaImages)
 
         self.assertIsNotNone(rosaProperties)
