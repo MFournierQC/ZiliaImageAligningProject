@@ -70,6 +70,17 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
             self.assertTrue(croppedImage.shape[0] == image.shape[0] - margin * 2)
             self.assertTrue(croppedImage.shape[1] == image.shape[1] - margin * 2)
 
+    def testSpotDarkVessels(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=3)
+        for image in retinaImages:
+            vesselsImage = spotDarkVessels(image)
+            self.assertTrue(isinstance(vesselsImage, np.ndarray))
+            self.assertTrue(len(vesselsImage.squeeze().shape) == 2)
+            self.assertTrue(vesselsImage.shape[0] == image.shape[0])
+            self.assertTrue(vesselsImage.shape[1] == image.shape[1])
+
+    
 
 
 if __name__=="__main__":
