@@ -85,8 +85,26 @@ class TestZilia(env.DCCLabTestCase):
         self.assertEqual(regions, ['mac','onh'])
 
     def testGetSpectra(self):
-        spectra = self.db.getRawIntensities(monkey='Rwanda', region='onh', timeline='baseline')
+        spectra = self.db.getRawIntensities(limit=10)
         self.assertIsNotNone(spectra)
+        self.assertTrue(len(spectra) > 0)
+        wavelengths = self.db.getWavelengths() 
+        nPoints = len(wavelengths)
+        self.assertEqual(spectra.shape[0], nPoints)
+        self.assertEqual(spectra.shape[1], 10)
+
+    def testGetNoSpectraMustReturnNone(self):
+        spectra = self.db.getRawIntensities(monkey='Daniel')
+        self.assertIsNone(spectra)
+
+    def testGetNoSpectraMustReturnNoneIsSlow(self):
+        startTime = time.time()
+        spectra = self.db.getRawIntensities(monkey='Daniel')
+        endTime = time.time()
+        self.assertIsNone(spectra)
+        
+        if endTime-startTime < 5:
+            print("Warning: Simple spectrum request was more than 5s. Consider copying database to local folder")
 
     def testGetBackgroundSpectra(self):
         wavelengths, spectra = self.db.getBackgroundIntensities(rlp=4)

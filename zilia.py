@@ -3,7 +3,6 @@ import numpy as np
 from skimage.io import imread
 from skimage.color import rgb2gray
 import subprocess
-
 from multiprocessing import Pool
 from computeengine import *
 
@@ -68,6 +67,9 @@ class ZiliaDB(Database):
         """
         if ziliaDbPath is None:
             ziliaDbPath = ZiliaDB.findDatabasePath()
+            if os.path.isabs(ziliaDbPath):
+                print("Using possibly slow network path. Consider copying {0} to {1} or {2}".format(ziliaDbPath, os.path.abspath('.'),os.path.abspath('..') ))
+
         if root is None:
             root = ZiliaDB.findDataFilesRoot()
 
@@ -313,7 +315,7 @@ class ZiliaDB(Database):
 
         return stmnt
 
-    def getRawIntensities(self, monkey=None, timeline=None, rlp=None, region=None, eye=None):
+    def getRawIntensities(self, monkey=None, timeline=None, rlp=None, region=None, eye=None, limit=None):
         stmnt = r"select s.wavelength, s.intensity, s.md5, s.column {0} and s.column like '%raw%' ".format(self.statementFromAllJoin)
 
         if monkey is not None:
@@ -331,10 +333,20 @@ class ZiliaDB(Database):
         if eye is not None:
             stmnt += " and f.eye = '{0}'".format(eye)
 
+        stmnt += " order by s.path, s.column, s.wavelength "
+
+        wavelengths = self.getWavelengths()
+        nWavelengths = len(wavelengths)
+
+        if limit is not None:
+            stmnt += " limit {0}".format(limit*nWavelengths)
+
         self.execute(stmnt)
-        rows = self.fetchAll()
-        nWavelengths = len(self.wavelengths)
+        rows = list(self.fetchAll())
         nSamples = len(rows)//nWavelengths
+        if nSamples == 0:
+            return None
+
         spectra = np.zeros(shape=(nWavelengths, nSamples))
         for i,row in enumerate(rows):
             spectra[i%nWavelengths, i//nWavelengths] = float(row['intensity'])
@@ -422,8 +434,6 @@ class ZiliaDB(Database):
             self.progressStart = None
 
 class ZiliaComputeEngine(DBComputeEngine):
-    def __init__(self, database=ZiliaDB(), maxTaskCount=None):
-        super().__init__(database=database, maxTaskCount=maxTaskCount)
     def __init__(self, database=ZiliaDB(), maxTaskCount=None, useThreads=True):
         super().__init__(database=database, maxTaskCount=maxTaskCount, useThreads=useThreads)
 
