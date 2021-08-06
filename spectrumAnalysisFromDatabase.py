@@ -210,11 +210,15 @@ def saveData(saturationFlag , oxygenSat , imageNumber , rosaLabel):
 
 def mainAnalysis(darkRefData, spectraData, componentsSpectra=r'_components_spectra.csv',
                 whiteRefPath=r"int75_WHITEREFERENCE.csv", whiteRefBackground=r"int75_LEDON_nothingInFront.csv"):
-    """load data, do all the analysis, get coefs as concentration"""
+    """
+    Load data, do all the analysis, get coefs as concentration
+    WARNING: For blood sample, another white reference and white ref background
+    are needed.
+    """
     whiteRefData = loadWhiteRef(whiteRefBackground=whiteRefBackground, whiteRefPath=whiteRefPath)
     whiteRef = formatWhiteRef(whiteRefData)
     darkRef = formatDarkRef(darkRefData)
-    spectra = formatSpectra(spectra)
+    spectra = formatSpectra(spectraData)
 
     saturationFlags = setSaturationFlag(spectra)
     normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
@@ -227,7 +231,6 @@ def mainAnalysis(darkRefData, spectraData, componentsSpectra=r'_components_spect
     concentration = getConcentration(coefficients)
 
     return concentration, saturationFlags
-
 
 
 
@@ -271,7 +274,7 @@ def oldMainAnalysis(darkRefPath=None, spectrumPath=None, componentsSpectra=r'_co
 #### This is for test
 ####### blood sample test
 
-def bloodTest(whiteRefBackground='./tests/TestSpectrums/blood/int75_LEDON_nothingInFront.csv',
+def oldBloodTest(whiteRefBackground='./tests/TestSpectrums/blood/int75_LEDON_nothingInFront.csv',
                 whiteRefPath='./tests/TestSpectrums/blood/int75_WHITEREFERENCE.csv',
                 darkRefPath=None, spectrumPath=None, componentsSpectra=None):
     """load data, do all the analysis, get coefs as concentration"""
@@ -297,8 +300,6 @@ def bloodTest(whiteRefBackground='./tests/TestSpectrums/blood/int75_LEDON_nothin
         croppedComponent = cropComponents(absorbance, componentsSpectra)
     features = componentsToArray(croppedComponent)
     features[np.isnan(features)] = 0
-
-
     coef = getCoefficients(absorbance, features)
     concentration = 100 * coef[:,1] /(coef[:,1]+coef[:,2])
     concentration[np.isnan(concentration)] = 0
