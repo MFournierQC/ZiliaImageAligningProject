@@ -29,7 +29,7 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
         
     def testGetRosaProperties(self):
         rosaImages = self.db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
-                                     , content='rosa', eye='os', limit=10)
+                                     , content='rosa', eye='os', limit=2)
         rosaProperties = getRosaProperties(rosaImages)
 
         self.assertIsNotNone(rosaProperties)
@@ -75,12 +75,23 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
                                                      , eye='os', limit=3)
         for image in retinaImages:
             vesselsImage = spotDarkVessels(image)
+            self.assertIsNotNone(vesselsImage)
             self.assertTrue(isinstance(vesselsImage, np.ndarray))
             self.assertTrue(len(vesselsImage.squeeze().shape) == 2)
             self.assertTrue(vesselsImage.shape[0] == image.shape[0])
             self.assertTrue(vesselsImage.shape[1] == image.shape[1])
 
-    
+    def testCalculateSkeletonImage(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=3)
+        for image in retinaImages:
+            skeletonImage = calculateSkeletonImage(image)
+            self.assertIsNotNone(skeletonImage)
+            self.assertTrue(isinstance(skeletonImage, np.ndarray))
+            self.assertTrue(len(skeletonImage.squeeze().shape) == 2)
+            self.assertTrue(skeletonImage.shape[0] == image.shape[0])
+            self.assertTrue(skeletonImage.shape[1] == image.shape[1])
+
 
 
 if __name__=="__main__":
