@@ -44,6 +44,13 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
         retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
                                                 , eye='os', limit=10)
         self.assertIsNotNone(retinaImages)
+        self.assertTrue(isinstance(retinaImages, list))
+        self.assertEqual(len(rosaImages), 10)
+        for image in retinaImages:
+            self.assertTrue(isinstance(image, np.ndarray))
+            self.assertTrue(len(image.squeeze().shape) == 2)
+            self.assertTrue((image.squeeze().shape[0]) > 100)
+            self.assertTrue((image.squeeze().shape[1]) > 100)
 
     def testFindBlurryImages(self):
         retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
