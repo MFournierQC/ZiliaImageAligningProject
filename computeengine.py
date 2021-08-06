@@ -71,13 +71,28 @@ class ComputeEngine:
             self.maxTaskCount = maxTaskCount
         self.signalNames = dict((k, v) for v, k in reversed(sorted(signal.__dict__.items())) if v.startswith('SIG') and not v.startswith('SIG_'))
 
-        self.signalNames = dict((k, v) for v, k in reversed(sorted(signal.__dict__.items())) if v.startswith('SIG') and not v.startswith('SIG_'))
-
     def __del__(self):
         """
         Upon deleting this object, we terminate all tasks if we can.
         """
         self.terminateTimedOutTasks(timeoutInSeconds=0)
+        self.inputQueue.close()
+        self.inputQueue.join_thread()
+        self.outputQueue.close()
+        self.outputQueue.join_thread()
+        
+    def emptyQueues(self):
+        try:
+            while True:
+                self.inputQueue.get_nowait()
+        except:
+            pass
+
+        try:    
+            while True:
+                self.outputQueue.get_nowait()
+        except:
+            pass
 
     def compute(self, target, 
                       processTaskResults=None, 
@@ -108,20 +123,31 @@ class ComputeEngine:
 
         if timeoutInSeconds is not None and self.useThreads:
             raise ValueError('To use a timeout, you must use processes with useThreads=False')
-        
+
         self.waitForInputQueue()
 
-        while self.hasTasksStillRunning() or self.hasTasksLeftToLaunch():
-            while len(self.runningTasks) < self.maxTaskCount and self.hasTasksLeftToLaunch():
-                self.launchTask(target=target)
+        while True:
+            if self.hasTasksLeftToLaunch():
+                while len(self.runningTasks) < self.maxTaskCount:
+                    self.launchTask(target=target)
 
             processTaskResults(self.outputQueue)
 
             self.terminateTimedOutTasks(timeoutInSeconds=timeoutInSeconds)
             self.pruneCompletedTasks()
-            time.sleep(0.1)
 
+            time.sleep(0.1)
+            if not self.hasTasksLeftToLaunch() and not self.hasTasksStillRunning():
+                break
+
+        self.pruneCompletedTasks()
         processTaskResults(self.outputQueue)
+        assert(self.inputQueue.empty())
+        assert(self.outputQueue.empty())
+        self.inputQueue.close()
+        self.inputQueue.join_thread()
+        self.outputQueue.close()
+        self.outputQueue.join_thread()
 
     def waitForInputQueue(self, timeout=0.3):
         """
@@ -153,13 +179,14 @@ class ComputeEngine:
         timed out in the future.
         """
         if self.useThreads:
-            task=Thread(target=target, args=(self.inputQueue, self.outputQueue))
+            task=Thread(target=targetWrapper, args=(target, self.inputQueue, self.outputQueue))
         else:
-            task=Process(target=target, args=(self.inputQueue, self.outputQueue))
+            task=Process(target=targetWrapper, args=(target, self.inputQueue, self.outputQueue))
 
         startTime = time.time()
         self.runningTasks.append((task, startTime))
         task.start()
+
         return task, startTime
 
     def processTaskResults(self, queue):
@@ -185,9 +212,9 @@ class ComputeEngine:
             if time.time() > startTime+timeoutInSeconds:
                 if not self.useThreads:
                     task.terminate()
-                    task.join()
                 else:
                     print("Task has timed out but threads cannot be terminated")
+                task.join()
 
     def processCompletedTasks(self, completedTasks):
         """
@@ -205,6 +232,7 @@ class ComputeEngine:
             else:
                 # Threads do not have "an exit code". There is nothing to check.
                 pass
+            task.join()
 
     def pruneCompletedTasks(self):
         """
@@ -217,9 +245,17 @@ class ComputeEngine:
 
         self.processCompletedTasks(completedTasks)
 
+def targetWrapper(target, inputQueue, outputQueue):
+    try:
+        inputArgs = inputQueue.get_nowait()
+        result = target(inputArgs)
+        outputQueue.put(result)
+    except:
+        return
+
 class DBComputeEngine(ComputeEngine):
-    def __init__(self, database, maxTaskCount=None):
-        super().__init__(maxTaskCount=maxTaskCount)
+    def __init__(self, database, maxTaskCount=None, useThreads=True):
+        super().__init__(maxTaskCount=maxTaskCount, useThreads=useThreads)
         self.db = database
 
     def enqueueRecordsWithStatement(self, selectStatement):
