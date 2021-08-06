@@ -106,6 +106,7 @@ class TestZilia(env.DCCLabTestCase):
             self.assertIsNotNone(image)
             self.assertEqual(image.shape, (1024, 1216, 3))
 
+
     def testGetEyeImagesFromDatabase(self):
         images = self.db.getRGBImages(rlp=34, timeline='baseline 3', region='onh', content='eye', limit=10)
         self.assertTrue(len(images) == 10)
@@ -126,6 +127,32 @@ class TestZilia(env.DCCLabTestCase):
     def testGetImagePaths(self):
         paths = self.db.getImagePaths()
         self.assertTrue(len(paths) > 1000)
+
+    def testGetManyImagesFromPathsMultiprocessing(self):
+        paths = self.db.getImagePaths(limit=20)
+        self.assertTrue(len(paths) == 20)
+        with Pool(10) as p:
+            images = p.map(getRGBImageFromPath, paths)
+        self.assertIsNotNone(images)
+
+    def testGetManyImagesFromPathsSingleprocessing(self):
+        paths = self.db.getImagePaths(limit=20)
+        self.assertTrue(len(paths) == 20)
+        images = []
+        for path in paths:
+            images.append(getRGBImageFromPath(path))
+
+        self.assertIsNotNone(images)
+
+    def testGetManyImagesFromPathsEngine(self):
+        engine = ZiliaComputeEngine(database=self.db, useThreads=True)
+        engine.enqueueRecords(limit=20)
+        engine.compute(target=getRGBImage, processTaskResults=dummy, timeoutInSeconds=None)
+
+    def testGetManyImagesFromPathsEngine(self):
+        engine = ZiliaComputeEngine(database=self.db, useThreads=True)
+        engine.enqueueRecords(limit=20)
+        engine.compute(target=getRGBImage, processTaskResults=dummy, timeoutInSeconds=None)
 
     def testGetImagePathsFiltered(self):
         images = self.db.getImagePaths(rlp=34, timeline='baseline 3', region='onh', content='eye', limit=10)
@@ -160,6 +187,44 @@ class TestZilia(env.DCCLabTestCase):
 
         for path, imageData in images.items():
             result = self.computeSomething(imageData)
+
+# Functions that are used with multiprocessing and map cannot be part of ZiliaDB
+def getManyRGBImageFromPaths(paths):
+    with Pool(5) as p:
+        images = p.map(getRGBImageFromPath, paths)
+
+def getRGBImageFromPath(path):
+    if not os.path.isabs(path):
+        return None
+    else:
+        absolutePath = path
+    if not os.path.exists(absolutePath):
+        raise FileNotFoundError(absolutePath)
+
+    return imread(absolutePath)
+
+def getRGBImage(row):
+    try:
+        path = row["abspath"]
+    except:
+        return
+    if not os.path.isabs(path):
+        return None
+    else:
+        absolutePath = path
+    if not os.path.exists(absolutePath):
+        raise FileNotFoundError(absolutePath)
+
+    return imread(absolutePath)
+
+
+def dummy(queue):
+    while not queue.empty():
+        try:
+            results = queue.get()
+            print(results.shape)
+        except Empty as err:
+            print(err)
 
 if __name__ == '__main__':
     unittest.main()
