@@ -5,17 +5,6 @@ from tkinter.filedialog import askopenfilename
 from scipy.optimize import nnls
 import matplotlib.pyplot as plt
 
-#global variables for cropping wavelength
-lowerLimitNormalization = 510
-upperLimitNormalization = 590
-lowerLimitOximetry = 530
-upperLimitOximetry = 585
-
-# These 3 will always be the same for every test
-whiteRefPath = r"int75_WHITEREFERENCE.csv"
-whiteRefBackground = r"int75_LEDON_nothingInFront.csv"
-componentsSpectraGlobal = r'_components_spectra.csv'
-
 class Spectrum:
     data = np.array([])
     wavelength = np.array([])
@@ -70,7 +59,7 @@ def loadWhiteRef(backgroundPath, whiteRefPath,
 
     return wavelengths, spectra, background
 
-def formatWhiteRef(whiteRefData, lowerLimitNormalization=510, upperLimitNormalization=590, lowerLimitOximetry=530, upperLimitOximetry = 585):
+def formatWhiteRef(whiteRefData, lowerLimitNormalization=510, upperLimitNormalization=590, lowerLimitOximetry=530, upperLimitOximetry=585):
     # returns cropped (between 500 to 600) white reference and the wavelength"
     wavelengths = whiteRefData[0]
     spectra = whiteRefData[1]
@@ -114,7 +103,7 @@ def setSaturationFlag(spectrum, saturatedValue=65535):
             saturationFlag[i] = 1
     return saturationFlag
 
-def normalizeSpectrum(spec, darkRef):
+def normalizeSpectrum(spec, darkRef, lowerLimitOximetry=530, upperLimitOximetry=585):
     """returns the normalized spectrum for the data"""
     dRefTile = np.tile(darkRef.data, (spec.data.shape[1], 1)).T
     spectrumData = spec.data - dRefTile
