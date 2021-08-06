@@ -123,6 +123,7 @@ def normalizeSpectrum(spec, darkRef):
     spectrumDataNormalized.data = (spectrumData.T/STDspectrum[:,None]).T
     spectrumDataNormalized.wavelength = spec.wavelength
     croppedSpectrumOxymetry = cropFunction(spectrumDataNormalized, lowerLimitOximetry, upperLimitOximetry)
+    croppedSpectrumOxymetry.data[np.isnan(croppedSpectrumOxymetry.data)] = 0
     return croppedSpectrumOxymetry
 
 def findNearest(array, value):
@@ -141,6 +142,7 @@ def absorbanceSpectrum(refSpec, normalizedSpec):
     modifiedSpec.data = np.log(np.divide(modifiedData, normalizedSpec.data, out=None, where=True, casting='same_kind',
                                 order='K', dtype=None))
     modifiedSpec.wavelength = normalizedSpec.wavelength
+    modifiedSpec.data[np.isnan(modifiedSpec.data)] = 0
     return modifiedSpec
 
 def scattering(spec, bValue=1.5):
@@ -180,15 +182,21 @@ def componentsToArray(components):
     variables = np.vstack([variables, components["melanin"]])
     variables = np.vstack([variables, components["scattering"]])
     variables = np.vstack([variables, components["reflection"]])
+    variables[np.isnan(features)] = 0
     return variables
 
-def getCoef(absorbance, variables):
+def getCoefficients(absorbance, variables):
     """apply nnls and get coefs"""
     allCoef = np.zeros([absorbance.data.shape[1], variables.shape[0]])
     for i in range(absorbance.data.shape[1]):
-        coef = nnls(variables.T, absorbance.data[:,i],maxiter=2000 )
+        coef = nnls(variables.T, absorbance.data[:,i], maxiter=2000 )
         allCoef[i,:] = coef[0]
     return allCoef
+
+def getConcentration(coefficients):
+    concentration = 100 * coefficients[:,1] / (coefficients[:,1] + coefficients[:,2])
+    concentration[np.isnan(concentration)] = 0
+    return concentration
 
 def saveData(saturationFlag , oxygenSat , imageNumber , rosaLabel):
     keptFlag=saturationFlag[(imageNumber-1). astype(int)]
@@ -210,24 +218,24 @@ def mainAnalysis(darkRefData, spectraData, componentsSpectra=r'_components_spect
 
     saturationFlags = setSaturationFlag(spectra)
     normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
-    normalizedSpectrum.data[np.isnan(normalizedSpectrum.data)] = 0
+
     absorbance = absorbanceSpectrum(whiteRef, normalizedSpectrum)
-    absorbance.data[np.isnan(absorbance.data)] = 0
 
     croppedComponent = cropComponents(absorbance, componentsSpectra)
     features = componentsToArray(croppedComponent)
-    features[np.isnan(features)] = 0
-    coef = getCoef(absorbance,features)
-    concentration = 100 * coef[:,1] / (coef[:,1] + coef[:,2])
-    concentration[np.isnan(concentration)] = 0
+    coefficients = getCoefficients(absorbance, features)
+    concentration = getConcentration(coefficients)
 
     return concentration, saturationFlags
+
+
+
+
 
 def oldMainAnalysis(darkRefPath=None, spectrumPath=None, componentsSpectra=r'_components_spectra.csv',
                 whiteRefPath=r"int75_WHITEREFERENCE.csv", whiteRefBackground=r"int75_LEDON_nothingInFront.csv"):
     """load data, do all the analysis, get coefs as concentration"""
     whiteRef = loadWhiteRef(whiteRefBackground=whiteRefBackground, whiteRefPath=whiteRefPath)
-    #######################
     if darkRefPath is None:
         darkRef = loadDarkRef()
     else:
@@ -238,7 +246,6 @@ def oldMainAnalysis(darkRefPath=None, spectrumPath=None, componentsSpectra=r'_co
     else:
         spectrums = loadSpectrum()
     spectrums.data[np.isnan(spectrums.data)] = 0
-    ##################
     saturationFlags = setSaturationFlag(spectrums)
     normalizedSpectrum = normalizeSpectrum(spectrums, darkRef)
     normalizedSpectrum.data[np.isnan(normalizedSpectrum.data)] = 0
@@ -248,7 +255,7 @@ def oldMainAnalysis(darkRefPath=None, spectrumPath=None, componentsSpectra=r'_co
     croppedComponent = cropComponents(absorbance, componentsSpectra)
     features = componentsToArray(croppedComponent)
     features[np.isnan(features)] = 0
-    coef = getCoef(absorbance,features)
+    coef = getCoefficients(absorbance,features)
     concentration = 100 * coef[:,1] /(coef[:,1]+coef[:,2])
     concentration[np.isnan(concentration)] = 0
 
@@ -292,7 +299,7 @@ def bloodTest(whiteRefBackground='./tests/TestSpectrums/blood/int75_LEDON_nothin
     features[np.isnan(features)] = 0
 
 
-    coef = getCoef(absorbance, features)
+    coef = getCoefficients(absorbance, features)
     concentration = 100 * coef[:,1] /(coef[:,1]+coef[:,2])
     concentration[np.isnan(concentration)] = 0
 
