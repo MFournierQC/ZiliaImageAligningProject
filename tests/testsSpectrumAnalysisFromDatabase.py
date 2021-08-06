@@ -2,6 +2,10 @@ import envtest
 from spectrumAnalysisFromDatabase import *
 from zilia import *
 
+componentsSpectra = '.._components_spectra.csv'
+whiteRefPath = "..int75_WHITEREFERENCE.csv"
+whiteRefBackground = "..int75_LEDON_nothingInFront.csv"
+
 class TestSpectrumAnalysisFromDatabase(envtest.ZiliaTestCase):
 
     def testImportDatabase(self):
@@ -13,22 +17,25 @@ class TestSpectrumAnalysisFromDatabase(envtest.ZiliaTestCase):
         self.db = ZiliaDB()
         self.assertIsNotNone(self.db)
 
-    # def testGetWavelengths(self):
-    #     wavelengths = self.db.getWavelengths()
-    #     self.assertIsNotNone(wavelengths)
-    #     self.assertGreater(len(wavelengths), 50)
+    def testGetWavelengths(self):
+        wavelengths = self.db.getWavelengths()
+        self.assertIsNotNone(wavelengths)
+        self.assertEqual(len(wavelengths), 512)
 
     def testGetSpectraFor10(self):
-        # spectra = self.db.getRawIntensities(monkey='Rwanda', region='onh', timeline='baseline', column='raw')
-        spectra = self.db.getRawIntensities()
-        self.assertGreater(len(spectra), 500)
-        print("spectraType =", type(spectra))
-        # print(spectra)
+        spectra = self.db.getRawIntensities(rlp=6, limit=10)
+        wavelengths = self.db.getWavelengths()
+        self.assertIsNotNone(spectra)
+        self.assertEqual(spectra.shape[0], len(wavelengths))
+        self.assertEqual(spectra.shape[1], 10)
 
-    def testGetSpectraPathsFor10(self):
-        pass
+    def testBackgroundForRlp6(self):
+        background, backWavelengths = self.db.getBackgroundIntensities(rlp=6)
+        wavelengths = self.db.getWavelengths()
+        self.assertIsNotNone(background)
+        self.assertEqual(background.shape[0], len(wavelengths))
 
-    def testGetDarkRefFor10(self):
+    def testMainSpectrumAnalysisRlp6(self):
         pass
 
 

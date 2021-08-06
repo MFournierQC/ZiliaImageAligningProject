@@ -134,11 +134,11 @@ def absorbanceSpectrum(refSpec, normalizedSpec):
     modifiedSpec.data[np.isnan(modifiedSpec.data)] = 0
     return modifiedSpec
 
-def scattering(spec, bValue=1.5):
+def calculateScatteringSpectrum(spec, bValue=1.5):
     """calculate the scattering spectrum"""
     return (spec.wavelength / 500) ** (-1 * bValue)
 
-def reflection(spec):
+def calculatReflectionSpectrum(spec):
     """calculate the reflection spectrum"""
     return np.squeeze(-np.log(spec.wavelength.reshape(-1, 1)))
 
@@ -149,8 +149,8 @@ def cropComponents(absorbanceSpectrum, componentsSpectra):
     oxyhemoglobin = np.zeros(absorbanceSpectrum.wavelength.shape)
     deoxyhemoglobin = np.zeros(absorbanceSpectrum.wavelength.shape)
     melanin = np.zeros(absorbanceSpectrum.wavelength.shape)
-    scat = scattering(absorbanceSpectrum)
-    ref = reflection(absorbanceSpectrum)
+    scat = calculateScatteringSpectrum(absorbanceSpectrum)
+    ref = calculatReflectionSpectrum(absorbanceSpectrum)
     for i, wavelength in enumerate(absorbanceSpectrum.wavelength):
         oxyhemoglobin[i] = Components["oxyhemoglobin"][find_nearest(Components["wavelengths"], wavelength)]
         deoxyhemoglobin[i] = Components["deoxyhemoglobin"][find_nearest(Components["wavelengths"], wavelength)]
