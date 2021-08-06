@@ -440,4 +440,3 @@ class ZiliaComputeEngine(DBComputeEngine):
     def enqueueRecords(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
         selectStatement = self.db.buildImageSelectStatement(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content=content, eye=eye, limit=limit)
         self.enqueueRecordsWithStatement(selectStatement)
-
