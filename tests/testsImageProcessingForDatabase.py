@@ -63,11 +63,12 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
         retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
                                                 , eye='os', limit=3)
         margin = 100
-        croppedImage = cropImageMargins(retinaImages[0], margin=margin)
-        self.assertTrue(isinstance(croppedImage, np.ndarray))
-        self.assertTrue(len(croppedImage.squeeze().shape) == 2)
-        self.assertTrue(croppedImage.shape[0] == retinaImages[0].shape[0] - margin * 2)
-        self.assertTrue(croppedImage.shape[1] == retinaImages[0].shape[1] - margin * 2)
+        for image in retinaImages:
+            croppedImage = cropImageMargins(image, margin=margin)
+            self.assertTrue(isinstance(croppedImage, np.ndarray))
+            self.assertTrue(len(croppedImage.squeeze().shape) == 2)
+            self.assertTrue(croppedImage.shape[0] == image.shape[0] - margin * 2)
+            self.assertTrue(croppedImage.shape[1] == image.shape[1] - margin * 2)
 
 
 
