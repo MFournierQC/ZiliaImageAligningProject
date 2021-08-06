@@ -71,7 +71,7 @@ def spotDarkVessels(image , n = 100 ):
         croppedSkeleton[peaks , i ] = 1
     return croppedSkeleton
 
-def calculateSkeletonImage (image , margin = 250 , n = 100 ):
+def calculateSkeletonImage (image , margin = 250 ):
     skeletonImage = np.zeros(image.shape)
     croppedImage = cropImageMargins(image , margin = margin)
     skeletonImage[margin:image.shape[0]-margin , margin:image.shape[1]-margin] = spotDarkVessels(croppedImage)

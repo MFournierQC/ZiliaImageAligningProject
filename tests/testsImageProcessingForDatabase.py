@@ -29,7 +29,7 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
         
     def testGetRosaProperties(self):
         rosaImages = self.db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
-                                     , content='rosa', eye='os', limit=10)
+                                     , content='rosa', eye='os', limit=2)
         rosaProperties = getRosaProperties(rosaImages)
 
         self.assertIsNotNone(rosaProperties)
@@ -65,9 +65,47 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
         retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
                                                 , eye='os', limit=3)
         margin = 100
-        croppedImage = cropImageMargins(retinaImages[0], margin=margin)
-        self.assertTrue(croppedImage.shape[0] == retinaImages[0].shape[0] - margin * 2)
-        self.assertTrue(croppedImage.shape[1] == retinaImages[0].shape[1] - margin * 2)
+        for image in retinaImages:
+            croppedImage = cropImageMargins(image, margin=margin)
+            self.assertTrue(isinstance(croppedImage, np.ndarray))
+            self.assertTrue(len(croppedImage.squeeze().shape) == 2)
+            self.assertTrue(croppedImage.shape[0] == image.shape[0] - margin * 2)
+            self.assertTrue(croppedImage.shape[1] == image.shape[1] - margin * 2)
+
+    def testSpotDarkVessels(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=3)
+        for image in retinaImages:
+            vesselsImage = spotDarkVessels(image)
+            self.assertIsNotNone(vesselsImage)
+            self.assertTrue(isinstance(vesselsImage, np.ndarray))
+            self.assertTrue(len(vesselsImage.squeeze().shape) == 2)
+            self.assertTrue(vesselsImage.shape[0] == image.shape[0])
+            self.assertTrue(vesselsImage.shape[1] == image.shape[1])
+
+    def testCalculateSkeletonImage(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=3)
+        for image in retinaImages:
+            skeletonImage = calculateSkeletonImage(image)
+            self.assertIsNotNone(skeletonImage)
+            self.assertTrue(isinstance(skeletonImage, np.ndarray))
+            self.assertTrue(len(skeletonImage.squeeze().shape) == 2)
+            self.assertTrue(skeletonImage.shape[0] == image.shape[0])
+            self.assertTrue(skeletonImage.shape[1] == image.shape[1])
+
+    def testFindGoodImagesIndex(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=10)
+        isBluryFlag = findBlurryImages(retinaImages)
+        goodImages=findGoodImagesIndex(isBluryFlag)
+        self.assertIsNotNone(goodImages)
+        self.assertTrue(len(goodImages) <= len(isBluryFlag))
+        for imageNumber in goodImages:
+            self.assertTrue(isBluryFlag[imageNumber] == 'False')
+
+
+
 
 
 
