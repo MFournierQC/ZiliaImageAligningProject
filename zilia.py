@@ -20,6 +20,9 @@ class ZiliaDB(Database):
         for path in cls.databaseCandidates:
             absPath = os.path.abspath(path)
             if os.path.exists(path):
+                if os.path.isabs(path):
+                    print("Using possibly slow network path. Consider copying {0} to {1} or {2}".format(abspath, os.path.abspath('.'),os.path.abspath('..') ))
+
                 return absPath
 
         return None
@@ -67,8 +70,6 @@ class ZiliaDB(Database):
         """
         if ziliaDbPath is None:
             ziliaDbPath = ZiliaDB.findDatabasePath()
-            if os.path.isabs(ziliaDbPath):
-                print("Using possibly slow network path. Consider copying {0} to {1} or {2}".format(ziliaDbPath, os.path.abspath('.'),os.path.abspath('..') ))
 
         if root is None:
             root = ZiliaDB.findDataFilesRoot()
