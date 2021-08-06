@@ -45,7 +45,7 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
                                                 , eye='os', limit=10)
         self.assertIsNotNone(retinaImages)
         self.assertTrue(isinstance(retinaImages, list))
-        self.assertEqual(len(rosaImages), 10)
+        self.assertEqual(len(retinaImages), 10)
         for image in retinaImages:
             self.assertTrue(isinstance(image, np.ndarray))
             self.assertTrue(len(image.squeeze().shape) == 2)
@@ -64,6 +64,8 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
                                                 , eye='os', limit=3)
         margin = 100
         croppedImage = cropImageMargins(retinaImages[0], margin=margin)
+        self.assertTrue(isinstance(croppedImage, np.ndarray))
+        self.assertTrue(len(croppedImage.squeeze().shape) == 2)
         self.assertTrue(croppedImage.shape[0] == retinaImages[0].shape[0] - margin * 2)
         self.assertTrue(croppedImage.shape[1] == retinaImages[0].shape[1] - margin * 2)
 
