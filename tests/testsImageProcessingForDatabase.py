@@ -92,6 +92,19 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
             self.assertTrue(skeletonImage.shape[0] == image.shape[0])
             self.assertTrue(skeletonImage.shape[1] == image.shape[1])
 
+    def testFindGoodImagesIndex(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=10)
+        isBluryFlag = findBlurryImages(retinaImages)
+        goodImages=findGoodImagesIndex(isBluryFlag)
+        self.assertIsNotNone(goodImages)
+        self.assertTrue(len(goodImages) <= len(isBluryFlag))
+        for imageNumber in goodImages:
+            self.assertTrue(isBluryFlag[imageNumber] == 'False')
+
+
+
+
 
 
 if __name__=="__main__":
