@@ -59,37 +59,30 @@ def normalizeRef(Spec):
     Spec.data = Spec.data/np.std(Spec.data)
     return Spec
 
-
-
-
 def loadWhiteRef(backgroundPath, whiteRefPath,
                  skipRowsNothing=24, skipRowsWhite=24, wavelengthColumn=1,
                  firstSpecColumn=4):
-    # returns cropped (between 500 to 600) white reference and the wavelength"
     background = pd.read_csv(backgroundPath, sep=',', skiprows=skipRowsNothing).to_numpy()
     refWhite = pd.read_csv(whiteRefPath, sep=',', skiprows=skipRowsWhite).to_numpy()
-    refSpectrum = Spectrum()
-    refSpectrum.wavelength = refWhite[:,wavelengthColumn]
-    refSpectrum.data = np.mean(refWhite[:,firstSpecColumn:],axis=1)-np.mean(background[:,firstSpecColumn:],axis=1)
-    croppedRef = cropFunction(refSpectrum, lowerLimitNormalization, upperLimitNormalization)
-    refCroppedNormalized = normalizeRef(croppedRef)
-    refOximetry = cropFunction(refCroppedNormalized,lowerLimitOximetry,upperLimitOximetry)
-    return refOximetry
+    wavelengths = refWhite[:,wavelengthColumn]
+    spectra = refWhite[:,firstSpecColumn:]
+    background = background[:,firstSpecColumn:]
 
-def formatWhiteRef(whiteRefData):
+    return wavelengths, spectra, background
+
+def formatWhiteRef(whiteRefData, lowerLimitNormalization=510, upperLimitNormalization=590, lowerLimitOximetry=530, upperLimitOximetry = 585):
     # returns cropped (between 500 to 600) white reference and the wavelength"
-    background = pd.read_csv(backgroundPath, sep=',', skiprows=skipRowsNothing).to_numpy()
-    refWhite = pd.read_csv(whiteRefPath, sep=',', skiprows=skipRowsWhite).to_numpy()
+    wavelengths = whiteRefData[0]
+    spectra = whiteRefData[1]
+    background = whiteRefData[2]
+    meanSpectra = np.mean(spectra, axis=1) - np.mean(background, axis=1)
     refSpectrum = Spectrum()
-    refSpectrum.wavelength = refWhite[:,wavelengthColumn]
-    refSpectrum.data = np.mean(refWhite[:,firstSpecColumn:],axis=1)-np.mean(background[:,firstSpecColumn:],axis=1)
+    refSpectrum.data = meanSpectra
+    refSpectrum.wavelength = wavelengths
     croppedRef = cropFunction(refSpectrum, lowerLimitNormalization, upperLimitNormalization)
     refCroppedNormalized = normalizeRef(croppedRef)
-    refOximetry = cropFunction(refCroppedNormalized,lowerLimitOximetry,upperLimitOximetry)
+    refOximetry = cropFunction(refCroppedNormalized, lowerLimitOximetry, upperLimitOximetry)
     return refOximetry
-
-
-
 
 def formatDarkRef(darkRefData, lowerLimitNormalization=510, upperLimitNormalization=590):
     ''' returns cropped (between 500 to 600) dark reference and the wavelength'''
@@ -99,6 +92,7 @@ def formatDarkRef(darkRefData, lowerLimitNormalization=510, upperLimitNormalizat
     darkRefSpec.data = np.mean(darkRefSpectra, axis=1)
     darkRefSpec.wavelength = wavelengths
     croppedDarkRef = cropFunction(darkRefSpec, lowerLimitNormalization, upperLimitNormalization)
+    croppedDarkRef.data[np.isnan(croppedDarkRef.data)] = 0
     return croppedDarkRef
 
 def formatSpectra(spectraData, lowerLimitNormalization=510, upperLimitNormalization=590):
@@ -109,6 +103,7 @@ def formatSpectra(spectraData, lowerLimitNormalization=510, upperLimitNormalizat
     spec.data = spectra
     spec.wavelength = wavelengths
     croppedSpectrum = cropFunction(spec, lowerLimitNormalization, upperLimitNormalization)
+    croppedSpectrum.data[np.isnan(croppedSpectrum.data)] = 0
     return croppedSpectrum
 
 def setSaturationFlag(spectrum, saturatedValue=65535):
@@ -211,9 +206,7 @@ def mainAnalysis(darkRefData, spectraData, componentsSpectra=r'_components_spect
     whiteRefData = loadWhiteRef(whiteRefBackground=whiteRefBackground, whiteRefPath=whiteRefPath)
     whiteRef = formatWhiteRef(whiteRefData)
     darkRef = formatDarkRef(darkRefData)
-    darkRef.data[np.isnan(darkRef.data)] = 0
     spectra = formatSpectra(spectra)
-    spectra.data[np.isnan(spectra.data)] = 0
 
     saturationFlags = setSaturationFlag(spectra)
     normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
