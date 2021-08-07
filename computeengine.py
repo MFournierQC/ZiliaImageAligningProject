@@ -7,6 +7,8 @@ import time
 import json
 import signal
 
+
+
 """
 A class to run many tasks in parallel when they are mostly independent.  This engine is perfectly
 appropriate for long, repetitive calculations (for example: computing f(x) on a large
@@ -49,6 +51,8 @@ To use this engine:
 """
 
 class ComputeEngine:
+    lastMarker = "ComputeEngine.LastInput"
+    doneMarker = "ComputeEngine.Done"
     def __init__(self, maxTaskCount=None, useThreads=True):
         """
         ComputeEngine that will launch parallel tasks to compute a function on an input queue.
@@ -64,7 +68,7 @@ class ComputeEngine:
         self.outputQueue = Queue()
         self.runningTasks = []
         self.useThreads = useThreads
-
+        self.isComputationDone = False
         if maxTaskCount is None:
             self.maxTaskCount = cpu_count()
         else:
@@ -125,8 +129,9 @@ class ComputeEngine:
             raise ValueError('To use a timeout, you must use processes with useThreads=False')
 
         self.waitForInputQueue()
+        self.inputQueue.put(self.lastMarker)
 
-        while True:
+        while not self.isComputationDone:
             if self.hasTasksLeftToLaunch():
                 while len(self.runningTasks) < self.maxTaskCount:
                     self.launchTask(target=target)
@@ -197,7 +202,10 @@ class ComputeEngine:
         while not queue.empty():
             try:
                 results = queue.get(block=False)
-                print(json.dumps(results))
+                if results != ComputeEngine.doneMarker:
+                    print(json.dumps(results))
+                else:
+                    self.isComputationDone = True
             except Empty as err:
                 print(err)
 
@@ -248,9 +256,12 @@ class ComputeEngine:
 def targetWrapper(target, inputQueue, outputQueue):
     try:
         inputArgs = inputQueue.get_nowait()
-        result = target(inputArgs)
+        if inputArgs != ComputeEngine.lastMarker:
+            result = target(inputArgs)
+        else:
+            result = ComputeEngine.doneMarker
         outputQueue.put(result)
-    except:
+    except Empty as err:
         return
 
 class DBComputeEngine(ComputeEngine):
@@ -276,36 +287,35 @@ class DBComputeEngine(ComputeEngine):
         while self.inputQueue.empty():
             pass
 
-def calculateFactorial(inputQueue, outputQueue):
-    try:
-        value = inputQueue.get_nowait()
-        product = 1
-        for i in range(value):
-            product *= (i+1)
-        outputQueue.put( (value,  product) )
-    except Empty as err:
-        pass # not an error
+def calculateFactorial(value) -> float:
+    product = 1
+    for i in range(value):
+        product *= (i+1)
+    return (value,  product)
 
-def slowCalculation(inputQueue, outputQueue):
-    try:
-        value = inputQueue.get_nowait()
-        time.sleep(10)
-        outputQueue.put( value )
-    except Empty as err:
-        pass # not an error
+def slowCalculation(value):
+    time.sleep(10)
+    return value
 
 def processSimple(queue):
     while not queue.empty():
         try:
-            (n, nfactorial) = queue.get_nowait()
-            print('Just finished calculating {0}!'.format(n))
+            value = queue.get_nowait()
+            if value != ComputeEngine.doneMarker:
+                (n, nfactorial) = value
+                print('Just finished calculating {0}!'.format(n))
         except Empty as err:
             break # we are done
 
 if __name__ == "__main__":
-    N = 11
+    N = 101
     print("Calculating n! for numbers 0 to {0} (every calculation is independent)".format(N-1))
     print("======================================================================")    
+
+    print("Simple calculation, no parallelism")
+    for i in range(N):
+        print(calculateFactorial(i))
+
 
     print("Using threads: fast startup time appropriate for quick calculations")
     engine = ComputeEngine(useThreads=True)

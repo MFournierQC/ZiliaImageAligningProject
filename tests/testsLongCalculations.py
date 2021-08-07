@@ -196,7 +196,7 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
             results = resultsQueue.get()
             print(results)
 
-    @unittest.skip("long")
+    @unittest.skip("long and nasty")
     def test07GetGrayscaleEyeImagesWithPathsFullONCalculations(self):
         print("Getting paths")
         paths = self.db.getImagePaths(region='onh', limit=32000)
