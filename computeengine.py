@@ -104,6 +104,38 @@ class ComputeEngine:
         except:
             pass
 
+    def fillInputQueue(self, elements):
+        """ Fill the queue with elements, one by one. Will block if the queue gets full.
+        """
+        elements = list(elements) # explicitly turn into a list (could be a Range for instance)
+        for element in elements:
+            self.inputQueue.put(element)
+        self.inputQueue.put(ComputeEngine.lastMarker)
+
+    def fillInputQueueInTheBackground(self, elements):
+        """
+        On my machine, the queue has 32768 elements maximum.  Use this function to fill the queue
+        in the background, start the computation and keep filling it while it computes.
+        """
+        self.backgroundFillThread = Thread(target=self.fillInputQueue, args=(elements,))
+        self.backgroundFillThread.start()
+
+    def fillInputQueueUntilFull(self, elements):
+        """ Fill the queue with elements, one by one.  If the queue gets full, it will return the elements
+        that were not put onto the queue.
+
+        Typically, you may want to call this function, then call fillInputQueueInTheBackground() 
+        with the returned elements.
+        """
+
+        while not self.inputQueue.full():
+            if len(elements) > 0:
+                element = elements.pop(0)
+                self.inputQueue.put(element)
+            else:
+                break
+        return elements
+
     def compute(self, target, 
                       unwrapArguments = False,
                       processTaskResults=None, 
@@ -136,7 +168,6 @@ class ComputeEngine:
             raise ValueError('To use a timeout, you must use processes with useThreads=False')
 
         self.waitForInputQueue()
-        self.inputQueue.put(self.lastMarker)
 
         isComputationDone = False
         while not isComputationDone:
@@ -149,10 +180,10 @@ class ComputeEngine:
             self.terminateTimedOutTasks(timeoutInSeconds=timeoutInSeconds)
             self.pruneCompletedTasks()
 
-            time.sleep(0.1)
-
         self.pruneCompletedTasks()
-        assert(self.inputQueue.empty())
+        if not self.inputQueue.empty():
+            while not self.inputQueue.empty():
+                print(self.inputQueue.get_nowait())
 
     def waitForInputQueue(self, timeout=0.3):
         """
@@ -203,20 +234,20 @@ class ComputeEngine:
         It returns True when everything has been processed (that is, when the element corresponds to 
         the lastMarker and the result is doneMarker)
         """
+        isComputationDone = False
         while not self.outputQueue.empty():
             try:
                 inputArgs, results = self.outputQueue.get(block=False)
                 if inputArgs == ComputeEngine.lastMarker and results == ComputeEngine.doneMarker:
-                    return True
+                    isComputationDone = True
                 else:
                     if userProcessFunction is not None:
                         userProcessFunction(inputArgs, results)
                     else:
                         self.defaultProcessFunction(inputArgs, results)
-                    return False
-
             except Empty as err:
-                return False
+                pass
+        return isComputationDone
 
     def defaultProcessFunction(self, inputArgs, results):
         print(results)
@@ -230,7 +261,7 @@ class ComputeEngine:
 
         for (task, startTime) in self.runningTasks:
             if time.time() > startTime+timeoutInSeconds:
-                if not self.useThreads:
+                if isinstance(task, Process):
                     task.terminate()
                 else:
                     print("Task has timed out but threads cannot be terminated")
@@ -280,10 +311,10 @@ class ComputeEngine:
         try:
             inputArgs = inputQueue.get_nowait()
             if inputArgs != ComputeEngine.lastMarker:
-                if not unwrapArguments:
-                    result = target(inputArgs)
-                else:
+                if unwrapArguments:
                     result = target(*inputArgs)
+                else:
+                    result = target(inputArgs)
             else:
                 result = ComputeEngine.doneMarker
             outputQueue.put( (inputArgs, result) )
@@ -318,22 +349,17 @@ def calculateFactorial(value) -> float:
         product *= (i+1)
     return (value,  product)
 
-def calculationWith3Arguments(value1, value2,value3) -> float:
+def calculationWith3Arguments(value1, value2,value3) -> (float,float,float,float):
     product = 1
     for i in range(value1):
         product *= (i+1)
     return (value1, value2, value3, product)
 
-
-def slowCalculation(value):
-    time.sleep(10)
-    return value
-
 def processResults(args, results)->bool:
     print('Just finished calculating {0}!'.format(args))
 
 if __name__ == "__main__":
-    N = 10
+    N = 1000
     print("Calculating n! for numbers 0 to {0} (every calculation is independent)".format(N-1))
     print("======================================================================")    
 
@@ -341,27 +367,17 @@ if __name__ == "__main__":
     for i in range(N):
         print(calculateFactorial(i))
 
-
     print("Using threads: fast startup time appropriate for quick calculations")
     engine = ComputeEngine(useThreads=True)
-    for i in range(N):
-        engine.inputQueue.put(i)
+    engine.fillInputQueue(range(N))
     engine.compute(target=calculateFactorial)
 
     print("Using processes: long startup time appropriate for longer calculations")
     engine = ComputeEngine(useThreads=False)
-    for i in range(N):
-        engine.inputQueue.put(i)
+    engine.fillInputQueue(range(N))
     engine.compute(target=calculateFactorial)
 
     print("Using threads and replacing the processTaskResult function")
     engine = ComputeEngine(useThreads=True)
-    for i in range(N):
-        engine.inputQueue.put(i)
+    engine.fillInputQueue(range(N))
     engine.compute(target=calculateFactorial, processTaskResults=processResults)
-
-    print("Using threads with a function that takes 3 arguments")
-    engine = ComputeEngine(useThreads=True)
-    for i in range(N):
-        engine.inputQueue.put( (i,i+1,i+2))
-    engine.compute(target=calculationWith3Arguments, unwrapArguments=True)
