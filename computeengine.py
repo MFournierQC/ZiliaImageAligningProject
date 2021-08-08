@@ -363,21 +363,34 @@ if __name__ == "__main__":
     print("Calculating n! for numbers 0 to {0} (every calculation is independent)".format(N-1))
     print("======================================================================")    
 
+    startTime = time.time()
     print("Simple calculation, no parallelism")
     for i in range(N):
         print(calculateFactorial(i))
+    singleTime = time.time() - startTime
 
     print("Using threads: fast startup time appropriate for quick calculations")
     engine = ComputeEngine(useThreads=True)
     engine.fillInputQueue(range(N))
+    startTime = time.time()
     engine.compute(target=calculateFactorial)
+    threadTime = time.time() - startTime
 
     print("Using processes: long startup time appropriate for longer calculations")
     engine = ComputeEngine(useThreads=False)
     engine.fillInputQueue(range(N))
+    startTime = time.time()
     engine.compute(target=calculateFactorial)
+    processTime = time.time() - startTime
 
     print("Using threads and replacing the processTaskResult function")
     engine = ComputeEngine(useThreads=True)
     engine.fillInputQueue(range(N))
+    startTime = time.time()
     engine.compute(target=calculateFactorial, processTaskResults=processResults)
+    threadCustomTime = time.time() - startTime
+
+    print("Single-threaded:", singleTime)
+    print("Multi-threaded:", threadTime)
+    print("Multi-process:", processTime)
+    print("Single-threaded, custom:", threadCustomTime)
