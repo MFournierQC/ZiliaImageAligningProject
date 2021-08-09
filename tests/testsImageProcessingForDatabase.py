@@ -176,8 +176,25 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
         self.assertTrue(length > 50)
         self.assertTrue(onhCenterXCoords > 0 )
         self.assertTrue(onhCenterYCoords > 0 )
+        
+    def testCalculateRosaDistanceFromOnhInRefImage(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=10)
+        shiftValueFromReferenceImage, imageIsValid = calculateValidShiftsInOneAcquisition(retinaImages)
+        refImage = findRefImage(imageIsValid, retinaImages)
+        onhXCenter, onhYCenter, length = findOHNParamsInRefImage(refImage)
 
-
+        rosaImages = self.db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                          , content='rosa', eye='os', limit=10)
+        rosaProperties = getRosaProperties(rosaImages)
+        rosaOnRefImage = applyShiftOnRosaCenter(rosaProperties, shiftValueFromReferenceImage)
+        rosaDistanceFromOnh = calculateRosaDistanceFromOnhInRefImage(onhXCenter, onhYCenter, rosaOnRefImage)
+        for i in range(len(rosaOnRefImage)):
+            if rosaOnRefImage[i] is not None:
+                self.assertIsNotNone(rosaDistanceFromOnh[i][0])
+                self.assertIsNotNone(rosaDistanceFromOnh[i][1])
+            if rosaOnRefImage[i] is None:
+                self.assertIsNone(rosaDistanceFromOnh[i])
 
 if __name__=="__main__":
     envtest.main()
