@@ -164,6 +164,18 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
             self.assertTrue(np.max(normalizedImage) == 1)
             self.assertTrue(np.min(normalizedImage) == 0)
 
+    def testFindONHParamsInRefImage(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=10)
+        shiftValueFromReferenceImage, imageIsValid = calculateValidShiftsInOneAcquisition(retinaImages)
+        refImage = findRefImage(imageIsValid, retinaImages)
+        onhCenterXCoords, onhCenterYCoords, length = findOHNParamsInRefImage(refImage)
+        self.assertIsNotNone(onhCenterXCoords)
+        self.assertIsNotNone(onhCenterYCoords)
+        self.assertIsNotNone(length)
+        self.assertTrue(length > 50)
+        self.assertTrue(onhCenterXCoords > 0 )
+        self.assertTrue(onhCenterYCoords > 0 )
 
 
 
