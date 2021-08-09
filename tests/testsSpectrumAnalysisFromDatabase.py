@@ -90,19 +90,17 @@ class TestSpectrumAnalysisFromDatabase(envtest.ZiliaTestCase):
         self.assertIsNotNone(spectra)
         spectraData = spectra.data
         spectraWave = spectra.wavelength
+        self.assertIsNotNone(spectraData)
+        self.assertIsNotNone(spectraWave)
         self.assertEqual(len(spectraData.squeeze().shape), 2)
         self.assertEqual(len(spectraWave.squeeze().shape), 1)
         for shape in spectraData.squeeze().shape:
             self.assertGreater(shape, 0)
-        self.assertGreater(min(spectraData.shape), 0)
         self.assertGreater(len(spectraWave), 0)
-        self.assertIsNotNone(spectraData)
-        self.assertIsNotNone(spectraWave)
-        self.assertEqual(max(spectraData.shape), len(spectraWave))
+        self.assertEqual(spectraData.shape[0], len(spectraWave))
 
     def testMainSpectrumAnalysisRlp6(self):
         pass
-
 
 if __name__ == '__main__':
     envtest.main()
