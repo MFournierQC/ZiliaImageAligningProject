@@ -130,6 +130,23 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
                 self.assertIsNotNone(rosaOnRefImage[i][0])
                 self.assertIsNotNone(rosaOnRefImage[i][1])
 
+    def test01CrossImage(self):
+        firstImage = np.zeros([10,20])
+        firstImage[5,10] = 1
+        secondImage = firstImage
+        crossCorrelationResult = crossImage(firstImage, secondImage)
+        self.assertTrue(crossCorrelationResult.shape[0] == firstImage.shape[0])
+        self.assertTrue(crossCorrelationResult.shape[1] == firstImage.shape[1])
+        self.assertTrue(np.max(crossCorrelationResult) >= 0.99)
+
+    def test02CrossImage(self):
+        firstImage = np.zeros([10,20])
+        firstImage[5,10] = 1
+        secondImage = np.zeros([10,20])
+        crossCorrelationResult = crossImage(firstImage, secondImage)
+        self.assertTrue(np.sum(crossCorrelationResult) == 0)
+
+
 
 
 
