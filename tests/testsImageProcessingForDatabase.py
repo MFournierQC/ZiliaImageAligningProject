@@ -135,8 +135,7 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
         firstImage[5,10] = 1
         secondImage = firstImage
         crossCorrelationResult = crossImage(firstImage, secondImage)
-        self.assertTrue(crossCorrelationResult.shape[0] == firstImage.shape[0])
-        self.assertTrue(crossCorrelationResult.shape[1] == firstImage.shape[1])
+        self.assertTrue(crossCorrelationResult.shape == firstImage.shape)
         self.assertTrue(np.max(crossCorrelationResult) >= 0.99)
 
     def test02CrossImage(self):
@@ -153,13 +152,17 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
         refImage = findRefImage(imageIsValid , retinaImages)
         self.assertIsNotNone(refImage)
         for image in retinaImages:
-            self.assertTrue(refImage.shape[0] == image.shape[0])
-            self.assertTrue(refImage.shape[1] == image.shape[1])
-            
-    
+            self.assertTrue(refImage.shape == image.shape)
 
-
-
+    def testNormalize(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=10)
+        for image in retinaImages:
+            normalizedImage=normalize(image)
+            self.assertIsNotNone(normalizedImage)
+            self.assertTrue(normalizedImage.shape == image.shape)
+            self.assertTrue(np.max(normalizedImage) == 1)
+            self.assertTrue(np.min(normalizedImage) == 0)
 
 
 
