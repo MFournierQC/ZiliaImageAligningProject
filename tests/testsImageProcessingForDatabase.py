@@ -104,7 +104,18 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
         for imageNumber in goodImages:
             self.assertTrue(isBluryFlag[imageNumber] == 'False')
 
+    def testCalculateValidShiftInOneAcquisition(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=10)
+        shiftValueFromReferenceImage, imageIsValid = calculateValidShiftsInOneAcquisition (retinaImages)
+        self.assertTrue(len(shiftValueFromReferenceImage) == 10)
+        self.assertTrue(len(imageIsValid) == 10)
+        for i in range(len(imageIsValid)):
+            if imageIsValid[i] is not None:
+                self.assertIsNotNone(shiftValueFromReferenceImage[i][0])
+                self.assertIsNotNone(shiftValueFromReferenceImage[i][1])
 
+    
 
 
 
