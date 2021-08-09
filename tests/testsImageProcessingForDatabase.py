@@ -115,7 +115,22 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
                 self.assertIsNotNone(shiftValueFromReferenceImage[i][0])
                 self.assertIsNotNone(shiftValueFromReferenceImage[i][1])
 
-    
+    def testApplyShiftOnRosaCenter(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=10)
+        shiftValueFromReferenceImage, imageIsValid = calculateValidShiftsInOneAcquisition(retinaImages)
+
+        rosaImages = self.db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                          , content='rosa', eye='os', limit=10)
+        rosaProperties = getRosaProperties(rosaImages)
+        rosaOnRefImage = applyShiftOnRosaCenter(rosaProperties, shiftValueFromReferenceImage)
+        self.assertTrue(len(rosaOnRefImage) == 10)
+        for i in range(len(imageIsValid)):
+            if imageIsValid[i] is not None and rosaProperties[i]['found'] is True:
+                self.assertIsNotNone(rosaOnRefImage[i][0])
+                self.assertIsNotNone(rosaOnRefImage[i][1])
+
+
 
 
 
