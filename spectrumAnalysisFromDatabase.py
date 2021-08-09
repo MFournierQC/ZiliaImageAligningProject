@@ -48,10 +48,10 @@ def normalizeRef(Spec):
     Spec.data = Spec.data/np.std(Spec.data)
     return Spec
 
-def loadWhiteRef(backgroundPath, whiteRefPath,
-                 skipRowsNothing=24, skipRowsWhite=24, wavelengthColumn=1,
+def loadWhiteRef(whiteRefPath, backgroundPath,
+                 skipRowsBack=23, skipRowsWhite=23, wavelengthColumn=1,
                  firstSpecColumn=4):
-    background = pd.read_csv(backgroundPath, sep=',', skiprows=skipRowsNothing).to_numpy()
+    background = pd.read_csv(backgroundPath, sep=',', skiprows=skipRowsBack).to_numpy()
     refWhite = pd.read_csv(whiteRefPath, sep=',', skiprows=skipRowsWhite).to_numpy()
     wavelengths = refWhite[:,wavelengthColumn]
     spectra = refWhite[:,firstSpecColumn:]
@@ -71,6 +71,7 @@ def formatWhiteRef(whiteRefData, lowerLimitNormalization=510, upperLimitNormaliz
     croppedRef = cropFunction(refSpectrum, lowerLimitNormalization, upperLimitNormalization)
     refCroppedNormalized = normalizeRef(croppedRef)
     refOximetry = cropFunction(refCroppedNormalized, lowerLimitOximetry, upperLimitOximetry)
+    refOximetry.data[np.isnan(refOximetry.data)] = 0
     return refOximetry
 
 def formatDarkRef(darkRefData, lowerLimitNormalization=510, upperLimitNormalization=590):
@@ -213,7 +214,7 @@ def mainAnalysis(darkRefData, spectraData, componentsSpectra=r'_components_spect
     are needed.
     Return concentration, absorbance if blood samples???
     """
-    whiteRefData = loadWhiteRef(whiteRefBackground=whiteRefBackground, whiteRefPath=whiteRefPath)
+    whiteRefData = loadWhiteRef(whiteRefPath, whiteRefBackground)
     whiteRef = formatWhiteRef(whiteRefData)
     darkRef = formatDarkRef(darkRefData)
     spectra = formatSpectra(spectraData)
