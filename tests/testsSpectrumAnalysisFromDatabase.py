@@ -1,6 +1,7 @@
 import envtest
 from spectrumAnalysisFromDatabase import *
 from zilia import *
+import numpy as np
 
 
 class TestSpectrumAnalysisFromDatabase(envtest.ZiliaTestCase):
@@ -98,6 +99,49 @@ class TestSpectrumAnalysisFromDatabase(envtest.ZiliaTestCase):
             self.assertGreater(shape, 0)
         self.assertGreater(len(spectraWave), 0)
         self.assertEqual(spectraData.shape[0], len(spectraWave))
+
+    def testSetSaturationFlag(self):
+        fakeSpectra = Spectrum()
+        fakeSpectra.data = np.array([[1, 10, 11, 12, 13],[1, 10, 11, 10, 13], [1, 10, 11, 10, 13]])
+        saturatedValue = 12
+        self.assertEqual(fakeSpectra.data.shape, (3,5))
+        flags = setSaturationFlag(fakeSpectra, saturatedValue=saturatedValue)
+        # print(flags)
+        saturatedIndexes = np.nonzero(flags)
+        self.assertEqual(len(saturatedIndexes), 1)
+        self.assertEqual(saturatedIndexes[0], 3)
+
+    def testNormalizeSpectrum(self):
+        rawSpectra = self.db.getRawIntensities(rlp=6, limit=10)
+        wavelengths = self.db.getWavelengths()
+        rawSpectraData = wavelengths, rawSpectra
+        spectra = formatSpectra(rawSpectraData)
+        darkRefData = self.db.getBackgroundIntensities(rlp=6)
+        darkWavelengths, darkRefSpectra = darkRefData
+        darkRefData = wavelengths, darkRefData
+        darkRef = formatDarkRef(darkRefData)
+        # self.assertEqual(len(darkRef.wavelength.squeeze()), len(spectra.wavelength.squeeze()))
+
+        normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
+        print(normalizedSpectrum)
+        self.assertEqual(max(normalizedSpectrum.data), 1)
+        self.assertEqual(min(normalizedSpectrum.data), 0)
+
+
+    def testAbsorbanceSpectrum(self):
+        pass
+
+    def testCropComponents(self):
+        pass
+
+    def testComponentsToArray(self):
+        pass
+
+    def testGetCoefficients(self):
+        pass
+
+    def testGetConcentration(self):
+        pass
 
     def testMainSpectrumAnalysisRlp6(self):
         pass

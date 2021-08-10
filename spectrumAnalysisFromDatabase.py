@@ -34,19 +34,23 @@ def loadComponentsSpectra(componentsSpectra):
         }
     return components_spectra
 
-def cropFunction(Spec, lowerLimit, upperLimit):
+def cropFunction(spec, lowerLimit, upperLimit):
     """crop the spectrum between lower limit and upper limit"""
+    # print(len(spec.wavelength))
+    # print(spec.wavelength)
     croppedSpectrum = Spectrum()
-    croppedSpectrum.wavelength = Spec.wavelength[
-        np.where(np.logical_and(lowerLimit <= Spec.wavelength, Spec.wavelength <= upperLimit))]
-    croppedSpectrum.data = Spec.data[
-        np.where(np.logical_and(lowerLimit <= Spec.wavelength, Spec.wavelength <= upperLimit))]
+    croppedSpectrum.wavelength = spec.wavelength[
+        np.where(np.logical_and(lowerLimit <= spec.wavelength, spec.wavelength <= upperLimit))]
+    croppedSpectrum.data = spec.data[
+        np.where(np.logical_and(lowerLimit <= spec.wavelength, spec.wavelength <= upperLimit))]
+    print(len(croppedSpectrum.data))
+    print(croppedSpectrum.wavelength)
     return croppedSpectrum
 
-def normalizeRef(Spec):
+def normalizeRef(spec):
     """divide the spectrum by its standard deviation"""
-    Spec.data = Spec.data/np.std(Spec.data)
-    return Spec
+    spec.data = spec.data/np.std(spec.data)
+    return spec
 
 def loadWhiteRef(whiteRefPath, backgroundPath,
                  skipRowsBack=23, skipRowsWhite=23, wavelengthColumn=1,
@@ -108,7 +112,7 @@ def normalizeSpectrum(spec, darkRef, lowerLimitOximetry=530, upperLimitOximetry=
     """returns the normalized spectrum for the data"""
     dRefTile = np.tile(darkRef.data, (spec.data.shape[1], 1)).T
     spectrumData = spec.data - dRefTile
-    STDspectrum = np.std(spectrumData,axis=0)
+    STDspectrum = np.std(spectrumData, axis=0)
     spectrumDataNormalized = Spectrum()
     spectrumDataNormalized.data = (spectrumData.T/STDspectrum[:,None]).T
     spectrumDataNormalized.wavelength = spec.wavelength
@@ -179,7 +183,7 @@ def getCoefficients(absorbance, variables):
     """apply nnls and get coefs"""
     allCoef = np.zeros([absorbance.data.shape[1], variables.shape[0]])
     for i in range(absorbance.data.shape[1]):
-        coef = nnls(variables.T, absorbance.data[:,i], maxiter=2000 )
+        coef = nnls(variables.T, absorbance.data[:,i], maxiter=2000)
         allCoef[i,:] = coef[0]
     return allCoef
 
