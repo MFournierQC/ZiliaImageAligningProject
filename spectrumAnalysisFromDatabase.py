@@ -43,8 +43,6 @@ def cropFunction(spec, lowerLimit, upperLimit):
         np.where(np.logical_and(lowerLimit <= spec.wavelength, spec.wavelength <= upperLimit))]
     croppedSpectrum.data = spec.data[
         np.where(np.logical_and(lowerLimit <= spec.wavelength, spec.wavelength <= upperLimit))]
-    print(len(croppedSpectrum.data))
-    print(croppedSpectrum.wavelength)
     return croppedSpectrum
 
 def normalizeRef(spec):
@@ -109,16 +107,21 @@ def setSaturationFlag(spectrum, saturatedValue=65535):
     return saturationFlag
 
 def normalizeSpectrum(spec, darkRef, lowerLimitOximetry=530, upperLimitOximetry=585):
-    """returns the normalized spectrum for the data"""
-    dRefTile = np.tile(darkRef.data, (spec.data.shape[1], 1)).T
-    spectrumData = spec.data - dRefTile
+    """
+    Returns the normalized spectrum for the data:
+    - First, substract the background from every spectra
+    - Second, divide the resulting spectra by their respective standard deviation
+    - Third, crop the spectra
+    """
+    repeatedBackground = np.tile(darkRef.data, (spec.data.shape[1], 1)).T
+    spectrumData = spec.data - repeatedBackground
     STDspectrum = np.std(spectrumData, axis=0)
-    spectrumDataNormalized = Spectrum()
-    spectrumDataNormalized.data = (spectrumData.T/STDspectrum[:,None]).T
-    spectrumDataNormalized.wavelength = spec.wavelength
-    croppedSpectrumOxymetry = cropFunction(spectrumDataNormalized, lowerLimitOximetry, upperLimitOximetry)
-    croppedSpectrumOxymetry.data[np.isnan(croppedSpectrumOxymetry.data)] = 0
-    return croppedSpectrumOxymetry
+    spectraDataNormalized = Spectrum()
+    spectraDataNormalized.data = (spectrumData.T/STDspectrum[:,None]).T
+    spectraDataNormalized.wavelength = spec.wavelength
+    croppedSpectraOxymetry = cropFunction(spectraDataNormalized, lowerLimitOximetry, upperLimitOximetry)
+    croppedSpectraOxymetry.data[np.isnan(croppedSpectraOxymetry.data)] = 0
+    return croppedSpectraOxymetry
 
 def findNearest(array, value):
     """find the nearest value to a value in an array and returns the index"""
@@ -127,7 +130,9 @@ def findNearest(array, value):
     return idx
 
 def absorbanceSpectrum(refSpec, normalizedSpec):
-    """calculate the absorbance spectrum using white reference and normalized spectrum"""
+    """
+    Calculate the absorbance spectrum using white reference and normalized spectrum
+    """
     modifiedData = np.zeros(normalizedSpec.data.shape)
     for i in range(normalizedSpec.wavelength.shape[0]):
         modifiedData[i,:] = refSpec.data[findNearest(refSpec.wavelength, normalizedSpec.wavelength[i])]

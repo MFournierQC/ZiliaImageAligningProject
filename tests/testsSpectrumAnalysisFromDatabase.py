@@ -83,6 +83,21 @@ class TestSpectrumAnalysisFromDatabase(envtest.ZiliaTestCase):
         self.assertGreater(len(darkRefWave), 0)
         self.assertEqual(len(darkRefSpectrum), len(darkRefWave))
 
+    def testFormatDarkRefWithGlobalWaveLengths(self):
+        darkRefData = self.db.getBackgroundIntensities(rlp=6)
+        wave = self.db.getWavelengths()
+        darkRefData = wave, darkRefData[1]
+        darkRef = formatDarkRef(darkRefData)
+        self.assertIsNotNone(darkRef)
+        darkRefSpectrum = darkRef.data
+        darkRefWave = darkRef.wavelength
+        self.assertIsNotNone(darkRefSpectrum)
+        self.assertIsNotNone(darkRefWave)
+        self.assertEqual(len(darkRefSpectrum.squeeze().shape), 1)
+        self.assertEqual(len(darkRefWave.squeeze().shape), 1)
+        self.assertGreater(len(darkRefWave), 0)
+        self.assertEqual(len(darkRefSpectrum), len(darkRefWave))
+
     def testFormatSpectra(self):
         rawSpectra = self.db.getRawIntensities(rlp=6, limit=10)
         wavelengths = self.db.getWavelengths()
@@ -111,25 +126,54 @@ class TestSpectrumAnalysisFromDatabase(envtest.ZiliaTestCase):
         self.assertEqual(len(saturatedIndexes), 1)
         self.assertEqual(saturatedIndexes[0], 3)
 
+    @envtest.expectedFailure
+    def testNormalizationFailsIfNotSameWavelengthsForSpectraAndDarkRef(self):
+        rawSpectra = self.db.getRawIntensities(rlp=6, limit=10)
+        wavelengths = self.db.getWavelengths()
+        rawSpectraData = wavelengths, rawSpectra
+        spectra = formatSpectra(rawSpectraData)
+        darkRefData = self.db.getBackgroundIntensities(rlp=6)
+        darkRef = formatDarkRef(darkRefData)
+        normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
+
     def testNormalizeSpectrum(self):
         rawSpectra = self.db.getRawIntensities(rlp=6, limit=10)
         wavelengths = self.db.getWavelengths()
         rawSpectraData = wavelengths, rawSpectra
         spectra = formatSpectra(rawSpectraData)
         darkRefData = self.db.getBackgroundIntensities(rlp=6)
-        darkWavelengths, darkRefSpectra = darkRefData
-        darkRefData = wavelengths, darkRefData
+        _, darkRefSpectra = darkRefData
+        darkRefData = wavelengths, darkRefSpectra
         darkRef = formatDarkRef(darkRefData)
-        # self.assertEqual(len(darkRef.wavelength.squeeze()), len(spectra.wavelength.squeeze()))
+        self.assertEqual(len(darkRef.wavelength.squeeze()), len(spectra.wavelength.squeeze()))
 
         normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
-        print(normalizedSpectrum)
-        self.assertEqual(max(normalizedSpectrum.data), 1)
-        self.assertEqual(min(normalizedSpectrum.data), 0)
-
+        data = normalizedSpectrum.data
+        wavelengths = normalizedSpectrum.wavelength
+        self.assertIsNotNone(normalizedSpectrum)
+        self.assertEqual(len(data.squeeze().shape), 2)
+        self.assertEqual(len(wavelengths.squeeze().shape), 1)
+        self.assertGreater(wavelengths.shape[0], 0)
+        self.assertEqual(data.shape[0], wavelengths.shape[0])
 
     def testAbsorbanceSpectrum(self):
-        pass
+        rawSpectra = self.db.getRawIntensities(rlp=6, limit=10)
+        wavelengths = self.db.getWavelengths()
+        rawSpectraData = wavelengths, rawSpectra
+        darkRefData = self.db.getBackgroundIntensities(rlp=6)
+
+        whiteRefData = loadWhiteRef(self.whiteRefPath, self.whiteRefBackground)
+        whiteRef = formatWhiteRef(whiteRefData)
+        spectra = formatSpectra(rawSpectraData)
+        _, darkRefSpectra = darkRefData
+        darkRefData = wavelengths, darkRefSpectra
+        darkRef = formatDarkRef(darkRefData)
+        normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
+
+        absorbance = absorbanceSpectrum(whiteRef, normalizedSpectrum)
+        data = absorbance.data
+        dataWave = absorbance.wavelength
+        print(data.shape)
 
     def testCropComponents(self):
         pass
