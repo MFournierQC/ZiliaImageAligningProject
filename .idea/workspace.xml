@@ -36,6 +36,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="1t5hrK5lmANFC9Wa2Ee1mTbWFNA" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -46,7 +47,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.testDatabaseZilia">
+  <component name="RunManager" selected="Python.main">
     <configuration name="displayResult" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -110,27 +111,6 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="spectrumAnalysis" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="$PROJECT_DIR$/venv/bin/python" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/spectrumAnalysis.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="testDatabaseZilia" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -152,20 +132,41 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
+    <configuration name="testsImageProcessingForDatabase" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ZiliaImageAligningProject" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="$PROJECT_DIR$/venv/bin/python" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tests/testsImageProcessingForDatabase.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
     <list>
       <item itemvalue="Python.displayResult" />
       <item itemvalue="Python.main" />
-      <item itemvalue="Python.spectrumAnalysis" />
       <item itemvalue="Python.processImages" />
       <item itemvalue="Python.testDatabaseZilia" />
+      <item itemvalue="Python.testsImageProcessingForDatabase" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.testDatabaseZilia" />
         <item itemvalue="Python.main" />
+        <item itemvalue="Python.testsImageProcessingForDatabase" />
+        <item itemvalue="Python.testDatabaseZilia" />
         <item itemvalue="Python.processImages" />
         <item itemvalue="Python.displayResult" />
-        <item itemvalue="Python.spectrumAnalysis" />
       </list>
     </recent_temporary>
   </component>
@@ -220,42 +221,62 @@
       <screen x="0" y="25" width="1024" height="693" />
     </state>
     <state x="212" y="25" width="760" height="693" key="#testDatabaseZilia/0.25.1024.693@0.25.1024.693" timestamp="1627054425390" />
-    <state width="1419" height="250" key="GridCell.Tab.0.bottom" timestamp="1627306319823">
+    <state x="416" y="49" key="#testsImageProcessingForDatabase" timestamp="1628089173951">
+      <screen x="0" y="25" width="1440" height="825" />
+    </state>
+    <state x="416" y="49" key="#testsImageProcessingForDatabase/0.25.1440.825@0.25.1440.825" timestamp="1628089173951" />
+    <state width="1419" height="214" key="GridCell.Tab.0.bottom" timestamp="1628621056973">
       <screen x="0" y="25" width="1440" height="825" />
     </state>
     <state width="1003" height="264" key="GridCell.Tab.0.bottom/0.25.1024.693@0.25.1024.693" timestamp="1627054737324" />
     <state width="1694" height="275" key="GridCell.Tab.0.bottom/0.25.1440.825/1440.25.1920.1055@1440.25.1920.1055" timestamp="1624454610350" />
-    <state width="1419" height="250" key="GridCell.Tab.0.bottom/0.25.1440.825@0.25.1440.825" timestamp="1627306319823" />
+    <state width="1419" height="214" key="GridCell.Tab.0.bottom/0.25.1440.825@0.25.1440.825" timestamp="1628621056973" />
     <state width="1419" height="275" key="GridCell.Tab.0.bottom/0.25.1440.875/1440.25.1920.1005@0.25.1440.875" timestamp="1624365816088" />
     <state width="1694" height="275" key="GridCell.Tab.0.bottom/0.25.1440.875/1440.25.1920.1005@1440.25.1920.1005" timestamp="1624458593682" />
     <state width="1419" height="211" key="GridCell.Tab.0.bottom/0.25.1920.1005@0.25.1920.1005" timestamp="1622558878758" />
-    <state width="1419" height="250" key="GridCell.Tab.0.center" timestamp="1627306319820">
+    <state width="1419" height="214" key="GridCell.Tab.0.center" timestamp="1628621056973">
       <screen x="0" y="25" width="1440" height="825" />
     </state>
     <state width="1003" height="264" key="GridCell.Tab.0.center/0.25.1024.693@0.25.1024.693" timestamp="1627054737285" />
     <state width="1694" height="275" key="GridCell.Tab.0.center/0.25.1440.825/1440.25.1920.1055@1440.25.1920.1055" timestamp="1624454610349" />
-    <state width="1419" height="250" key="GridCell.Tab.0.center/0.25.1440.825@0.25.1440.825" timestamp="1627306319820" />
+    <state width="1419" height="214" key="GridCell.Tab.0.center/0.25.1440.825@0.25.1440.825" timestamp="1628621056973" />
     <state width="1419" height="275" key="GridCell.Tab.0.center/0.25.1440.875/1440.25.1920.1005@0.25.1440.875" timestamp="1624365816087" />
     <state width="1694" height="275" key="GridCell.Tab.0.center/0.25.1440.875/1440.25.1920.1005@1440.25.1920.1005" timestamp="1624458593680" />
     <state width="1419" height="211" key="GridCell.Tab.0.center/0.25.1920.1005@0.25.1920.1005" timestamp="1622558878755" />
-    <state width="1419" height="250" key="GridCell.Tab.0.left" timestamp="1627306319820">
+    <state width="1419" height="214" key="GridCell.Tab.0.left" timestamp="1628621056972">
       <screen x="0" y="25" width="1440" height="825" />
     </state>
     <state width="1003" height="264" key="GridCell.Tab.0.left/0.25.1024.693@0.25.1024.693" timestamp="1627054737271" />
     <state width="1694" height="275" key="GridCell.Tab.0.left/0.25.1440.825/1440.25.1920.1055@1440.25.1920.1055" timestamp="1624454610348" />
-    <state width="1419" height="250" key="GridCell.Tab.0.left/0.25.1440.825@0.25.1440.825" timestamp="1627306319820" />
+    <state width="1419" height="214" key="GridCell.Tab.0.left/0.25.1440.825@0.25.1440.825" timestamp="1628621056972" />
     <state width="1419" height="275" key="GridCell.Tab.0.left/0.25.1440.875/1440.25.1920.1005@0.25.1440.875" timestamp="1624365816086" />
     <state width="1694" height="275" key="GridCell.Tab.0.left/0.25.1440.875/1440.25.1920.1005@1440.25.1920.1005" timestamp="1624458593679" />
     <state width="1419" height="211" key="GridCell.Tab.0.left/0.25.1920.1005@0.25.1920.1005" timestamp="1622558878753" />
-    <state width="1419" height="250" key="GridCell.Tab.0.right" timestamp="1627306319822">
+    <state width="1419" height="214" key="GridCell.Tab.0.right" timestamp="1628621056973">
       <screen x="0" y="25" width="1440" height="825" />
     </state>
     <state width="1003" height="264" key="GridCell.Tab.0.right/0.25.1024.693@0.25.1024.693" timestamp="1627054737304" />
     <state width="1694" height="275" key="GridCell.Tab.0.right/0.25.1440.825/1440.25.1920.1055@1440.25.1920.1055" timestamp="1624454610349" />
-    <state width="1419" height="250" key="GridCell.Tab.0.right/0.25.1440.825@0.25.1440.825" timestamp="1627306319822" />
+    <state width="1419" height="214" key="GridCell.Tab.0.right/0.25.1440.825@0.25.1440.825" timestamp="1628621056973" />
     <state width="1419" height="275" key="GridCell.Tab.0.right/0.25.1440.875/1440.25.1920.1005@0.25.1440.875" timestamp="1624365816087" />
     <state width="1694" height="275" key="GridCell.Tab.0.right/0.25.1440.875/1440.25.1920.1005@1440.25.1920.1005" timestamp="1624458593681" />
     <state width="1419" height="211" key="GridCell.Tab.0.right/0.25.1920.1005@0.25.1920.1005" timestamp="1622558878758" />
+    <state width="1419" height="262" key="GridCell.Tab.1.bottom" timestamp="1628104300136">
+      <screen x="0" y="25" width="1440" height="825" />
+    </state>
+    <state width="1419" height="262" key="GridCell.Tab.1.bottom/0.25.1440.825@0.25.1440.825" timestamp="1628104300136" />
+    <state width="1419" height="262" key="GridCell.Tab.1.center" timestamp="1628104300135">
+      <screen x="0" y="25" width="1440" height="825" />
+    </state>
+    <state width="1419" height="262" key="GridCell.Tab.1.center/0.25.1440.825@0.25.1440.825" timestamp="1628104300135" />
+    <state width="1419" height="262" key="GridCell.Tab.1.left" timestamp="1628104300134">
+      <screen x="0" y="25" width="1440" height="825" />
+    </state>
+    <state width="1419" height="262" key="GridCell.Tab.1.left/0.25.1440.825@0.25.1440.825" timestamp="1628104300134" />
+    <state width="1419" height="262" key="GridCell.Tab.1.right" timestamp="1628104300135">
+      <screen x="0" y="25" width="1440" height="825" />
+    </state>
+    <state width="1419" height="262" key="GridCell.Tab.1.right/0.25.1440.825@0.25.1440.825" timestamp="1628104300135" />
     <state x="229" y="73" key="SettingsEditor" timestamp="1626635442355">
       <screen x="0" y="25" width="1440" height="825" />
     </state>
