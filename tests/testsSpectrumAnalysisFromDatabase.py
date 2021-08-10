@@ -171,9 +171,16 @@ class TestSpectrumAnalysisFromDatabase(envtest.ZiliaTestCase):
         normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
 
         absorbance = absorbanceSpectrum(whiteRef, normalizedSpectrum)
+        self.assertIsNotNone(absorbance)
         data = absorbance.data
         dataWave = absorbance.wavelength
-        print(data.shape)
+        self.assertIsNotNone(data)
+        self.assertIsNotNone(dataWave)
+        self.assertEqual(len(dataWave.squeeze().shape), 1)
+        self.assertGreater(dataWave.shape[0], 0)
+        self.assertEqual(len(data.squeeze().shape), 2)
+        self.assertEqual(data.shape[0], dataWave.shape[0])
+
 
     def testCropComponents(self):
         pass

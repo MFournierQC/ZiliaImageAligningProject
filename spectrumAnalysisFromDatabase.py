@@ -123,12 +123,6 @@ def normalizeSpectrum(spec, darkRef, lowerLimitOximetry=530, upperLimitOximetry=
     croppedSpectraOxymetry.data[np.isnan(croppedSpectraOxymetry.data)] = 0
     return croppedSpectraOxymetry
 
-def findNearest(array, value):
-    """find the nearest value to a value in an array and returns the index"""
-    array = np.asarray(array)
-    idx = (np.abs(array - value)).argmin()
-    return idx
-
 def absorbanceSpectrum(refSpec, normalizedSpec):
     """
     Calculate the absorbance spectrum using white reference and normalized spectrum
@@ -138,18 +132,25 @@ def absorbanceSpectrum(refSpec, normalizedSpec):
         modifiedData[i,:] = refSpec.data[findNearest(refSpec.wavelength, normalizedSpec.wavelength[i])]
     modifiedSpec = Spectrum()
     normalizedSpec.data[normalizedSpec.data==0] = 0.0001
-    modifiedSpec.data = np.log(np.divide(modifiedData, normalizedSpec.data, out=None, where=True, casting='same_kind',
-                                order='K', dtype=None))
+    modifiedSpec.data = calculateAbsorbanceSpectrum(modifiedData, normalizedSpec)
     modifiedSpec.wavelength = normalizedSpec.wavelength
     modifiedSpec.data[np.isnan(modifiedSpec.data)] = 0
     return modifiedSpec
 
+def calculateAbsorbanceSpectrum(modifiedData, normalizedSpec):
+    return np.log(np.divide(modifiedData, normalizedSpec.data, out=None,
+                            where=True, casting='same_kind', order='K', dtype=None))
+
+def findNearest(array, value):
+    """find the nearest value to a value in an array and returns the index"""
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return idx
+
 def calculateScatteringSpectrum(spec, bValue=1.5):
-    """calculate the scattering spectrum"""
     return (spec.wavelength / 500) ** (-1 * bValue)
 
 def calculatReflectionSpectrum(spec):
-    """calculate the reflection spectrum"""
     return np.squeeze(-np.log(spec.wavelength.reshape(-1, 1)))
 
 def cropComponents(absorbanceSpectrum, componentsSpectra):
