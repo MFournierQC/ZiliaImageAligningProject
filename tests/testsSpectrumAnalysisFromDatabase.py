@@ -155,6 +155,7 @@ class TestSpectrumAnalysisFromDatabase(envtest.ZiliaTestCase):
         self.assertEqual(len(wavelengths.squeeze().shape), 1)
         self.assertGreater(wavelengths.shape[0], 0)
         self.assertEqual(data.shape[0], wavelengths.shape[0])
+        self.assertEqual(data.shape[1], 10)
 
     def testAbsorbanceSpectrum(self):
         rawSpectra = self.db.getRawIntensities(rlp=6, limit=10)
@@ -173,28 +174,66 @@ class TestSpectrumAnalysisFromDatabase(envtest.ZiliaTestCase):
         absorbance = absorbanceSpectrum(whiteRef, normalizedSpectrum)
         self.assertIsNotNone(absorbance)
         data = absorbance.data
-        dataWave = absorbance.wavelength
         self.assertIsNotNone(data)
+        dataWave = absorbance.wavelength
         self.assertIsNotNone(dataWave)
         self.assertEqual(len(dataWave.squeeze().shape), 1)
         self.assertGreater(dataWave.shape[0], 0)
         self.assertEqual(len(data.squeeze().shape), 2)
         self.assertEqual(data.shape[0], dataWave.shape[0])
+        self.assertEqual(data.shape[1], 10)
 
 
     def testCropComponents(self):
-        pass
+        rawSpectra = self.db.getRawIntensities(rlp=6, limit=10)
+        wavelengths = self.db.getWavelengths()
+        rawSpectraData = wavelengths, rawSpectra
+        darkRefData = self.db.getBackgroundIntensities(rlp=6)
+        whiteRefData = loadWhiteRef(self.whiteRefPath, self.whiteRefBackground)
+        whiteRef = formatWhiteRef(whiteRefData)
+        spectra = formatSpectra(rawSpectraData)
+        _, darkRefSpectra = darkRefData
+        darkRefData = wavelengths, darkRefSpectra
+        darkRef = formatDarkRef(darkRefData)
+        normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
+        absorbance = absorbanceSpectrum(whiteRef, normalizedSpectrum)
+
+        croppedComponent = cropComponents(absorbance, self.componentsSpectra)
+        # print(croppedComponent)
+        self.assertIsNotNone(croppedComponent)
+        self.assertIsInstance(croppedComponent, dict)
+        self.assertEqual(len(croppedComponent), 5)
+        for spectra in croppedComponent.values():
+            self.assertIsInstance(spectra, np.ndarray)
+            self.assertEqual(len(spectra.squeeze().shape), 1)
+            self.assertEqual(spectra.shape[0], absorbance.wavelength.shape[0])
 
     def testComponentsToArray(self):
-        pass
+        rawSpectra = self.db.getRawIntensities(rlp=6, limit=10)
+        wavelengths = self.db.getWavelengths()
+        rawSpectraData = wavelengths, rawSpectra
+        darkRefData = self.db.getBackgroundIntensities(rlp=6)
+        whiteRefData = loadWhiteRef(self.whiteRefPath, self.whiteRefBackground)
+        whiteRef = formatWhiteRef(whiteRefData)
+        spectra = formatSpectra(rawSpectraData)
+        _, darkRefSpectra = darkRefData
+        darkRefData = wavelengths, darkRefSpectra
+        darkRef = formatDarkRef(darkRefData)
+        normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
+        absorbance = absorbanceSpectrum(whiteRef, normalizedSpectrum)
+        croppedComponents = cropComponents(absorbance, self.componentsSpectra)
+
+        features = componentsToArray(croppedComponents)
+        self.assertIsNotNone(features)
+        self.assertIsInstance(features, np.ndarray)
+        self.assertEqual(len(features.squeeze().shape), 2)
+        self.assertEqual(features.shape[1], len(absorbance.wavelength))
+        self.assertEqual(features.squeeze().shape[0], 6)
 
     def testGetCoefficients(self):
         pass
 
     def testGetConcentration(self):
-        pass
-
-    def testMainSpectrumAnalysisRlp6(self):
         pass
 
 if __name__ == '__main__':

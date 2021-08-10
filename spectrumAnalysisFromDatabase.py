@@ -9,31 +9,6 @@ class Spectrum:
     data = np.array([])
     wavelength = np.array([])
 
-def loadComponentsSpectra(componentsSpectra):
-    '''load components spectrums for the analysis'''
-    spectrumComponents = pd.read_csv(componentsSpectra)
-    npComponents = spectrumComponents.to_numpy()
-    wavelengths = npComponents[:,0]
-    oxyhemoglobin = npComponents[:,1]
-    deoxyhemoglobin = npComponents[:,2]
-    methemoglobin = npComponents[:,3]
-    carboxyhemoglobin = npComponents[:,4]
-    eumelanin = npComponents[:,5]
-    yc1a = npComponents[:,6]
-    yc2a = npComponents[:,7]
-
-    components_spectra = {
-            "wavelengths": wavelengths,
-            "oxyhemoglobin": oxyhemoglobin,
-            "deoxyhemoglobin": deoxyhemoglobin,
-            "methemoglobi": methemoglobin,
-            "carboxyhemoglobin": carboxyhemoglobin,
-            "eumelanin": eumelanin,
-            "yc1a": yc1a,
-            "yc2a": yc2a
-        }
-    return components_spectra
-
 def cropFunction(spec, lowerLimit, upperLimit):
     """crop the spectrum between lower limit and upper limit"""
     # print(len(spec.wavelength))
@@ -163,9 +138,9 @@ def cropComponents(absorbanceSpectrum, componentsSpectra):
     scat = calculateScatteringSpectrum(absorbanceSpectrum)
     ref = calculatReflectionSpectrum(absorbanceSpectrum)
     for i, wavelength in enumerate(absorbanceSpectrum.wavelength):
-        oxyhemoglobin[i] = Components["oxyhemoglobin"][find_nearest(Components["wavelengths"], wavelength)]
-        deoxyhemoglobin[i] = Components["deoxyhemoglobin"][find_nearest(Components["wavelengths"], wavelength)]
-        melanin[i] = Components["eumelanin"][find_nearest(Components["wavelengths"], wavelength)]
+        oxyhemoglobin[i] = Components["oxyhemoglobin"][findNearest(Components["wavelengths"], wavelength)]
+        deoxyhemoglobin[i] = Components["deoxyhemoglobin"][findNearest(Components["wavelengths"], wavelength)]
+        melanin[i] = Components["eumelanin"][findNearest(Components["wavelengths"], wavelength)]
     componentsCrop = {
         "scattering": scat,
         "reflection": ref,
@@ -173,6 +148,31 @@ def cropComponents(absorbanceSpectrum, componentsSpectra):
         "deoxyhemoglobin": deoxyhemoglobin,
         "melanin": melanin}
     return componentsCrop
+
+def loadComponentsSpectra(componentsSpectra):
+    '''load components spectrums for the analysis'''
+    spectrumComponents = pd.read_csv(componentsSpectra)
+    npComponents = spectrumComponents.to_numpy()
+    wavelengths = npComponents[:,0]
+    oxyhemoglobin = npComponents[:,1]
+    deoxyhemoglobin = npComponents[:,2]
+    methemoglobin = npComponents[:,3]
+    carboxyhemoglobin = npComponents[:,4]
+    eumelanin = npComponents[:,5]
+    yc1a = npComponents[:,6]
+    yc2a = npComponents[:,7]
+
+    components_spectra = {
+            "wavelengths": wavelengths,
+            "oxyhemoglobin": oxyhemoglobin,
+            "deoxyhemoglobin": deoxyhemoglobin,
+            "methemoglobi": methemoglobin,
+            "carboxyhemoglobin": carboxyhemoglobin,
+            "eumelanin": eumelanin,
+            "yc1a": yc1a,
+            "yc2a": yc2a
+        }
+    return components_spectra
 
 def componentsToArray(components):
     """make an n*m array of the components to use as input of the nnls"""
@@ -182,11 +182,13 @@ def componentsToArray(components):
     variables = np.vstack([variables, components["melanin"]])
     variables = np.vstack([variables, components["scattering"]])
     variables = np.vstack([variables, components["reflection"]])
-    variables[np.isnan(features)] = 0
+    variables[np.isnan(variables)] = 0
     return variables
 
 def getCoefficients(absorbance, variables):
-    """apply nnls and get coefs"""
+    """
+    Apply non-negative least squares (nnls) and get coefs
+    """
     allCoef = np.zeros([absorbance.data.shape[1], variables.shape[0]])
     for i in range(absorbance.data.shape[1]):
         coef = nnls(variables.T, absorbance.data[:,i], maxiter=2000)
@@ -198,7 +200,7 @@ def getConcentration(coefficients):
     concentration[np.isnan(concentration)] = 0
     return concentration
 
-def saveData(saturationFlag , oxygenSat , imageNumber , rosaLabel):
+def saveData(saturationFlag, oxygenSat, imageNumber, rosaLabel):
     keptFlag=saturationFlag[(imageNumber-1). astype(int)]
     keptOxygenSat=oxygenSat[(imageNumber-1). astype(int)]
 
@@ -232,8 +234,8 @@ def mainAnalysis(darkRefData, spectraData, componentsSpectra=r'_components_spect
     saturationFlags = setSaturationFlag(spectra)
     normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
     absorbance = absorbanceSpectrum(whiteRef, normalizedSpectrum)
-    croppedComponent = cropComponents(absorbance, componentsSpectra)
-    features = componentsToArray(croppedComponent)
+    croppedComponents = cropComponents(absorbance, componentsSpectra)
+    features = componentsToArray(croppedComponents)
     coefficients = getCoefficients(absorbance, features)
     concentration = getConcentration(coefficients)
 
