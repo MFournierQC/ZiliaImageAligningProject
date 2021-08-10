@@ -201,8 +201,8 @@ def getConcentration(coefficients):
     return concentration
 
 def saveData(saturationFlag, oxygenSat, imageNumber, rosaLabel):
-    keptFlag=saturationFlag[(imageNumber-1). astype(int)]
-    keptOxygenSat=oxygenSat[(imageNumber-1). astype(int)]
+    keptFlag = saturationFlag[(imageNumber-1). astype(int)]
+    keptOxygenSat = oxygenSat[(imageNumber-1). astype(int)]
 
     dataDic = {
         "saturationFlag": keptFlag,

@@ -231,10 +231,48 @@ class TestSpectrumAnalysisFromDatabase(envtest.ZiliaTestCase):
         self.assertEqual(features.squeeze().shape[0], 6)
 
     def testGetCoefficients(self):
-        pass
+        rawSpectra = self.db.getRawIntensities(rlp=6, limit=10)
+        wavelengths = self.db.getWavelengths()
+        rawSpectraData = wavelengths, rawSpectra
+        darkRefData = self.db.getBackgroundIntensities(rlp=6)
+        whiteRefData = loadWhiteRef(self.whiteRefPath, self.whiteRefBackground)
+        whiteRef = formatWhiteRef(whiteRefData)
+        spectra = formatSpectra(rawSpectraData)
+        _, darkRefSpectra = darkRefData
+        darkRefData = wavelengths, darkRefSpectra
+        darkRef = formatDarkRef(darkRefData)
+        normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
+        absorbance = absorbanceSpectrum(whiteRef, normalizedSpectrum)
+        croppedComponents = cropComponents(absorbance, self.componentsSpectra)
+        features = componentsToArray(croppedComponents)
+
+        coefficients = getCoefficients(absorbance, features)
+        self.assertIsNotNone(coefficients)
+        self.assertEqual(len(coefficients.squeeze().shape), 2)
+        self.assertEqual(coefficients.shape[0], absorbance.data.shape[1])
+        self.assertEqual(coefficients.shape[1], features.shape[0])
 
     def testGetConcentration(self):
-        pass
+        rawSpectra = self.db.getRawIntensities(rlp=6, limit=10)
+        wavelengths = self.db.getWavelengths()
+        rawSpectraData = wavelengths, rawSpectra
+        darkRefData = self.db.getBackgroundIntensities(rlp=6)
+        whiteRefData = loadWhiteRef(self.whiteRefPath, self.whiteRefBackground)
+        whiteRef = formatWhiteRef(whiteRefData)
+        spectra = formatSpectra(rawSpectraData)
+        _, darkRefSpectra = darkRefData
+        darkRefData = wavelengths, darkRefSpectra
+        darkRef = formatDarkRef(darkRefData)
+        normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
+        absorbance = absorbanceSpectrum(whiteRef, normalizedSpectrum)
+        croppedComponents = cropComponents(absorbance, self.componentsSpectra)
+        features = componentsToArray(croppedComponents)
+        coefficients = getCoefficients(absorbance, features)
+
+        concentration = getConcentration(coefficients)
+        self.assertIsNotNone(concentration)
+        self.assertEqual(len(concentration.squeeze().shape), 1)
+        self.assertEqual(concentration.shape[0], coefficients.shape[0])
 
 if __name__ == '__main__':
     envtest.main()
