@@ -71,16 +71,16 @@ def spotDarkVessels(image , n = 100 ):
         croppedSkeleton[peaks , i ] = 1
     return croppedSkeleton
 
-def calculateSkeletonImage (image , margin = 250 ):
+def calculateSkeletonImage (image , margin = 250 , n=100 ):
     skeletonImage = np.zeros(image.shape)
     croppedImage = cropImageMargins(image , margin = margin)
-    skeletonImage[margin:image.shape[0]-margin , margin:image.shape[1]-margin] = spotDarkVessels(croppedImage)
+    skeletonImage[margin:image.shape[0]-margin , margin:image.shape[1]-margin] = spotDarkVessels(croppedImage , n = n)
     return ndimage.binary_closing(skeletonImage[:,:], structure=np.ones((20,20))).astype(np.float)
 
 def findGoodImagesIndex (blurryFlag):
     return np.where(np.array(blurryFlag) != 'True')[0]
 
-def calculateValidShiftsInOneAcquisition(images: np.ndarray, Margin=250, N=100):
+def calculateValidShiftsInOneAcquisition(images: np.ndarray, margin=250, n=100 , maxValidShift = 200):
     """Calculated the shift in x and y direction in two consecutive images
         Input: list of 2D numpy arrays (series of retina images)
         The shift in the first image is considered to be zero
@@ -98,18 +98,19 @@ def calculateValidShiftsInOneAcquisition(images: np.ndarray, Margin=250, N=100):
     if (len(goodImagesNumber) > 1):
         for firstImage in range(len(goodImagesNumber) - 1):
             shiftValue = np.array([1000,1000])
-            firstSkeletonImage = calculateSkeletonImage(images[goodImagesNumber[firstImage+1]])
+            firstSkeletonImage = calculateSkeletonImage(images[goodImagesNumber[firstImage+1]],margin=margin , n=n)
             for secondImage in range(firstImage+1):
-                if (shiftValue[0]>200 or shiftValue[1]>200):
+                if (shiftValue[0]>maxValidShift or shiftValue[1]>maxValidShift):
                     if imageIsValid[goodImagesNumber[firstImage - secondImage]]:
-                        secondSkeletonImage = calculateSkeletonImage(images[goodImagesNumber[firstImage - secondImage]])
+                        secondSkeletonImage = calculateSkeletonImage(images[goodImagesNumber[firstImage - secondImage]]
+                                                                     , margin=margin , n=n)
                         crossCorrelationResult = crossImage(firstSkeletonImage, secondSkeletonImage)
                         maxValueIndexFlat = np.argmax(crossCorrelationResult, axis=None)
                         maxValueIndex2D = np.unravel_index(maxValueIndexFlat, crossCorrelationResult.shape)
                         halfImageSize = np.array([firstSkeletonImage.shape[0] / 2, firstSkeletonImage.shape[1] / 2])
                         shiftValue = np.array(maxValueIndex2D) - halfImageSize
     
-            if(shiftValue[0] < 200 and shiftValue[1] < 200):
+            if(shiftValue[0] < maxValidShift and shiftValue[1] < maxValidShift):
                 imageIsValid[goodImagesNumber[firstImage+1]] = True
                 tempShiftVariable += shiftValue.astype(np.int)
                 shiftValueFromReferenceImage[goodImagesNumber[firstImage + 1]] = tempShiftVariable

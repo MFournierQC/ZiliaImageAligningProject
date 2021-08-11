@@ -2,7 +2,7 @@ from multiprocessing import Pool, Queue, JoinableQueue, Process, SimpleQueue, cp
 from threading import Thread
 from queue import Empty
 import time
-import json
+from json import dumps
 import signal
 
 """

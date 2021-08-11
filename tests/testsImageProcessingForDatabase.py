@@ -104,10 +104,97 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
         for imageNumber in goodImages:
             self.assertTrue(isBluryFlag[imageNumber] == 'False')
 
+    def testCalculateValidShiftInOneAcquisition(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=10)
+        shiftValueFromReferenceImage, imageIsValid = calculateValidShiftsInOneAcquisition (retinaImages)
+        self.assertTrue(len(shiftValueFromReferenceImage) == 10)
+        self.assertTrue(len(imageIsValid) == 10)
+        for i in range(len(imageIsValid)):
+            if imageIsValid[i] is not None:
+                self.assertIsNotNone(shiftValueFromReferenceImage[i][0])
+                self.assertIsNotNone(shiftValueFromReferenceImage[i][1])
 
+    def testApplyShiftOnRosaCenter(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=10)
+        shiftValueFromReferenceImage, imageIsValid = calculateValidShiftsInOneAcquisition(retinaImages)
 
+        rosaImages = self.db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                          , content='rosa', eye='os', limit=10)
+        rosaProperties = getRosaProperties(rosaImages)
+        rosaOnRefImage = applyShiftOnRosaCenter(rosaProperties, shiftValueFromReferenceImage)
+        self.assertTrue(len(rosaOnRefImage) == 10)
+        for i in range(len(imageIsValid)):
+            if imageIsValid[i] is not None and rosaProperties[i]['found'] is True:
+                self.assertIsNotNone(rosaOnRefImage[i][0])
+                self.assertIsNotNone(rosaOnRefImage[i][1])
 
+    def test01CrossImage(self):
+        firstImage = np.zeros([10,20])
+        firstImage[5,10] = 1
+        secondImage = firstImage
+        crossCorrelationResult = crossImage(firstImage, secondImage)
+        self.assertTrue(crossCorrelationResult.shape == firstImage.shape)
+        self.assertTrue(np.max(crossCorrelationResult) >= 0.99)
 
+    def test02CrossImage(self):
+        firstImage = np.zeros([10,20])
+        firstImage[5,10] = 1
+        secondImage = np.zeros([10,20])
+        crossCorrelationResult = crossImage(firstImage, secondImage)
+        self.assertTrue(np.sum(crossCorrelationResult) == 0)
+
+    def testFindRefImage(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=10)
+        shiftValueFromReferenceImage, imageIsValid = calculateValidShiftsInOneAcquisition(retinaImages)
+        refImage = findRefImage(imageIsValid , retinaImages)
+        self.assertIsNotNone(refImage)
+        for image in retinaImages:
+            self.assertTrue(refImage.shape == image.shape)
+
+    def testNormalize(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=10)
+        for image in retinaImages:
+            normalizedImage=normalize(image)
+            self.assertIsNotNone(normalizedImage)
+            self.assertTrue(normalizedImage.shape == image.shape)
+            self.assertTrue(np.max(normalizedImage) == 1)
+            self.assertTrue(np.min(normalizedImage) == 0)
+
+    def testFindONHParamsInRefImage(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=10)
+        shiftValueFromReferenceImage, imageIsValid = calculateValidShiftsInOneAcquisition(retinaImages)
+        refImage = findRefImage(imageIsValid, retinaImages)
+        onhCenterXCoords, onhCenterYCoords, length = findOHNParamsInRefImage(refImage)
+        self.assertIsNotNone(onhCenterXCoords)
+        self.assertIsNotNone(onhCenterYCoords)
+        self.assertIsNotNone(length)
+        self.assertTrue(length > 50)
+        self.assertTrue(onhCenterXCoords > 0 )
+        self.assertTrue(onhCenterYCoords > 0 )
+        
+    def testCalculateRosaDistanceFromOnhInRefImage(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=10)
+        shiftValueFromReferenceImage, imageIsValid = calculateValidShiftsInOneAcquisition(retinaImages)
+        refImage = findRefImage(imageIsValid, retinaImages)
+        onhXCenter, onhYCenter, length = findOHNParamsInRefImage(refImage)
+
+        rosaImages = self.db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                          , content='rosa', eye='os', limit=10)
+        rosaProperties = getRosaProperties(rosaImages)
+        rosaOnRefImage = applyShiftOnRosaCenter(rosaProperties, shiftValueFromReferenceImage)
+        rosaDistanceFromOnh = calculateRosaDistanceFromOnhInRefImage(onhXCenter, onhYCenter, rosaOnRefImage)
+        for i in range(len(rosaOnRefImage)):
+            if rosaOnRefImage[i] is not None:
+                self.assertIsNotNone(rosaDistanceFromOnh[i][0])
+                self.assertIsNotNone(rosaDistanceFromOnh[i][1])
+            if rosaOnRefImage[i] is None:
+                self.assertIsNone(rosaDistanceFromOnh[i])
 
 if __name__=="__main__":
     envtest.main()
