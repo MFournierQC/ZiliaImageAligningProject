@@ -1,10 +1,8 @@
 from multiprocessing import Pool, Queue, Process, SimpleQueue, cpu_count
 from threading import Thread
 from queue import Empty
-from analyzeEyeImages import *
-from skimage.io import imread
 import time
-import json
+from json import dumps
 import signal
 
 """

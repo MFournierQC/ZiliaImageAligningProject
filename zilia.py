@@ -2,7 +2,6 @@ from dcclab.database import *
 import numpy as np
 from skimage.io import imread
 from skimage.color import rgb2gray
-import time
 import subprocess
 
 from computeengine import *
