@@ -1,4 +1,4 @@
-from multiprocessing import Pool, Queue, Process, SimpleQueue, cpu_count
+from multiprocessing import Pool, Queue, JoinableQueue, Process, SimpleQueue, cpu_count
 from threading import Thread
 from queue import Empty
 import time
@@ -67,8 +67,8 @@ class ComputeEngine:
         When using threads, it is possible to access shared memory (with you own locks).
 
         """
-        self.inputQueue = Queue()
-        self.outputQueue = Queue()
+        self.inputQueue = JoinableQueue()
+        self.outputQueue = JoinableQueue()
         self.runningTasks = []
         self.completedTasks = []
         self.useThreads = useThreads
@@ -86,8 +86,10 @@ class ComputeEngine:
         if not self.useThreads:
             [ task.terminate() for task,startTime in self.runningTasks]
 
+        # assert(self.inputQueue.empty())
         self.inputQueue.close()
         self.inputQueue.join_thread()
+        # assert(self.outputQueue.empty())
         self.outputQueue.close()
         self.outputQueue.join_thread()
         
@@ -171,20 +173,28 @@ class ComputeEngine:
 
         isComputationDone = False
         while not isComputationDone:
-            if self.hasTasksLeftToLaunch():
-                while len(self.runningTasks) < self.maxTaskCount:
-                    self.launchTask(target=target, unwrapArguments=unwrapArguments)
+            try:
+                if self.hasTasksLeftToLaunch():
+                    while len(self.runningTasks) < self.maxTaskCount and not self.inputQueue.empty():
+                        self.launchTask(target=target, unwrapArguments=unwrapArguments)
 
-            isComputationDone = self.processOutputQueue(userProcessFunction=processTaskResults)
+                isComputationDone = self.processOutputQueue(userProcessFunction=processTaskResults)
 
-            self.terminateTimedOutTasks(timeoutInSeconds=timeoutInSeconds)
-            self.pruneCompletedTasks()
+                self.terminateTimedOutTasks(timeoutInSeconds=timeoutInSeconds)
+                self.pruneCompletedTasks()
+            except Exception as err:
+                print("Exception when looping: {0}".format(err))
+
+        assert(isComputationDone)
+        assert(self.inputQueue.empty())
+        assert(self.outputQueue.empty())
 
         self.pruneCompletedTasks()
-        if not self.inputQueue.empty():
-            while not self.inputQueue.empty():
-                print(self.inputQueue.get_nowait())
-
+        self.inputQueue.close()
+        self.inputQueue.join_thread()
+        self.outputQueue.close()
+        self.outputQueue.join_thread()
+        
     def waitForInputQueue(self, timeout=0.3):
         """
         A queue may appear empty immediately after putting an element into it
@@ -221,11 +231,15 @@ class ComputeEngine:
         else:
             task=Process(target=ComputeEngine.targetWrapper, args=(target, unwrapArguments, self.inputQueue, self.outputQueue))
 
-        startTime = time.time()
-        self.runningTasks.append((task, startTime))
-        task.start()
-
-        return task, startTime
+        try:        
+            startTime = time.time()
+            task.start()
+            print("Starting {0}".format(task))
+            self.runningTasks.append((task, startTime))
+            return task, startTime
+        except Exception as err:
+            print("Error when launching: {0}".format(err))
+            return (None, None)
 
     def processOutputQueue(self, userProcessFunction=None) -> bool:
         """
@@ -234,12 +248,11 @@ class ComputeEngine:
         It returns True when everything has been processed (that is, when the element corresponds to 
         the lastMarker and the result is doneMarker)
         """
-        isComputationDone = False
         while not self.outputQueue.empty():
             try:
                 inputArgs, results = self.outputQueue.get(block=False)
                 if inputArgs == ComputeEngine.lastMarker and results == ComputeEngine.doneMarker:
-                    isComputationDone = True
+                    return True
                 else:
                     if userProcessFunction is not None:
                         userProcessFunction(inputArgs, results)
@@ -247,7 +260,7 @@ class ComputeEngine:
                         self.defaultProcessFunction(inputArgs, results)
             except Empty as err:
                 pass
-        return isComputationDone
+        return False
 
     def defaultProcessFunction(self, inputArgs, results):
         print(results)
@@ -284,6 +297,7 @@ class ComputeEngine:
                 # Threads do not have "an exit code". There is nothing to check.
                 pass
             task.join()
+            self.completedTasks.append(task)
 
     def pruneCompletedTasks(self):
         """
@@ -291,11 +305,16 @@ class ComputeEngine:
         Completed tasks (normal or terminated) get processed by processCompletedTasks() before being 
         deleted.
         """
-        newlyCompletedTasks = [ (task,startTime) for task,startTime in self.runningTasks if not task.is_alive()]
-        self.runningTasks = [ (task,startTime) for task,startTime in self.runningTasks if task.is_alive()]
+        stillRunning = []
+        newlyCompletedTasks = []
+        for (task, startTime) in self.runningTasks:
+            if task.is_alive():
+                stillRunning.append((task, startTime))
+            else:
+                newlyCompletedTasks.append((task, startTime))
 
+        self.runningTasks = stillRunning
         self.processCompletedTasks(newlyCompletedTasks)
-        self.completedTasks.extend(newlyCompletedTasks)
 
     @classmethod
     def targetWrapper(cls, target, unwrapArguments, inputQueue, outputQueue):
@@ -306,8 +325,10 @@ class ComputeEngine:
         on watching the queues (they change from different threads and could be temporarily empty).
 
         It must be a @classmethod, because everything with it (including self) is sent to the
-        process and must be "picklable".  ComputeEngine is not picklable.
+        process and must be "picklable".  ComputeEngine is not picklable, but a classmethod
+        does not require to pickle self.
         """
+        result = None
         try:
             inputArgs = inputQueue.get_nowait()
             if inputArgs != ComputeEngine.lastMarker:
@@ -319,7 +340,10 @@ class ComputeEngine:
                 result = ComputeEngine.doneMarker
             outputQueue.put( (inputArgs, result) )
         except Empty as err:
+            print("Input queue was empty")
             return
+        except Exception as err:
+            print("Error while launchingresult task: {0} (args were: {1}, res: {2})".format(err, inputArgs, result))
 
 class DBComputeEngine(ComputeEngine):
     def __init__(self, database, maxTaskCount=None, useThreads=True):
@@ -347,6 +371,7 @@ def calculateFactorial(value) -> float:
     product = 1
     for i in range(value):
         product *= (i+1)
+    # time.sleep(1)
     return (value,  product)
 
 def calculationWith3Arguments(value1, value2,value3) -> (float,float,float,float):
@@ -359,7 +384,7 @@ def processResults(args, results)->bool:
     print('Just finished calculating {0}!'.format(args))
 
 if __name__ == "__main__":
-    N = 1000
+    N = 100
     print("Calculating n! for numbers 0 to {0} (every calculation is independent)".format(N-1))
     print("======================================================================")    
 
@@ -383,14 +408,14 @@ if __name__ == "__main__":
     engine.compute(target=calculateFactorial)
     processTime = time.time() - startTime
 
-    print("Using threads and replacing the processTaskResult function")
-    engine = ComputeEngine(useThreads=True)
-    engine.fillInputQueue(range(N))
-    startTime = time.time()
-    engine.compute(target=calculateFactorial, processTaskResults=processResults)
-    threadCustomTime = time.time() - startTime
+    # print("Using threads and replacing the processTaskResult function")
+    # engine = ComputeEngine(useThreads=True)
+    # engine.fillInputQueue(range(N))
+    # startTime = time.time()
+    # engine.compute(target=calculateFactorial, processTaskResults=processResults)
+    # threadCustomTime = time.time() - startTime
 
     print("Single-threaded:", singleTime)
     print("Multi-threaded:", threadTime)
-    print("Multi-process:", processTime)
-    print("Single-threaded, custom:", threadCustomTime)
+    # print("Multi-process:", processTime)
+    # print("Multi-threaded, custom processing:", threadCustomTime)
