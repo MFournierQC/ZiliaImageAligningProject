@@ -67,6 +67,7 @@ class ComputeEngine:
             self.maxTaskCount = cpu_count()
         else:
             self.maxTaskCount = maxTaskCount
+        self.signalNames = dict((k, v) for v, k in reversed(sorted(signal.__dict__.items())) if v.startswith('SIG') and not v.startswith('SIG_'))
 
         self.signalNames = dict((k, v) for v, k in reversed(sorted(signal.__dict__.items())) if v.startswith('SIG') and not v.startswith('SIG_'))
 
@@ -120,7 +121,6 @@ class ComputeEngine:
 
         processTaskResults(self.outputQueue)
 
-
     def waitForInputQueue(self, timeout=0.3):
         """
         A queue will not appear non-empty immediately after putting an element into it.
@@ -166,11 +166,11 @@ class ComputeEngine:
         to screen,but this function can be replaced by your own when calling compute().
         """
         while not queue.empty():
-            results = queue.get()
             try:
+                results = queue.get(block=False)
                 print(json.dumps(results))
-            except:
-                print(results)
+            except Empty as err:
+                print(err)
 
     def terminateTimedOutTasks(self, timeoutInSeconds):
         """
@@ -232,10 +232,10 @@ class DBComputeEngine(ComputeEngine):
             record = {}
             for key in row.keys():
                 record[key] = row[key]
-            self.recordsQueue.put(record)
+            self.inputQueue.put(record)
 
         # it takes a fraction of a second for the queue to appear non-empty.  We make sure it is ok before returning
-        while self.recordsQueue.empty():
+        while self.inputQueue.empty():
             pass
 
 def calculateFactorial(inputQueue, outputQueue):

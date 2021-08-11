@@ -156,3 +156,4 @@ zilia/*
 *.png
 *.json
 March2021
+tests/.DS_Store
