@@ -165,13 +165,10 @@ def cropComponents(absorbanceSpectrum, componentsSpectra):
     melanin = np.zeros(absorbanceSpectrum.wavelength.shape)
     scat = scattering(absorbanceSpectrum)
     ref = reflection(absorbanceSpectrum)
-    for i in range(absorbanceSpectrum.wavelength.shape[0]):
-        oxyhemoglobin[i] = Components["oxyhemoglobin"][find_nearest(Components["wavelengths"],
-                                                                    absorbanceSpectrum.wavelength[i])]
-        deoxyhemoglobin[i] = Components["deoxyhemoglobin"][find_nearest(Components["wavelengths"],
-                                                                      absorbanceSpectrum.wavelength[i])]
-        melanin[i] = Components["eumelanin"][find_nearest(Components["wavelengths"],
-                                                          absorbanceSpectrum.wavelength[i])]
+    for i, wavelength in enumerate(absorbanceSpectrum.wavelength):
+        oxyhemoglobin[i] = Components["oxyhemoglobin"][find_nearest(Components["wavelengths"], wavelength)]
+        deoxyhemoglobin[i] = Components["deoxyhemoglobin"][find_nearest(Components["wavelengths"], wavelength)]
+        melanin[i] = Components["eumelanin"][find_nearest(Components["wavelengths"], wavelength)]
     componentsCrop = {
         "scattering": scat,
         "reflection": ref,
@@ -242,11 +239,11 @@ def mainAnalysis(darkRefPath = None, spectrumPath = None, componentsSpectra=r'_c
     return concentration,saturationFlags
 
 #
-# darkRefPath = r"./tests/TestSpectrums/bresilODrlp14/background.csv"
-# spectrumPath = r"./tests/TestSpectrums/bresilODrlp14/spectrum.csv"
+darkRefPath = r"./tests/TestSpectrums/bresilODrlp14/background.csv"
+spectrumPath = r"./tests/TestSpectrums/bresilODrlp14/spectrum.csv"
 #
 # mainAnalysis(darkRefPath, spectrumPath)
-# concent= mainAnalysis()
+concent, flags = mainAnalysis(darkRefPath, spectrumPath)
 # print(concent)
 
 #### This is for test
