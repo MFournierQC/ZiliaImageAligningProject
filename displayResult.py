@@ -187,7 +187,6 @@ def drawRosaCircles(rescaledImage, shiftParameters, LowSliceX, LowSliceY, satura
     saturationO2 = saturationO2[indexes]
     normalizedSatiration=(saturationO2-np.min(saturationO2))/(np.max(saturationO2)-np.min(saturationO2))
     for j, coords in enumerate(list(shiftParameters)):
-        # print('coords =', coords)
         color=(normalizedSatiration[j] , 0 , 1-normalizedSatiration[j])
         x = int(coords[0]) + LowSliceX + xCenterGrid
         y = int(coords[1]) + LowSliceY + yCenterGrid
