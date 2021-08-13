@@ -66,7 +66,7 @@ def testPlot():
 
 
 ################  OLD FUNCTIONS (DONT REMOVE THEM SVP)  ######################
-def getRosaLabels(gridParameters, shiftParameters, dataDictionary) -> list:
+def getRosaLabels(gridParameters, shiftParameters):
     xCenterGrid = gridParameters[0]
     yCenterGrid = gridParameters[1]
     length = gridParameters[2]
@@ -104,14 +104,6 @@ def getRosaLabels(gridParameters, shiftParameters, dataDictionary) -> list:
             yTemporaryLabel = str(yTemporaryLabel[0])
         temporaryLabel = str(xTemporaryLabel + yTemporaryLabel)
         outputLabels.append(temporaryLabel)
-
-    # Remove images out of boundaries
-    if imageIndexesToRemove != []:
-        print("Removing images because the ROSA is out of the grid.")
-        shiftParameters = cleanShiftParameters(shiftParameters, indexesToRemove)
-        imageDataDictionary = removeImagesFromIndex(dataDictionary, imageIndexesToRemove)
-    else:
-        imageDataDictionary = dataDictionary
 
     return outputLabels, imageDataDictionary, shiftParameters
 

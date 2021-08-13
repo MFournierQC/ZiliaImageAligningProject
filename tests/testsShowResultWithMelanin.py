@@ -31,13 +31,13 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
         eye = 'od'
         resultImageOD, melaninValuesOD, saturationFlagsOD = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit)
 
-        plt.imshow(resultImageOS)
-        plt.show()
-        plt.imshow(resultImageOD)
-        plt.show()
+        # plt.imshow(resultImageOS)
+        # plt.show()
+        # plt.imshow(resultImageOD)
+        # plt.show()
 
-        # firstSO2Matrix = matrixSO2(melaninValuesOS, saturationFlagsOS, leftEye=True)
-        # secondSO2Matrix = matrixSO2(melaninValuesOS, saturationFlagsOS, leftEye=False)
+        firstSO2Matrix = matrixSO2(labelsOS, melaninValuesOS, leftEye=True)
+        secondSO2Matrix = matrixSO2(labelsOD, melaninValuesOD, leftEye=False)
 
         # display(resultOS, secondEye, firstSO2Matrix, secondSO2Matrix)
 
