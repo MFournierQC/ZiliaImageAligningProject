@@ -27,21 +27,22 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
         limit = 15
 
         eye='os'
-        resultImageOS, melaninValuesOS, saturationFlagsOS = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit)
+        resultImageOS, melaninValuesOS, rosaLabelsOS, saturationFlagsOS = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit)
+        print(rosaLabelsOS)
         eye = 'od'
-        resultImageOD, melaninValuesOD, saturationFlagsOD = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit)
-
+        resultImageOD, melaninValuesOD, rosaLabelsOD, saturationFlagsOD = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit)
+        print(rosaLabelsOD)
         # plt.imshow(resultImageOS)
         # plt.show()
         # plt.imshow(resultImageOD)
         # plt.show()
 
-        firstSO2Matrix = matrixSO2(labelsOS, melaninValuesOS, leftEye=True)
-        secondSO2Matrix = matrixSO2(labelsOD, melaninValuesOD, leftEye=False)
+        firstSO2Matrix = matrixSO2(rosaLabelsOS, melaninValuesOS, leftEye=True)
+        secondSO2Matrix = matrixSO2(rosaLabelsOD, melaninValuesOD, leftEye=False)
 
         # display(resultOS, secondEye, firstSO2Matrix, secondSO2Matrix)
 
-    def computeResultImageForOneEye(self, monkey='Bresil', rlp=6, timeline=None, eye='os', limit=10):
+    def computeResultImageForOneEye(self, monkey='Bresil', rlp=6, timeline=None, eye='os', limit=10, gridsize=(10,10)):
         if eye == 'os':
             leftEye = True
         else:
@@ -57,7 +58,8 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
         rosaLocationOnRefImage = applyShiftOnRosaCenter(rosaAbsoluteXY, shiftValueFromReferenceImage)
         refImage = findRefImage(imageIsValid, retinaImages)
         xONH, yONH, length = findOHNParamsInRefImage(refImage)
-        absoluteRosaValue = calculateRosaDistanceFromOnhInRefImage(xONH, yONH , rosaLocationOnRefImage)
+        absoluteRosaValue = calculateRosaDistanceFromOnhInRefImage(xONH, yONH, rosaLocationOnRefImage)
+        rosaLabels = getRosaLabels((xONH, yONH, length), rosaLocationOnRefImage, gridsize=gridsize)
 
         ### Spectral analysis ###
         rawSpectra = self.db.getRawIntensities(monkey=monkey, rlp=rlp, timeline=timeline, limit=limit)
@@ -69,7 +71,7 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
                 self.whiteRefPath, self.whiteRefBackground)
 
         resultImage = plotResult(refImage, absoluteRosaValue, (xONH, yONH, length), melaninValues, leftEye=True)
-        return resultImage, melaninValues, saturationFlags
+        return resultImage, melaninValues, rosaLabels, saturationFlags
 
 if __name__ == "__main__":
     envtest.main()

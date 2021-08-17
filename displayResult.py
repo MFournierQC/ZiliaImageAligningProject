@@ -37,10 +37,10 @@ def display(firstEye, secondEye, firstSO2Matrix, secondSO2Matrix):
     fig.colorbar(cmp , ax=axs[1,:], location='bottom', shrink=0.6)
     plt.show()
 
-def colorMapRange (firstImage,secondImage):
+def colorMapRange(firstImage, secondImage):
     minValue = np.min(np.array([np.min(firstImage), np.min(secondImage)]))
     maxValue = np.max(np.array([np.max(firstImage), np.max(secondImage)]))
-    return minValue,maxValue
+    return minValue, maxValue
 
 def matrixSO2(labels, saturationValues, leftEye=False):
     yLabel = np.array(['A', 'B', 'C', 'D', 'E', 'F', 'J', 'K', 'L', 'M'])
@@ -55,7 +55,6 @@ def matrixSO2(labels, saturationValues, leftEye=False):
 
     return concentrationMatrix
 
-
 def testPlot():
     eye1 = np.random.rand(1000,1000)
     eye2 = np.random.rand(1000, 1000)
@@ -66,46 +65,42 @@ def testPlot():
 
 
 ################  OLD FUNCTIONS (DONT REMOVE THEM SVP)  ######################
-def getRosaLabels(gridParameters, shiftParameters):
+def getRosaLabels(gridParameters, rosaLocationOnRefImage, gridsize=(20,20)):
     xCenterGrid = gridParameters[0]
     yCenterGrid = gridParameters[1]
     length = gridParameters[2]
-    xRosa = shiftParameters[1]
-    yRosa = shiftParameters[0]
-    xLabel = np.array(['1','2','3','4','5','6','7','8','9','10'])
-    yLabel = np.array(['A','B','C','D','E','F','J','K','L','M'])
+    cleanedRosaLocation = np.array(rosaLocationOnRefImage)[np.where(rosaLocationOnRefImage != None)]
+    xRosa = [i[0] for i in cleanedRosaLocation]
+    yRosa = [i[1] for i in cleanedRosaLocation]
+    xLabel = np.array([i for i in range(gridsize[0])])
+    yLabel = np.array([i for i in range(gridsize[1])])
+    # xLabel = np.array(['1','2','3','4','5','6','7','8','9','10'])
+    # yLabel = np.array(['A','B','C','D','E','F','J','K','L','M'])
 
-    xGrid = np.array(range(-5*length, 5*length))
+    xHalfGrid = int(gridsize[0]/2)
+    xGrid = np.array(range(-xHalfGrid*length, xHalfGrid*length))
     xlabel = np.array( ["" for x in range(xGrid.shape[0])])
     for x in range(xLabel.shape[0]):
         xlabel[x*length:(x+1)*length] = xLabel[x]
-    yGrid = np.array(range(-5*length, 5*length))
+
+    yHalfGrid = int(gridsize[1]/2)
+    yGrid = np.array(range(-yHalfGrid*length, yHalfGrid*length))
     ylabel = np.array( ["" for x in range(yGrid.shape[0])])
     for y in range(yLabel.shape[0]):
         ylabel[y*length:(y+1)*length] = yLabel[y]
 
     outputLabels = []
-    imageIndexesToRemove = []
 
-    for j in range(xRosa.shape[0]):
+    # The following line takes for granted the grid is a square!
+    for j in range(len(xRosa)):
         xTemporaryLabel = xlabel[ np.where(xGrid == xRosa[j] - xCenterGrid)[0] ]
-        if len(xTemporaryLabel) == 0:
-            # no match was found, the rosa is out of the grid boudaries
-            imageIndexesToRemove.append(j)
-            continue
-        else:
-            xTemporaryLabel = str(xTemporaryLabel[0])
+        xTemporaryLabel = int(xTemporaryLabel[0])
         yTemporaryLabel = ylabel[ np.where(yGrid == yRosa[j] - yCenterGrid)[0] ]
-        if len(yTemporaryLabel) == 0:
-            # no match was found, the rosa is out of the grid boudaries
-            imageIndexesToRemove.append(j)
-            continue
-        else:
-            yTemporaryLabel = str(yTemporaryLabel[0])
-        temporaryLabel = str(xTemporaryLabel + yTemporaryLabel)
+        yTemporaryLabel = int(yTemporaryLabel[0])
+        temporaryLabel = (xTemporaryLabel, yTemporaryLabel)
         outputLabels.append(temporaryLabel)
 
-    return outputLabels, imageDataDictionary, shiftParameters
+    return outputLabels
 
 def defineGridParams(images, xThreshConst=.7, yThreshConst=.7):
     if len(images.shape) == 2:
@@ -145,7 +140,7 @@ def findONHParamsFromAxisSums(sumAx, axIndexes, axThreshConst):
 #     idx = (np.abs(array - value)).argmin()
 #     return idx
 
-def plotResult(image, shiftParameters, gridParameters,saturationsO2, rosaRadius=4, thickness=8,leftEye = False):
+def plotResult(image, shiftParameters, gridParameters, saturationsO2, rosaRadius=4, thickness=8, leftEye = False):
     print("Preparing plot of the result")
     if len(image.squeeze().shape) == 3:
         refImage = image[0,:,:]
@@ -154,7 +149,7 @@ def plotResult(image, shiftParameters, gridParameters,saturationsO2, rosaRadius=
     imageRGB = makeImageRGB(refImage)
     rescaledImage, LowSliceX, LowSliceY = rescaleImage(imageRGB, gridParameters)
     rescaledImageWithCircles = drawRosaCircles(rescaledImage, shiftParameters,
-                                LowSliceX, LowSliceY,saturationsO2, gridParameters, rosaRadius=rosaRadius,
+                                LowSliceX, LowSliceY, saturationsO2, gridParameters, rosaRadius=rosaRadius,
                                 thickness=thickness)
     resultImageWithGrid = drawGrid(rescaledImageWithCircles, gridParameters)
     if (leftEye == False):
@@ -177,9 +172,9 @@ def drawRosaCircles(rescaledImage, shiftParameters, LowSliceX, LowSliceY, satura
     indexes = np.where(shiftParameters != None)
     shiftParameters = shiftParameters[indexes]
     saturationO2 = saturationO2[indexes]
-    normalizedSatiration=(saturationO2-np.min(saturationO2))/(np.max(saturationO2)-np.min(saturationO2))
+    normalizedSaturation = (saturationO2-np.min(saturationO2))/(np.max(saturationO2)-np.min(saturationO2))
     for j, coords in enumerate(list(shiftParameters)):
-        color=(normalizedSatiration[j] , 0 , 1-normalizedSatiration[j])
+        color = (normalizedSaturation[j] , 0 , 1-normalizedSaturation[j])
         x = int(coords[0]) + LowSliceX + xCenterGrid
         y = int(coords[1]) + LowSliceY + yCenterGrid
         centerCoordinates = (x, y)
