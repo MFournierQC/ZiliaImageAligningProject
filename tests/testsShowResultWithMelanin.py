@@ -25,20 +25,23 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
         # timeline = 'baseline 3'
         timeline = None
         limit = 15
+        gridsize = (10,10)
 
         eye='os'
-        resultImageOS, melaninValuesOS, rosaLabelsOS, saturationFlagsOS = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit)
+        resultImageOS, melaninValuesOS, rosaLabelsOS, saturationFlagsOS = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize)
         print(rosaLabelsOS)
+        firstSO2Matrix = matrixSO2(rosaLabelsOS, melaninValuesOS, leftEye=True)
+
         eye = 'od'
-        resultImageOD, melaninValuesOD, rosaLabelsOD, saturationFlagsOD = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit)
+        resultImageOD, melaninValuesOD, rosaLabelsOD, saturationFlagsOD = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize)
         print(rosaLabelsOD)
+        secondSO2Matrix = matrixSO2(rosaLabelsOD, melaninValuesOD, leftEye=False)
+
         # plt.imshow(resultImageOS)
         # plt.show()
         # plt.imshow(resultImageOD)
         # plt.show()
 
-        firstSO2Matrix = matrixSO2(rosaLabelsOS, melaninValuesOS, leftEye=True)
-        secondSO2Matrix = matrixSO2(rosaLabelsOD, melaninValuesOD, leftEye=False)
 
         # display(resultOS, secondEye, firstSO2Matrix, secondSO2Matrix)
 

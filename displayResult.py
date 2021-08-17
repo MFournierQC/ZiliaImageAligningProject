@@ -42,16 +42,16 @@ def colorMapRange(firstImage, secondImage):
     maxValue = np.max(np.array([np.max(firstImage), np.max(secondImage)]))
     return minValue, maxValue
 
-def matrixSO2(labels, saturationValues, leftEye=False):
-    yLabel = np.array(['A', 'B', 'C', 'D', 'E', 'F', 'J', 'K', 'L', 'M'])
-    xLabel = np.array(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])
-    concentrationMatrix = np.zeros([10, 10])
+def matrixSO2(labels, saturationValues, leftEye=False, gridsize=(20,20)):
+    assert len(labels) == len(saturationValues), "The number of labels is different from the number of saturation values."
+    xLabel = np.array([i for i in range(gridsize[0])])
+    yLabel = np.array([i for i in range(gridsize[1])])
+    # yLabel = np.array(['A', 'B', 'C', 'D', 'E', 'F', 'J', 'K', 'L', 'M'])
+    # xLabel = np.array(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])
+    concentrationMatrix = np.zeros(gridsize)
 
     for i in range(saturationValues.shape[0]):
-        splitLabel = np.array(list(labels[i]))
-
-        concentrationMatrix[ int(np.where(np.array(splitLabel[0]) == xLabel)[0]),
-            int(np.where(np.array(splitLabel[1]) == yLabel)[0])] =saturationValues[i]
+        concentrationMatrix[ int(np.where(np.array(labels[i][1]) == yLabel)), int(np.where(np.array(labels[i][0]) == xLabel))] = saturationValues[i]
 
     return concentrationMatrix
 
@@ -69,13 +69,20 @@ def getRosaLabels(gridParameters, rosaLocationOnRefImage, gridsize=(20,20)):
     xCenterGrid = gridParameters[0]
     yCenterGrid = gridParameters[1]
     length = gridParameters[2]
-    cleanedRosaLocation = np.array(rosaLocationOnRefImage)[np.where(rosaLocationOnRefImage != None)]
-    xRosa = [i[0] for i in cleanedRosaLocation]
-    yRosa = [i[1] for i in cleanedRosaLocation]
+    # rosaLocationOnRefImage = np.array(rosaLocationOnRefImage)[np.where(rosaLocationOnRefImage != None)]
     xLabel = np.array([i for i in range(gridsize[0])])
     yLabel = np.array([i for i in range(gridsize[1])])
     # xLabel = np.array(['1','2','3','4','5','6','7','8','9','10'])
     # yLabel = np.array(['A','B','C','D','E','F','J','K','L','M'])
+    xRosa = []
+    yRosa = []
+    for i in rosaLocationOnRefImage:
+        try:
+            xRosa.append(i[0])
+            yRosa.append(i[1])
+        except TypeError: # Means the value is None
+            xRosa.append(None)
+            yRosa.append(None)
 
     xHalfGrid = int(gridsize[0]/2)
     xGrid = np.array(range(-xHalfGrid*length, xHalfGrid*length))
@@ -93,12 +100,15 @@ def getRosaLabels(gridParameters, rosaLocationOnRefImage, gridsize=(20,20)):
 
     # The following line takes for granted the grid is a square!
     for j in range(len(xRosa)):
-        xTemporaryLabel = xlabel[ np.where(xGrid == xRosa[j] - xCenterGrid)[0] ]
-        xTemporaryLabel = int(xTemporaryLabel[0])
-        yTemporaryLabel = ylabel[ np.where(yGrid == yRosa[j] - yCenterGrid)[0] ]
-        yTemporaryLabel = int(yTemporaryLabel[0])
-        temporaryLabel = (xTemporaryLabel, yTemporaryLabel)
-        outputLabels.append(temporaryLabel)
+        if xRosa[j] == None or yRosa[j] == None:
+            outputLabels.append(None)
+        else:
+            xTemporaryLabel = xlabel[ np.where(xGrid == xRosa[j] - xCenterGrid)[0] ]
+            xTemporaryLabel = int(xTemporaryLabel[0])
+            yTemporaryLabel = ylabel[ np.where(yGrid == yRosa[j] - yCenterGrid)[0] ]
+            yTemporaryLabel = int(yTemporaryLabel[0])
+            temporaryLabel = (xTemporaryLabel, yTemporaryLabel)
+            outputLabels.append(temporaryLabel)
 
     return outputLabels
 
