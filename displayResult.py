@@ -49,14 +49,36 @@ def matrixSO2(labels, saturationValues, leftEye=False, gridsize=(20,20)):
     # yLabel = np.array(['A', 'B', 'C', 'D', 'E', 'F', 'J', 'K', 'L', 'M'])
     # xLabel = np.array(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])
     concentrationMatrix = np.zeros(gridsize)
+    duplicatesMatrix = np.zeros(gridsize)
 
-    for i in range(saturationValues.shape[0]):
-        concentrationMatrix[ int(np.where(np.array(labels[i][1]) == yLabel)), int(np.where(np.array(labels[i][0]) == xLabel))] = saturationValues[i]
+    for i in range(len(saturationValues)):
+        if labels[i] == None or saturationValues[i] == None:
+            continue
+        yIndex = np.where(np.array(labels[i][1]) == yLabel)[0]
+        xIndex = np.where(np.array(labels[i][0]) == xLabel)[0]
+        currentValue = concentrationMatrix[yIndex, xIndex][0]
+        # if currentValue != 0:
+        #     # There is already a value in that place!
+        #     if duplicatesMatrix[yIndex, xIndex] == 0:
+        #         duplicatesMatrix[yIndex, xIndex] = saturationValues[i]
+        #     else:
+        #         duplicatesMatrix[yIndex, xIndex] = duplicatesMatrix[yIndex, xIndex] + saturationValues[i]
+        # else:
+        #     concentrationMatrix[yIndex, xIndex] = saturationValues[i]
 
+    print(concentrationMatrix)
+    print(duplicatesMatrix)
+    # In the final matrix, every item that is a list shall be averaged
+    # print(listIndexes)
+    # avrg = a
+
+    if leftEye:
+        # Image has to be mirrored
+        return concentrationMatrix[:,::-1]
     return concentrationMatrix
 
 def testPlot():
-    eye1 = np.random.rand(1000,1000)
+    eye1 = np.random.rand(1000, 1000)
     eye2 = np.random.rand(1000, 1000)
     SO1 = np.random.rand(10, 10)
     SO2 = np.random.rand(10, 10)

@@ -19,7 +19,7 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
         self.whiteRefPath = "../int75_WHITEREFERENCE.csv"
         self.whiteRefBackground = "../int75_LEDON_nothingInFront.csv"
 
-    def testGetMainAnalysisOnRetinaImagesForBresilOS(self):
+    def testGetMainAnalysisOnRetinaImagesForBresil(self):
         monkey = 'Bresil'
         rlp = None
         # timeline = 'baseline 3'
@@ -29,12 +29,12 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
 
         eye='os'
         resultImageOS, melaninValuesOS, rosaLabelsOS, saturationFlagsOS = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize)
-        print(rosaLabelsOS)
+        # print(rosaLabelsOS)
         firstSO2Matrix = matrixSO2(rosaLabelsOS, melaninValuesOS, leftEye=True)
 
         eye = 'od'
         resultImageOD, melaninValuesOD, rosaLabelsOD, saturationFlagsOD = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize)
-        print(rosaLabelsOD)
+        # print(rosaLabelsOD)
         secondSO2Matrix = matrixSO2(rosaLabelsOD, melaninValuesOD, leftEye=False)
 
         # plt.imshow(resultImageOS)
