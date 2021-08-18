@@ -17,22 +17,24 @@ import cv2
 # 5. relating StO2 values to the rosa locations
 
 
-def display(firstEye, secondEye, firstSO2Matrix, secondSO2Matrix):
-    fig, axs = plt.subplots(2, 2)
+def display(firstEye, secondEye, firstSO2Matrix, secondSO2Matrix, xCoordinatesOS, yCoordinatesOS, xCoordinatesOD, yCoordinatesOD, melaninValuesOS, melaninValuesOD):
+    fig, axs = plt.subplots(2, 2, constrained_layout=True)
     axs[0, 0].imshow(firstEye)
-    axs[0, 0].set_title('first eye')
+    axs[0, 0].scatter(xCoordinatesOS, yCoordinatesOS, c=melaninValuesOS, cmap=plt.cm.coolwarm)
+    axs[0, 0].set_title('First eye')
     axs[0, 0].axis('off')
     axs[0, 1].imshow(secondEye)
-    axs[0, 1].set_title('second eye')
+    axs[0, 1].scatter(xCoordinatesOD, yCoordinatesOD, c=melaninValuesOD, cmap=plt.cm.coolwarm)
+    axs[0, 1].set_title('Second eye')
     axs[0, 1].axis('off')
 
     minValue, maxValue = colorMapRange(firstSO2Matrix, secondSO2Matrix)
 
     axs[1, 0].imshow(firstSO2Matrix, cmap=plt.cm.coolwarm, vmin=minValue, vmax=maxValue)
-    axs[1, 0].set_title('saturated oxygen (1st eye)')
+    axs[1, 0].set_title('Melanin values (1st eye)')
     axs[1, 0].axis('off')
     cmp = axs[1, 1].imshow(secondSO2Matrix, cmap=plt.cm.coolwarm, vmin=minValue, vmax=maxValue)
-    axs[1, 1].set_title('saturated oxygen (2nd eye)')
+    axs[1, 1].set_title('Melanin values (2nd eye)')
     axs[1, 1].axis('off')
     fig.colorbar(cmp , ax=axs[1,:], location='bottom', shrink=0.6)
     plt.show()
@@ -70,6 +72,27 @@ def matrixSO2(labels, saturationValues, leftEye=False, gridsize=(20,20)):
         # Image has to be mirrored
         return concentrationMatrix[:,::-1]
     return concentrationMatrix
+
+def cleanResultValuesAndLocation(shiftParameters, lowSliceX, lowSliceY, saturationO2, gridParameters):
+    xCenterGrid = gridParameters[0]# int
+    yCenterGrid = gridParameters[1]# int
+    length = gridParameters[2]# int
+    shiftParameters = np.array(shiftParameters)
+    indexes = np.where(shiftParameters != None)
+    shiftParameters = shiftParameters[indexes]
+    saturationO2 = saturationO2[indexes]
+    normalizedSaturation = (saturationO2-np.min(saturationO2))/(np.max(saturationO2)-np.min(saturationO2))
+
+    xCoordinates = []
+    yCoordinates = []
+
+    for j, coords in enumerate(list(shiftParameters)):
+        x = int(coords[0]) + lowSliceX + xCenterGrid
+        y = int(coords[1]) + lowSliceY + yCenterGrid
+        xCoordinates.append(x)
+        yCoordinates.append(y)
+
+    return xCoordinates, yCoordinates, saturationO2, normalizedSaturation
 
 def testPlot():
     eye1 = np.random.rand(1000, 1000)
@@ -166,7 +189,7 @@ def findONHParamsFromAxisSums(sumAx, axIndexes, axThreshConst):
 #     idx = (np.abs(array - value)).argmin()
 #     return idx
 
-def plotResult(image, shiftParameters, gridParameters, saturationsO2, rosaRadius=4, thickness=8, leftEye = False):
+def plotResult(image, shiftParameters, gridParameters, saturationsO2, rosaRadius=4, thickness=8, leftEye=False):
     print("Preparing plot of the result")
     if len(image.squeeze().shape) == 3:
         refImage = image[0,:,:]
@@ -174,9 +197,10 @@ def plotResult(image, shiftParameters, gridParameters, saturationsO2, rosaRadius
         refImage = image
     imageRGB = makeImageRGB(refImage)
     rescaledImage, LowSliceX, LowSliceY = rescaleImage(imageRGB, gridParameters)
-    rescaledImageWithCircles = drawRosaCircles(rescaledImage, shiftParameters,
-                                LowSliceX, LowSliceY, saturationsO2, gridParameters, rosaRadius=rosaRadius,
-                                thickness=thickness)
+    rescaledImageWithCircles = rescaledImage
+    # rescaledImageWithCircles = drawRosaCircles(rescaledImage, shiftParameters,
+    #                             LowSliceX, LowSliceY, saturationsO2, gridParameters, rosaRadius=rosaRadius,
+    #                             thickness=thickness)
     resultImageWithGrid = drawGrid(rescaledImageWithCircles, gridParameters)
     if (leftEye == False):
         return resultImageWithGrid
@@ -190,7 +214,7 @@ def makeImageRGB(grayImage):
     imageRGB = np.dstack((grayImage, grayImage, grayImage))
     return imageRGB
 
-def drawRosaCircles(rescaledImage, shiftParameters, LowSliceX, LowSliceY, saturationO2, gridParameters, rosaRadius=4, thickness=8):
+def drawRosaCircles(rescaledImage, shiftParameters, lowSliceX, lowSliceY, saturationO2, gridParameters, rosaRadius=4, thickness=8):
     xCenterGrid = gridParameters[0]# int
     yCenterGrid = gridParameters[1]# int
     length = gridParameters[2]# int
@@ -201,8 +225,8 @@ def drawRosaCircles(rescaledImage, shiftParameters, LowSliceX, LowSliceY, satura
     normalizedSaturation = (saturationO2-np.min(saturationO2))/(np.max(saturationO2)-np.min(saturationO2))
     for j, coords in enumerate(list(shiftParameters)):
         color = (normalizedSaturation[j] , 0 , 1-normalizedSaturation[j])
-        x = int(coords[0]) + LowSliceX + xCenterGrid
-        y = int(coords[1]) + LowSliceY + yCenterGrid
+        x = int(coords[0]) + lowSliceX + xCenterGrid
+        y = int(coords[1]) + lowSliceY + yCenterGrid
         centerCoordinates = (x, y)
         image = cv2.circle(rescaledImage, centerCoordinates, rosaRadius, color, thickness)
     return rescaledImage
