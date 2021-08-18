@@ -28,22 +28,14 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
         gridsize = (10,10)
 
         eye='os'
-        resultImageOS, melaninValuesOS, rosaLabelsOS, saturationFlagsOS = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize)
-        # print(rosaLabelsOS)
-        firstSO2Matrix = matrixSO2(rosaLabelsOS, melaninValuesOS, leftEye=True)
+        resultImageOS, melaninValuesOS, rosaLabelsOS, _ = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize)
+        osOxygenSatMatrix = matrixSO2(rosaLabelsOS, melaninValuesOS, leftEye=True)
 
         eye = 'od'
-        resultImageOD, melaninValuesOD, rosaLabelsOD, saturationFlagsOD = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize)
-        # print(rosaLabelsOD)
-        secondSO2Matrix = matrixSO2(rosaLabelsOD, melaninValuesOD, leftEye=False)
+        resultImageOD, melaninValuesOD, rosaLabelsOD, _ = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize)
+        odOxygenSatMatrix = matrixSO2(rosaLabelsOD, melaninValuesOD, leftEye=False)
 
-        # plt.imshow(resultImageOS)
-        # plt.show()
-        # plt.imshow(resultImageOD)
-        # plt.show()
-
-
-        # display(resultOS, secondEye, firstSO2Matrix, secondSO2Matrix)
+        display(resultImageOS, resultImageOD, osOxygenSatMatrix, odOxygenSatMatrix)
 
     def computeResultImageForOneEye(self, monkey='Bresil', rlp=6, timeline=None, eye='os', limit=10, gridsize=(10,10)):
         if eye == 'os':
@@ -56,8 +48,7 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
 
         ### Retina image analysis ###
         rosaAbsoluteXY = getRosaProperties(rosaImages)
-        # useful info:  int(['center']['x']) , int(['center']['y']) , ['rradius'] , and ['found']
-        shiftValueFromReferenceImage , imageIsValid = calculateValidShiftsInOneAcquisition(retinaImages)
+        shiftValueFromReferenceImage, imageIsValid = calculateValidShiftsInOneAcquisition(retinaImages)
         rosaLocationOnRefImage = applyShiftOnRosaCenter(rosaAbsoluteXY, shiftValueFromReferenceImage)
         refImage = findRefImage(imageIsValid, retinaImages)
         xONH, yONH, length = findOHNParamsInRefImage(refImage)
