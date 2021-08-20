@@ -17,24 +17,26 @@ import cv2
 # 5. relating StO2 values to the rosa locations
 
 
-def display(firstEye, secondEye, firstSO2Matrix, secondSO2Matrix, xCoordinatesOS, yCoordinatesOS, xCoordinatesOD, yCoordinatesOD, melaninValuesOS, melaninValuesOD):
+def display(firstEye, secondEye, firstSO2Matrix, secondSO2Matrix, xCoordinatesOS, yCoordinatesOS, xCoordinatesOD, yCoordinatesOD, saturationValuesOS, saturationValuesOD, mirrorLeftEye=False):
     fig, axs = plt.subplots(2, 2, constrained_layout=True)
     axs[0, 0].imshow(firstEye)
-    axs[0, 0].scatter(xCoordinatesOS, yCoordinatesOS, c=melaninValuesOS, cmap=plt.cm.coolwarm)
+    axs[0, 0].scatter(xCoordinatesOS, yCoordinatesOS, c=saturationValuesOS, cmap=plt.cm.coolwarm)
     axs[0, 0].set_title('First eye')
     axs[0, 0].axis('off')
     axs[0, 1].imshow(secondEye)
-    axs[0, 1].scatter(xCoordinatesOD, yCoordinatesOD, c=melaninValuesOD, cmap=plt.cm.coolwarm)
+    axs[0, 1].scatter(xCoordinatesOD, yCoordinatesOD, c=saturationValuesOD, cmap=plt.cm.coolwarm)
     axs[0, 1].set_title('Second eye')
     axs[0, 1].axis('off')
 
+    print('firstSO2Matrix.shape', firstSO2Matrix.shape)
+    print('secondSO2Matrix.shape', secondSO2Matrix.shape)
     minValue, maxValue = colorMapRange(firstSO2Matrix, secondSO2Matrix)
 
     axs[1, 0].imshow(firstSO2Matrix, cmap=plt.cm.coolwarm, vmin=minValue, vmax=maxValue)
-    axs[1, 0].set_title('Melanin values (1st eye)')
+    axs[1, 0].set_title('Oxygen saturation (1st eye)')
     axs[1, 0].axis('off')
     cmp = axs[1, 1].imshow(secondSO2Matrix, cmap=plt.cm.coolwarm, vmin=minValue, vmax=maxValue)
-    axs[1, 1].set_title('Melanin values (2nd eye)')
+    axs[1, 1].set_title('Oxygen saturation (2nd eye)')
     axs[1, 1].axis('off')
     fig.colorbar(cmp , ax=axs[1,:], location='bottom', shrink=0.6)
     plt.show()
