@@ -29,15 +29,16 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
         limit = 10
         gridsize = (10,10)
         mirrorLeftEye = False
+        mirrorLeftEye = True
 
         eye='os'
         resultImageOS, oxygenSatOS, rosaLabelsOS, _, xCoordinatesOS, yCoordinatesOS, cleanMelaninOS = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize, mirrorLeftEye=mirrorLeftEye)
-        osOxygenSatMatrix = matrixSO2(rosaLabelsOS, oxygenSatOS, leftEye=False, gridsize=gridsize)
+        osOxygenSatMatrix = matrixSO2(rosaLabelsOS, oxygenSatOS, gridsize=gridsize)
         print("First eye analysis done.")
 
         eye = 'od'
         resultImageOD, oxygenSatOD, rosaLabelsOD, _, xCoordinatesOD, yCoordinatesOD, cleanMelaninOD = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize, mirrorLeftEye=mirrorLeftEye)
-        odOxygenSatMatrix = matrixSO2(rosaLabelsOD, oxygenSatOD, leftEye=False, gridsize=gridsize)
+        odOxygenSatMatrix = matrixSO2(rosaLabelsOD, oxygenSatOD, gridsize=gridsize)
         print("Second eye analysis done.")
 
         display(resultImageOS, resultImageOD, osOxygenSatMatrix, odOxygenSatMatrix, xCoordinatesOS, yCoordinatesOS, xCoordinatesOD, yCoordinatesOD, cleanMelaninOS, cleanMelaninOD, mirrorLeftEye=mirrorLeftEye)
@@ -47,8 +48,8 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
             leftEye = True
         else:
             leftEye = False
-        retinaImages = self.db.getGrayscaleEyeImages(monkey=monkey, rlp=rlp, timeline=timeline, region='onh', eye=eye, limit=limit, mirrorLeftEye=mirrorLeftEye)
-        rosaImages = self.db.getRGBImages(monkey=monkey, rlp=rlp, timeline=timeline, region='onh', content='rosa', eye=eye, limit=limit, mirrorLeftEye=mirrorLeftEye)
+        retinaImages = self.db.getGrayscaleEyeImages(monkey=monkey, rlp=rlp, timeline=timeline, region='onh', eye=eye, limit=limit, mirrorLeftEye=False)
+        rosaImages = self.db.getRGBImages(monkey=monkey, rlp=rlp, timeline=timeline, region='onh', content='rosa', eye=eye, limit=limit, mirrorLeftEye=False)
         # dark = findDarkImages(retinaImages)
 
         ### Image analysis ###
@@ -77,14 +78,14 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
         imageRGB = makeImageRGB(refImage)
         rescaledImage, lowSliceX, lowSliceY = rescaleImage(imageRGB, gridParameters)
         resultImageWithGrid = drawGrid(rescaledImage, gridParameters)
-        if leftEye:
-            resultImage = resultImageWithGrid[:,::-1]
-        else:
-            resultImage = resultImageWithGrid
+        # if leftEye:
+        #     resultImage = resultImageWithGrid[:,::-1]
+        # else:
+        #     resultImage = resultImageWithGrid
 
         xCoordinates, yCoordinates, cleanSaturationO2, _ = cleanResultValuesAndLocation(absoluteRosaValue, lowSliceX, lowSliceY, oxygenSat, gridParameters)
 
-        return resultImage, oxygenSat, rosaLabels, saturationFlags, xCoordinates, yCoordinates, cleanSaturationO2
+        return resultImageWithGrid, oxygenSat, rosaLabels, saturationFlags, xCoordinates, yCoordinates, cleanSaturationO2
 
 if __name__ == "__main__":
     envtest.main()

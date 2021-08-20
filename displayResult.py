@@ -19,6 +19,11 @@ import cv2
 
 def display(firstEye, secondEye, firstSO2Matrix, secondSO2Matrix, xCoordinatesOS, yCoordinatesOS, xCoordinatesOD, yCoordinatesOD, saturationValuesOS, saturationValuesOD, mirrorLeftEye=False):
     fig, axs = plt.subplots(2, 2, constrained_layout=True)
+    if mirrorLeftEye:
+        # The left eye images shall be mirrored
+        firstEye = firstEye[:,::-1,:]
+        firstSO2Matrix = firstSO2Matrix[:,::-1]
+        xCoordinatesOS = firstEye.shape[1] - 1 - np.array(xCoordinatesOS)
     axs[0, 0].imshow(firstEye)
     axs[0, 0].scatter(xCoordinatesOS, yCoordinatesOS, c=saturationValuesOS, cmap=plt.cm.coolwarm)
     axs[0, 0].set_title('First eye')
@@ -28,8 +33,6 @@ def display(firstEye, secondEye, firstSO2Matrix, secondSO2Matrix, xCoordinatesOS
     axs[0, 1].set_title('Second eye')
     axs[0, 1].axis('off')
 
-    print('firstSO2Matrix.shape', firstSO2Matrix.shape)
-    print('secondSO2Matrix.shape', secondSO2Matrix.shape)
     minValue, maxValue = colorMapRange(firstSO2Matrix, secondSO2Matrix)
 
     axs[1, 0].imshow(firstSO2Matrix, cmap=plt.cm.coolwarm, vmin=minValue, vmax=maxValue)
@@ -46,7 +49,7 @@ def colorMapRange(firstImage, secondImage):
     maxValue = np.max(np.array([np.max(firstImage), np.max(secondImage)]))
     return minValue, maxValue
 
-def matrixSO2(labels, saturationValues, leftEye=False, gridsize=(20,20)):
+def matrixSO2(labels, saturationValues, gridsize=(20,20)):
     assert len(labels) == len(saturationValues), "The number of labels is different from the number of saturation values."
     xLabel = np.array([i for i in range(gridsize[0])])
     yLabel = np.array([i for i in range(gridsize[1])])
@@ -70,9 +73,6 @@ def matrixSO2(labels, saturationValues, leftEye=False, gridsize=(20,20)):
     for index, sat in saturationLocation.items():
         concentrationMatrix[index] = np.mean(sat)
 
-    if leftEye:
-        # Image has to be mirrored
-        return concentrationMatrix[:,::-1]
     return concentrationMatrix
 
 def cleanResultValuesAndLocation(shiftParameters, lowSliceX, lowSliceY, saturationO2, gridParameters):
