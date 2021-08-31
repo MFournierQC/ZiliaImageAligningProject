@@ -234,7 +234,7 @@ class ComputeEngine:
         try:        
             startTime = time.time()
             task.start()
-            print("Starting {0}".format(task))
+            # print("Starting {0}".format(task))
             self.runningTasks.append((task, startTime))
             return task, startTime
         except Exception as err:
@@ -341,7 +341,6 @@ class ComputeEngine:
             outputQueue.put( (inputArgs, result) )
         except Empty as err:
             print("Input queue was empty")
-            return
         except Exception as err:
             print("Error while launchingresult task: {0} (args were: {1}, res: {2})".format(err, inputArgs, result))
 
@@ -384,7 +383,7 @@ def processResults(args, results)->bool:
     print('Just finished calculating {0}!'.format(args))
 
 if __name__ == "__main__":
-    N = 100
+    N = 1000
     print("Calculating n! for numbers 0 to {0} (every calculation is independent)".format(N-1))
     print("======================================================================")    
 
