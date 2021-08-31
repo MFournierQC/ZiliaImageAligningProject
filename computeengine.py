@@ -1,4 +1,4 @@
-from multiprocessing import Pool, Queue, JoinableQueue, Process, SimpleQueue, cpu_count
+from multiprocess import Pool, Queue, JoinableQueue, Process, SimpleQueue, cpu_count
 from threading import Thread
 from queue import Empty
 import time
@@ -407,14 +407,14 @@ if __name__ == "__main__":
     engine.compute(target=calculateFactorial)
     processTime = time.time() - startTime
 
-    # print("Using threads and replacing the processTaskResult function")
-    # engine = ComputeEngine(useThreads=True)
-    # engine.fillInputQueue(range(N))
-    # startTime = time.time()
-    # engine.compute(target=calculateFactorial, processTaskResults=processResults)
-    # threadCustomTime = time.time() - startTime
+    print("Using threads and replacing the processTaskResult function")
+    engine = ComputeEngine(useThreads=True)
+    engine.fillInputQueue(range(N))
+    startTime = time.time()
+    engine.compute(target=calculateFactorial, processTaskResults=processResults)
+    threadCustomTime = time.time() - startTime
 
     print("Single-threaded:", singleTime)
     print("Multi-threaded:", threadTime)
-    # print("Multi-process:", processTime)
-    # print("Multi-threaded, custom processing:", threadCustomTime)
+    print("Multi-process:", processTime)
+    print("Multi-threaded, custom processing:", threadCustomTime)
