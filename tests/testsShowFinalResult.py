@@ -28,7 +28,7 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
         # timeline = 'baseline 3'
         limit = 10
         gridsize = (10,10)
-        mirrorLeftEye = False
+        # mirrorLeftEye = False
         mirrorLeftEye = True
 
         eye='os'
@@ -44,10 +44,6 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
         display(resultImageOS, resultImageOD, osOxygenSatMatrix, odOxygenSatMatrix, xCoordinatesOS, yCoordinatesOS, xCoordinatesOD, yCoordinatesOD, cleanMelaninOS, cleanMelaninOD, mirrorLeftEye=mirrorLeftEye)
 
     def computeResultImageForOneEye(self, monkey='Bresil', rlp=6, timeline=None, eye='os', limit=10, gridsize=(10,10), mirrorLeftEye=True):
-        if eye == 'os' and mirrorLeftEye:
-            leftEye = True
-        else:
-            leftEye = False
         retinaImages = self.db.getGrayscaleEyeImages(monkey=monkey, rlp=rlp, timeline=timeline, region='onh', eye=eye, limit=limit, mirrorLeftEye=False)
         rosaImages = self.db.getRGBImages(monkey=monkey, rlp=rlp, timeline=timeline, region='onh', content='rosa', eye=eye, limit=limit, mirrorLeftEye=False)
         # dark = findDarkImages(retinaImages)
@@ -78,7 +74,7 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
         imageRGB = makeImageRGB(refImage)
         rescaledImage, lowSliceX, lowSliceY = rescaleImage(imageRGB, gridParameters)
         resultImageWithGrid = drawGrid(rescaledImage, gridParameters)
-        # if leftEye:
+        # if mirrorLeftEye:
         #     resultImage = resultImageWithGrid[:,::-1]
         # else:
         #     resultImage = resultImageWithGrid
