@@ -6,7 +6,7 @@ from zilia import *
 import matplotlib.pyplot as plt
 import numpy as np
 
-class TestShowResultWithMelanin(envtest.ZiliaTestCase):
+class TestShowFinalResult(envtest.ZiliaTestCase):
 
     def testInit(self):
         self.assertTrue(True)
@@ -22,6 +22,7 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
     # @envtest.skip("long test")
     def testGetMainAnalysisOnRetinaImagesForBresil(self):
         monkey = 'Bresil'
+        region = 'onh'
         rlp = None
         # rlp = 24
         timeline = None
@@ -32,20 +33,20 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
         mirrorLeftEye = True
 
         eye='os'
-        resultImageOS, oxygenSatOS, rosaLabelsOS, _, xCoordinatesOS, yCoordinatesOS, cleanMelaninOS = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize, mirrorLeftEye=mirrorLeftEye)
+        resultImageOS, oxygenSatOS, rosaLabelsOS, _, xCoordinatesOS, yCoordinatesOS, cleanMelaninOS = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize, mirrorLeftEye=mirrorLeftEye, region=region)
         osOxygenSatMatrix = matrixSO2(rosaLabelsOS, oxygenSatOS, gridsize=gridsize)
         print("First eye analysis done.")
 
         eye = 'od'
-        resultImageOD, oxygenSatOD, rosaLabelsOD, _, xCoordinatesOD, yCoordinatesOD, cleanMelaninOD = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize, mirrorLeftEye=mirrorLeftEye)
+        resultImageOD, oxygenSatOD, rosaLabelsOD, _, xCoordinatesOD, yCoordinatesOD, cleanMelaninOD = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize, mirrorLeftEye=mirrorLeftEye, region=region)
         odOxygenSatMatrix = matrixSO2(rosaLabelsOD, oxygenSatOD, gridsize=gridsize)
         print("Second eye analysis done.")
 
         display(resultImageOS, resultImageOD, osOxygenSatMatrix, odOxygenSatMatrix, xCoordinatesOS, yCoordinatesOS, xCoordinatesOD, yCoordinatesOD, cleanMelaninOS, cleanMelaninOD, mirrorLeftEye=mirrorLeftEye)
 
-    def computeResultImageForOneEye(self, monkey='Bresil', rlp=6, timeline=None, eye='os', limit=10, gridsize=(10,10), mirrorLeftEye=True):
-        retinaImages = self.db.getGrayscaleEyeImages(monkey=monkey, rlp=rlp, timeline=timeline, region='onh', eye=eye, limit=limit, mirrorLeftEye=False)
-        rosaImages = self.db.getRGBImages(monkey=monkey, rlp=rlp, timeline=timeline, region='onh', content='rosa', eye=eye, limit=limit, mirrorLeftEye=False)
+    def computeResultImageForOneEye(self, monkey='Bresil', rlp=6, timeline=None, eye='os', limit=10, gridsize=(10,10), mirrorLeftEye=True, region='onh'):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey=monkey, rlp=rlp, timeline=timeline, region=region, eye=eye, limit=limit, mirrorLeftEye=mirrorLeftEye)
+        rosaImages = self.db.getRGBImages(monkey=monkey, rlp=rlp, timeline=timeline, region=region, content='rosa', eye=eye, limit=limit, mirrorLeftEye=mirrorLeftEye)
         # dark = findDarkImages(retinaImages)
 
         ### Image analysis ###
@@ -70,14 +71,11 @@ class TestShowResultWithMelanin(envtest.ZiliaTestCase):
         oxygenSat, saturationFlags = mainAnalysis(darkRefData, rawSpectraData, self.componentsSpectra,
                 self.whiteRefPath, self.whiteRefBackground)
 
+        print('Preparing rescaled image with grid.')
         gridParameters = (xONH, yONH, length)
         imageRGB = makeImageRGB(refImage)
         rescaledImage, lowSliceX, lowSliceY = rescaleImage(imageRGB, gridParameters)
         resultImageWithGrid = drawGrid(rescaledImage, gridParameters)
-        # if mirrorLeftEye:
-        #     resultImage = resultImageWithGrid[:,::-1]
-        # else:
-        #     resultImage = resultImageWithGrid
 
         xCoordinates, yCoordinates, cleanSaturationO2, _ = cleanResultValuesAndLocation(absoluteRosaValue, lowSliceX, lowSliceY, oxygenSat, gridParameters)
 

@@ -106,7 +106,7 @@ def testPlot():
 
 
 ################  OLD FUNCTIONS (DONT REMOVE THEM SVP)  ######################
-def getRosaLabels(gridParameters, rosaLocationOnRefImage, gridsize=(20,20)):
+def getRosaLabels(gridParameters, rosaLocationOnRefImage, gridsize=(10,10)):
     xCenterGrid = gridParameters[0]
     yCenterGrid = gridParameters[1]
     length = gridParameters[2]
