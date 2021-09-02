@@ -36,7 +36,7 @@ def display(firstEyeImage, secondEyeImage, firstSO2Matrix, secondSO2Matrix, xCoo
     cmp = axs[1, 1].imshow(secondSO2Matrix, cmap=plt.cm.coolwarm, vmin=minValue, vmax=maxValue)
     axs[1, 1].set_title('Oxygen saturation (2nd eye)')
     axs[1, 1].axis('off')
-    fig.colorbar(cmp , ax=axs[1,:], location='bottom', shrink=0.6)
+    fig.colorbar(cmp, ax=axs[1,:], location='bottom', shrink=0.6)
     plt.show()
 
 def colorMapRange(firstImage, secondImage):
@@ -44,8 +44,10 @@ def colorMapRange(firstImage, secondImage):
     maxValue = np.max(np.array([np.max(firstImage), np.max(secondImage)]))
     return minValue, maxValue
 
-def getOxygenSatMatrix(labels, saturationValues, gridsize=(20,20)):
-    assert len(labels) == len(saturationValues), "The number of labels is different from the number of saturation values."
+def getOxygenSatMatrix(labels, saturationValues, gridsize=(10,10)):
+    assert len(labels) == len(saturationValues), "The number of labels must be the same as the number of oxygen saturation values."
+    assert gridsize[0] == gridsize[1], "The gridsize has to be the same on both axis."
+    assert gridsize[0] % 2 == 0, "The gridsize has to be an even number."
     xLabel = np.array([i for i in range(gridsize[0])])
     yLabel = np.array([i for i in range(gridsize[1])])
     # yLabel = np.array(['A', 'B', 'C', 'D', 'E', 'F', 'J', 'K', 'L', 'M'])
@@ -102,6 +104,8 @@ def testPlot():
 
 ################  OLD FUNCTIONS (DONT REMOVE THEM SVP)  ######################
 def getRosaLabels(gridParameters, rosaLocationOnRefImage, gridsize=(10,10)):
+    assert gridsize[0] == gridsize[1], "The gridsize has to be the same on both axis."
+    assert gridsize[0] % 2 == 0, "The gridsize has to be an even number."
     xCenterGrid = gridParameters[0]
     yCenterGrid = gridParameters[1]
     length = gridParameters[2]
@@ -250,8 +254,13 @@ def rescaleImage(imageRGB, gridParameters):
     gridImage[LOW_SLICE_Y:HIGH_SLICE_Y, LOW_SLICE_X:HIGH_SLICE_X, :] = temp
     return gridImage, LOW_SLICE_X, LOW_SLICE_Y
 
-def drawGrid(imageRGB, gridParameters):
+def drawGrid(imageRGB, gridParameters, gridsize=(10,10)):
+    assert gridsize[0] == gridsize[1], "The gridsize has to be the same on both axis."
+    # assert gridsize[0] % 2 == 0, "The gridsize has to be an even number."
+    assert gridsize[0] % 10 == 0, "The gridsize has to be a multiple of 10."
     length = gridParameters[2]
+    stepsize = gridsize[0]
+    length = length//(stepsize//10)
     dx, dy = length, length
     # Custom (rgb) grid color:
     gridColor = 1

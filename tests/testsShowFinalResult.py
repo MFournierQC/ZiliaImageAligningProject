@@ -28,11 +28,10 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         timeline = None
         # timeline = 'baseline 3'
         limit = 10
-        gridsize = (10,10)
-        # mirrorLeftEye = False
+        gridsize = (20,20)
         mirrorLeftEye = True
 
-        eye='os'
+        eye = 'os'
         resultImageOS, oxygenSatOS, rosaLabelsOS, _, xCoordinatesOS, yCoordinatesOS, cleanMelaninOS = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize, mirrorLeftEye=mirrorLeftEye, region=region)
         osOxygenSatMatrix = getOxygenSatMatrix(rosaLabelsOS, oxygenSatOS, gridsize=gridsize)
         print("First eye analysis done.")
@@ -75,7 +74,7 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         gridParameters = (xONH, yONH, length)
         imageRGB = makeImageRGB(refImage)
         rescaledImage, lowSliceX, lowSliceY = rescaleImage(imageRGB, gridParameters)
-        resultImageWithGrid = drawGrid(rescaledImage, gridParameters)
+        resultImageWithGrid = drawGrid(rescaledImage, gridParameters, gridsize=gridsize)
 
         xCoordinates, yCoordinates, cleanSaturationO2, _ = cleanResultValuesAndLocation(absoluteRosaValue, lowSliceX, lowSliceY, oxygenSat, gridParameters)
 
