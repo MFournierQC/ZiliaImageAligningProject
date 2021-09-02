@@ -28,7 +28,7 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         timeline = None
         # timeline = 'baseline 3'
         limit = 10
-        gridsize = (20,20)
+        gridsize = (10,10)
         mirrorLeftEye = True
 
         eye = 'os'
@@ -60,6 +60,7 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
 
         ### Spectral analysis ###
         print('Starting spectral analysis.')
+        # rawSpectra = self.db.getRawIntensities(monkey=monkey, rlp=rlp, timeline=timeline, limit=limit, region=region, eye=eye)
         rawSpectra = self.db.getRawIntensities(monkey=monkey, rlp=rlp, timeline=timeline, limit=limit)
         if rawSpectra is None:
             raise ImportError("No raw spectra was found in the database for theses input parameters.")

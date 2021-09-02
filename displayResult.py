@@ -47,7 +47,6 @@ def colorMapRange(firstImage, secondImage):
 def getOxygenSatMatrix(labels, saturationValues, gridsize=(10,10)):
     assert len(labels) == len(saturationValues), "The number of labels must be the same as the number of oxygen saturation values."
     assert gridsize[0] == gridsize[1], "The gridsize has to be the same on both axis."
-    assert gridsize[0] % 2 == 0, "The gridsize has to be an even number."
     xLabel = np.array([i for i in range(gridsize[0])])
     yLabel = np.array([i for i in range(gridsize[1])])
     # yLabel = np.array(['A', 'B', 'C', 'D', 'E', 'F', 'J', 'K', 'L', 'M'])
@@ -55,16 +54,16 @@ def getOxygenSatMatrix(labels, saturationValues, gridsize=(10,10)):
     concentrationMatrix = np.zeros(gridsize)
     saturationLocation = {}
 
-    for i in range(len(saturationValues)):
-        if labels[i] == None or saturationValues[i] == None:
+    for i, oxygenSat in enumerate(saturationValues):
+        if labels[i] == None or oxygenSat == None:
             continue
         yIndex = np.where(np.array(labels[i][1]) == yLabel)[0]
         xIndex = np.where(np.array(labels[i][0]) == xLabel)[0]
         index = (int(yIndex), int(xIndex))
         if index in saturationLocation.keys():
-            saturationLocation[index].append(saturationValues[i])
+            saturationLocation[index].append(oxygenSat)
         else:
-            saturationLocation[index] = list([saturationValues[i]])
+            saturationLocation[index] = list([oxygenSat])
         currentValue = concentrationMatrix[yIndex, xIndex][0]
 
     for index, sat in saturationLocation.items():
@@ -105,13 +104,17 @@ def testPlot():
 ################  OLD FUNCTIONS (DONT REMOVE THEM SVP)  ######################
 def getRosaLabels(gridParameters, rosaLocationOnRefImage, gridsize=(10,10)):
     assert gridsize[0] == gridsize[1], "The gridsize has to be the same on both axis."
-    assert gridsize[0] % 2 == 0, "The gridsize has to be an even number."
+    # assert gridsize[0] % 2 == 0, "The gridsize has to be an even number."
+    assert gridsize[0] % 10 == 0, "The gridsize has to be a multiple of 10."
     xCenterGrid = gridParameters[0]
     yCenterGrid = gridParameters[1]
     length = gridParameters[2]
-    # rosaLocationOnRefImage = np.array(rosaLocationOnRefImage)[np.where(rosaLocationOnRefImage != None)]
+    stepsize = gridsize[0]
+    length = length//(stepsize//10)
+
     xLabel = np.array([i for i in range(gridsize[0])])
-    yLabel = np.array([i for i in range(gridsize[1])])
+    print('xLabel =', xLabel)
+    yLabel = xLabel.copy()
     # xLabel = np.array(['1','2','3','4','5','6','7','8','9','10'])
     # yLabel = np.array(['A','B','C','D','E','F','J','K','L','M'])
     xRosa = []
@@ -126,29 +129,26 @@ def getRosaLabels(gridParameters, rosaLocationOnRefImage, gridsize=(10,10)):
 
     xHalfGrid = int(gridsize[0]/2)
     xGrid = np.array(range(-xHalfGrid*length, xHalfGrid*length))
-    xlabel = np.array( ["" for x in range(xGrid.shape[0])])
+    print("xGrid =", xGrid)
+    # xlabel = np.array( ["" for x in range(xGrid.shape[0])])
+    xlabel = np.zeros(xGrid.shape[0], dtype=int)
     for x in range(xLabel.shape[0]):
         xlabel[x*length:(x+1)*length] = xLabel[x]
+    print('xlabel =', xlabel)
 
-    yHalfGrid = int(gridsize[1]/2)
-    yGrid = np.array(range(-yHalfGrid*length, yHalfGrid*length))
-    ylabel = np.array( ["" for x in range(yGrid.shape[0])])
-    for y in range(yLabel.shape[0]):
-        ylabel[y*length:(y+1)*length] = yLabel[y]
+    yGrid = xGrid.copy()
+    ylabel = xlabel.copy()
 
     outputLabels = []
 
-    # The following line takes for granted the grid is a square!
     for j in range(len(xRosa)):
         if xRosa[j] == None or yRosa[j] == None:
             outputLabels.append(None)
         else:
             xTemporaryLabel = xlabel[ np.where(xGrid == xRosa[j] - xCenterGrid)[0] ]
-            xTemporaryLabel = int(xTemporaryLabel[0])
             yTemporaryLabel = ylabel[ np.where(yGrid == yRosa[j] - yCenterGrid)[0] ]
-            yTemporaryLabel = int(yTemporaryLabel[0])
-            temporaryLabel = (xTemporaryLabel, yTemporaryLabel)
-            outputLabels.append(temporaryLabel)
+            label = (int(xTemporaryLabel[0]), int(yTemporaryLabel[0]))
+            outputLabels.append(label)
 
     return outputLabels
 
