@@ -17,18 +17,13 @@ import cv2
 # 5. relating StO2 values to the rosa locations
 
 
-def display(firstEye, secondEye, firstSO2Matrix, secondSO2Matrix, xCoordinatesOS, yCoordinatesOS, xCoordinatesOD, yCoordinatesOD, saturationValuesOS, saturationValuesOD, mirrorLeftEye=False):
+def display(firstEyeImage, secondEyeImage, firstSO2Matrix, secondSO2Matrix, xCoordinatesOS, yCoordinatesOS, xCoordinatesOD, yCoordinatesOD, saturationValuesOS, saturationValuesOD):
     fig, axs = plt.subplots(2, 2, constrained_layout=True)
-    if mirrorLeftEye:
-        # The left eye images shall be mirrored
-        firstEye = firstEye[:,::-1,:]
-        firstSO2Matrix = firstSO2Matrix[:,::-1]
-        xCoordinatesOS = firstEye.shape[1] - 1 - np.array(xCoordinatesOS)
-    axs[0, 0].imshow(firstEye)
+    axs[0, 0].imshow(firstEyeImage)
     axs[0, 0].scatter(xCoordinatesOS, yCoordinatesOS, c=saturationValuesOS, cmap=plt.cm.coolwarm)
     axs[0, 0].set_title('First eye')
     axs[0, 0].axis('off')
-    axs[0, 1].imshow(secondEye)
+    axs[0, 1].imshow(secondEyeImage)
     axs[0, 1].scatter(xCoordinatesOD, yCoordinatesOD, c=saturationValuesOD, cmap=plt.cm.coolwarm)
     axs[0, 1].set_title('Second eye')
     axs[0, 1].axis('off')
@@ -49,7 +44,7 @@ def colorMapRange(firstImage, secondImage):
     maxValue = np.max(np.array([np.max(firstImage), np.max(secondImage)]))
     return minValue, maxValue
 
-def matrixSO2(labels, saturationValues, gridsize=(20,20)):
+def getOxygenSatMatrix(labels, saturationValues, gridsize=(20,20)):
     assert len(labels) == len(saturationValues), "The number of labels is different from the number of saturation values."
     xLabel = np.array([i for i in range(gridsize[0])])
     yLabel = np.array([i for i in range(gridsize[1])])

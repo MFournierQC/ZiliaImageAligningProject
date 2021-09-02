@@ -34,15 +34,15 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
 
         eye='os'
         resultImageOS, oxygenSatOS, rosaLabelsOS, _, xCoordinatesOS, yCoordinatesOS, cleanMelaninOS = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize, mirrorLeftEye=mirrorLeftEye, region=region)
-        osOxygenSatMatrix = matrixSO2(rosaLabelsOS, oxygenSatOS, gridsize=gridsize)
+        osOxygenSatMatrix = getOxygenSatMatrix(rosaLabelsOS, oxygenSatOS, gridsize=gridsize)
         print("First eye analysis done.")
 
         eye = 'od'
         resultImageOD, oxygenSatOD, rosaLabelsOD, _, xCoordinatesOD, yCoordinatesOD, cleanMelaninOD = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize, mirrorLeftEye=mirrorLeftEye, region=region)
-        odOxygenSatMatrix = matrixSO2(rosaLabelsOD, oxygenSatOD, gridsize=gridsize)
+        odOxygenSatMatrix = getOxygenSatMatrix(rosaLabelsOD, oxygenSatOD, gridsize=gridsize)
         print("Second eye analysis done.")
 
-        display(resultImageOS, resultImageOD, osOxygenSatMatrix, odOxygenSatMatrix, xCoordinatesOS, yCoordinatesOS, xCoordinatesOD, yCoordinatesOD, cleanMelaninOS, cleanMelaninOD, mirrorLeftEye=mirrorLeftEye)
+        display(resultImageOS, resultImageOD, osOxygenSatMatrix, odOxygenSatMatrix, xCoordinatesOS, yCoordinatesOS, xCoordinatesOD, yCoordinatesOD, cleanMelaninOS, cleanMelaninOD)
 
     def computeResultImageForOneEye(self, monkey='Bresil', rlp=6, timeline=None, eye='os', limit=10, gridsize=(10,10), mirrorLeftEye=True, region='onh'):
         retinaImages = self.db.getGrayscaleEyeImages(monkey=monkey, rlp=rlp, timeline=timeline, region=region, eye=eye, limit=limit, mirrorLeftEye=mirrorLeftEye)
@@ -63,7 +63,7 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         print('Starting spectral analysis.')
         rawSpectra = self.db.getRawIntensities(monkey=monkey, rlp=rlp, timeline=timeline, limit=limit)
         if rawSpectra is None:
-            raise ImportError("No raw spectra was found.")
+            raise ImportError("No raw spectra was found in the database for theses input parameters.")
         wavelengths = self.db.getWavelengths()
         rawSpectraData = wavelengths, rawSpectra
         darkRefData = self.db.getBackgroundIntensities(rlp=rlp)
