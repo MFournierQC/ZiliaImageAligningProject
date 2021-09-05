@@ -342,9 +342,6 @@ class ZiliaDB(Database):
         if limit is not None:
             stmnt += " limit {0}".format(limit*nWavelengths)
 
-        if timeline is not None:
-            print(stmnt)
-
         self.execute(stmnt)
         rows = list(self.fetchAll())
         nSamples = len(rows)//nWavelengths
