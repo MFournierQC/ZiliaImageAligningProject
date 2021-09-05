@@ -43,8 +43,8 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
     def test101EngineInit(self):
         engine = ZiliaComputeEngine(self.db)
         self.assertIsNotNone(engine)
-        self.assertTrue(engine.recordsQueue.empty())
-        self.assertTrue(engine.resultsQueue.empty())
+        self.assertTrue(engine.inputQueue.empty())
+        self.assertTrue(engine.outputQueue.empty())
         self.assertTrue(len(engine.runningTasks) == 0)
     
     def test102LaunchTask(self):
@@ -61,7 +61,7 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
         engine.enqueueRecordsWithStatement(selectStatement="select path from imagefiles limit 10")
         self.assertTrue(engine.hasTasksLeftToLaunch())
         for i in range(10):
-            engine.recordsQueue.get()
+            engine.inputQueue.get()
         self.assertFalse(engine.hasTasksLeftToLaunch())
 
     @unittest.skip("temporary skip")
@@ -95,13 +95,13 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
 
     @unittest.skip("temporary skip")
     def test108ComputeMaxIntensityFor10(self):
-        engine = ZiliaComputeEngine(self.db)
+        engine = ZiliaComputeEngine(self.db, useThreads=False)
         engine.enqueueRecords(region='onh', content='eye', limit=10)
         engine.compute(target=computeMaxValForPathWithQueues,timeoutInSeconds=120)
         self.assertFalse(engine.hasTasksStillRunning())
 
     def test109ComputeRosaPositionFor10(self):
-        engine = ZiliaComputeEngine(self.db)
+        engine = ZiliaComputeEngine(self.db, useThreads=False)
         engine.enqueueRecords(region='onh', content='eye', limit=10)
         engine.compute(target=computeRosaParamsForPathWithQueues,timeoutInSeconds=120)
         self.assertFalse(engine.hasTasksStillRunning())
@@ -117,6 +117,7 @@ class TestZiliaCalculationEngine(env.DCCLabTestCase):
         self.assertEqual(aDictionary["onhCenterX"], 1)
         self.assertEqual(aDictionary["onhCenterY"], 2)
 
+    @unittest.skip("temporary skip")
     def test202ReadDictsFromFileAndOutputCSVForCalculations(self):
         with open('calc-durations.txt') as f:
             lines = f.readlines()

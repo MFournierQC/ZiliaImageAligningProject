@@ -93,6 +93,37 @@ class TestZilia(env.DCCLabTestCase):
         self.assertEqual(spectra.shape[0], nPoints)
         self.assertEqual(spectra.shape[1], 10)
 
+    def testGetSpectraFromRegion(self):
+        spectra = self.db.getRawIntensities(limit=10, region='onh')
+        self.assertIsNotNone(spectra)
+        self.assertTrue(len(spectra) > 0)
+        wavelengths = self.db.getWavelengths() 
+        nPoints = len(wavelengths)
+        self.assertEqual(spectra.shape[0], nPoints)
+        self.assertEqual(spectra.shape[1], 10)
+
+    def testGetSpectraFromTimeline(self):
+        spectra = self.db.getRawIntensities(limit=10, timeline='baseline 3')
+        self.assertIsNotNone(spectra)
+        self.assertTrue(len(spectra) > 0)
+        wavelengths = self.db.getWavelengths() 
+        nPoints = len(wavelengths)
+        self.assertEqual(spectra.shape[0], nPoints)
+        self.assertEqual(spectra.shape[1], 10)
+
+    def testGetSpectraFromEye(self):
+        spectra = self.db.getRawIntensities(limit=10, eye='os')
+        self.assertIsNotNone(spectra)
+        self.assertTrue(len(spectra) > 0)
+        wavelengths = self.db.getWavelengths() 
+        nPoints = len(wavelengths)
+        self.assertEqual(spectra.shape[0], nPoints)
+        self.assertEqual(spectra.shape[1], 10)
+
+    def testGetSpectraFromMlonkey(self):
+        spectra = self.db.getRawIntensities(monkey='Bresil')
+        self.assertIsNone(spectra)
+
     def testGetNoSpectraMustReturnNone(self):
         spectra = self.db.getRawIntensities(monkey='Daniel')
         self.assertIsNone(spectra)

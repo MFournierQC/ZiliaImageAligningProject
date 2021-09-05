@@ -383,7 +383,7 @@ def processResults(args, results)->bool:
     print('Just finished calculating {0}!'.format(args))
 
 if __name__ == "__main__":
-    N = 1000
+    N = 100
     print("Calculating n! for numbers 0 to {0} (every calculation is independent)".format(N-1))
     print("======================================================================")    
 
