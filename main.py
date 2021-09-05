@@ -10,9 +10,6 @@ db = ZiliaDB()
 retinaImages = db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh', eye=eye , limit= 10)
 rosaImages = db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh', content='rosa', eye=eye , limit = 10)
 
-
-# dark = findDarkImages(retinaImages)
-
 rosaAbsoluteXY=getRosaProperties(rosaImages)
 # useful info:  int(['center']['x']) , int(['center']['y']) , ['rradius'] , and ['found']
 

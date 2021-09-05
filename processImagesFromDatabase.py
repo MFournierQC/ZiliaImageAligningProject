@@ -171,7 +171,7 @@ def findOHNParamsInRefImage (refImage):
     length = int((np.min([onhHeight, onhWidth])) / 2)
     return  onhCenterXCoords,onhCenterYCoords,length
 
-def calculateRosaDistanceFromOnhInRefImage (onhXCenter, onhYCenter , rosaLocationOnRefImage):
+def calculateRosaDistanceFromOnhInRefImage (onhXCenter, onhYCenter,rosaLocationOnRefImage):
     rosaDistanceFromOnh = [None] * len(rosaLocationOnRefImage)
     for rosa in range(len(rosaLocationOnRefImage)):
         if rosaLocationOnRefImage[rosa] is not None:
