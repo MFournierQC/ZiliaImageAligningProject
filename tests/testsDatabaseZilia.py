@@ -103,7 +103,7 @@ class TestZilia(env.DCCLabTestCase):
         self.assertEqual(spectra.shape[1], 10)
 
     def testGetSpectraFromTimeline(self):
-        spectra = self.db.getRawIntensities(limit=10, timeline='baseline 3')
+        spectra = self.db.getRawIntensities(limit=10, timeline='baseline')
         self.assertIsNotNone(spectra)
         self.assertTrue(len(spectra) > 0)
         wavelengths = self.db.getWavelengths() 
@@ -122,7 +122,7 @@ class TestZilia(env.DCCLabTestCase):
 
     def testGetSpectraFromMlonkey(self):
         spectra = self.db.getRawIntensities(monkey='Bresil')
-        self.assertIsNone(spectra)
+        self.assertIsNotNone(spectra)
 
     def testGetNoSpectraMustReturnNone(self):
         spectra = self.db.getRawIntensities(monkey='Daniel')
