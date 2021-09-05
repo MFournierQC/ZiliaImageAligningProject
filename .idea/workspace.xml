@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="BranchesTreeState">
     <expand>
       <path>
@@ -19,7 +22,12 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fae3e3d9-072a-4989-a0bd-95780a8599b0" name="Default Changelist" comment="" />
+    <list default="true" id="fae3e3d9-072a-4989-a0bd-95780a8599b0" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/computeengine.py" beforeDir="false" afterPath="$PROJECT_DIR$/computeengine.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/testsImageProcessingForDatabase.py" beforeDir="false" afterPath="$PROJECT_DIR$/tests/testsImageProcessingForDatabase.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/testsLongCalculations.py" beforeDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -36,6 +44,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectId" id="1t5hrK5lmANFC9Wa2Ee1mTbWFNA" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -43,7 +52,12 @@
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.detected.package.tslint" value="true" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunManager" selected="Python.testDatabaseZilia">
@@ -59,6 +73,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/displayResult.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -80,6 +95,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/main.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -101,6 +117,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/processImages.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -122,6 +139,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/spectrumAnalysis.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -143,6 +161,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/tests/testDatabaseZilia.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
@@ -169,6 +188,7 @@
       </list>
     </recent_temporary>
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -179,8 +199,14 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1622065054501</updated>
+      <workItem from="1629311298577" duration="1104000" />
+      <workItem from="1629313602796" duration="479000" />
+      <workItem from="1629482835759" duration="654000" />
     </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -193,73 +219,5 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
-  </component>
-  <component name="WindowStateProjectService">
-    <state x="0" y="36" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1627054556859">
-      <screen x="0" y="25" width="1024" height="693" />
-    </state>
-    <state x="0" y="36" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.25.1024.693@0.25.1024.693" timestamp="1627054556859" />
-    <state x="184" y="97" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.25.1440.825@0.25.1440.825" timestamp="1626635697205" />
-    <state x="416" y="33" key="#displayResult" timestamp="1626628458339">
-      <screen x="0" y="25" width="1440" height="825" />
-    </state>
-    <state x="416" y="33" key="#displayResult/0.25.1440.825@0.25.1440.825" timestamp="1626628458339" />
-    <state x="416" y="33" key="#main" timestamp="1626635362663">
-      <screen x="0" y="25" width="1440" height="825" />
-    </state>
-    <state x="416" y="33" key="#main/0.25.1440.825@0.25.1440.825" timestamp="1626635362663" />
-    <state x="415" y="33" key="#processImages" timestamp="1626902541815">
-      <screen x="0" y="25" width="1440" height="825" />
-    </state>
-    <state x="415" y="33" key="#processImages/0.25.1440.825@0.25.1440.825" timestamp="1626902541815" />
-    <state x="416" y="32" key="#spectrumAnalysis" timestamp="1626442524575">
-      <screen x="0" y="25" width="1440" height="825" />
-    </state>
-    <state x="416" y="32" key="#spectrumAnalysis/0.25.1440.825@0.25.1440.825" timestamp="1626442524575" />
-    <state x="212" y="25" width="760" height="693" key="#testDatabaseZilia" timestamp="1627054425390">
-      <screen x="0" y="25" width="1024" height="693" />
-    </state>
-    <state x="212" y="25" width="760" height="693" key="#testDatabaseZilia/0.25.1024.693@0.25.1024.693" timestamp="1627054425390" />
-    <state width="1419" height="250" key="GridCell.Tab.0.bottom" timestamp="1627306319823">
-      <screen x="0" y="25" width="1440" height="825" />
-    </state>
-    <state width="1003" height="264" key="GridCell.Tab.0.bottom/0.25.1024.693@0.25.1024.693" timestamp="1627054737324" />
-    <state width="1694" height="275" key="GridCell.Tab.0.bottom/0.25.1440.825/1440.25.1920.1055@1440.25.1920.1055" timestamp="1624454610350" />
-    <state width="1419" height="250" key="GridCell.Tab.0.bottom/0.25.1440.825@0.25.1440.825" timestamp="1627306319823" />
-    <state width="1419" height="275" key="GridCell.Tab.0.bottom/0.25.1440.875/1440.25.1920.1005@0.25.1440.875" timestamp="1624365816088" />
-    <state width="1694" height="275" key="GridCell.Tab.0.bottom/0.25.1440.875/1440.25.1920.1005@1440.25.1920.1005" timestamp="1624458593682" />
-    <state width="1419" height="211" key="GridCell.Tab.0.bottom/0.25.1920.1005@0.25.1920.1005" timestamp="1622558878758" />
-    <state width="1419" height="250" key="GridCell.Tab.0.center" timestamp="1627306319820">
-      <screen x="0" y="25" width="1440" height="825" />
-    </state>
-    <state width="1003" height="264" key="GridCell.Tab.0.center/0.25.1024.693@0.25.1024.693" timestamp="1627054737285" />
-    <state width="1694" height="275" key="GridCell.Tab.0.center/0.25.1440.825/1440.25.1920.1055@1440.25.1920.1055" timestamp="1624454610349" />
-    <state width="1419" height="250" key="GridCell.Tab.0.center/0.25.1440.825@0.25.1440.825" timestamp="1627306319820" />
-    <state width="1419" height="275" key="GridCell.Tab.0.center/0.25.1440.875/1440.25.1920.1005@0.25.1440.875" timestamp="1624365816087" />
-    <state width="1694" height="275" key="GridCell.Tab.0.center/0.25.1440.875/1440.25.1920.1005@1440.25.1920.1005" timestamp="1624458593680" />
-    <state width="1419" height="211" key="GridCell.Tab.0.center/0.25.1920.1005@0.25.1920.1005" timestamp="1622558878755" />
-    <state width="1419" height="250" key="GridCell.Tab.0.left" timestamp="1627306319820">
-      <screen x="0" y="25" width="1440" height="825" />
-    </state>
-    <state width="1003" height="264" key="GridCell.Tab.0.left/0.25.1024.693@0.25.1024.693" timestamp="1627054737271" />
-    <state width="1694" height="275" key="GridCell.Tab.0.left/0.25.1440.825/1440.25.1920.1055@1440.25.1920.1055" timestamp="1624454610348" />
-    <state width="1419" height="250" key="GridCell.Tab.0.left/0.25.1440.825@0.25.1440.825" timestamp="1627306319820" />
-    <state width="1419" height="275" key="GridCell.Tab.0.left/0.25.1440.875/1440.25.1920.1005@0.25.1440.875" timestamp="1624365816086" />
-    <state width="1694" height="275" key="GridCell.Tab.0.left/0.25.1440.875/1440.25.1920.1005@1440.25.1920.1005" timestamp="1624458593679" />
-    <state width="1419" height="211" key="GridCell.Tab.0.left/0.25.1920.1005@0.25.1920.1005" timestamp="1622558878753" />
-    <state width="1419" height="250" key="GridCell.Tab.0.right" timestamp="1627306319822">
-      <screen x="0" y="25" width="1440" height="825" />
-    </state>
-    <state width="1003" height="264" key="GridCell.Tab.0.right/0.25.1024.693@0.25.1024.693" timestamp="1627054737304" />
-    <state width="1694" height="275" key="GridCell.Tab.0.right/0.25.1440.825/1440.25.1920.1055@1440.25.1920.1055" timestamp="1624454610349" />
-    <state width="1419" height="250" key="GridCell.Tab.0.right/0.25.1440.825@0.25.1440.825" timestamp="1627306319822" />
-    <state width="1419" height="275" key="GridCell.Tab.0.right/0.25.1440.875/1440.25.1920.1005@0.25.1440.875" timestamp="1624365816087" />
-    <state width="1694" height="275" key="GridCell.Tab.0.right/0.25.1440.875/1440.25.1920.1005@1440.25.1920.1005" timestamp="1624458593681" />
-    <state width="1419" height="211" key="GridCell.Tab.0.right/0.25.1920.1005@0.25.1920.1005" timestamp="1622558878758" />
-    <state x="229" y="73" key="SettingsEditor" timestamp="1626635442355">
-      <screen x="0" y="25" width="1440" height="825" />
-    </state>
-    <state x="229" y="73" key="SettingsEditor/0.25.1440.825@0.25.1440.825" timestamp="1626635442355" />
-    <state x="1745" y="83" key="SettingsEditor/0.25.1440.875/1440.25.1920.1005@1440.25.1920.1005" timestamp="1623083036210" />
   </component>
 </project>
