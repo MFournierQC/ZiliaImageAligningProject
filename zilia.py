@@ -326,7 +326,7 @@ class ZiliaDB(Database):
             stmnt += " and f.region = '{0}'".format(region)
 
         if timeline is not None:
-            stmnt += " and f.timeline = '{0}'".format(timeline)
+            stmnt += " and f.timeline like '%{0}%'".format(timeline)
 
         if rlp is not None:
             stmnt += " and f.rlp = '{0}'".format(rlp)
