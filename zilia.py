@@ -71,8 +71,12 @@ class ZiliaDB(Database):
         if ziliaDbPath is None:
             ziliaDbPath = ZiliaDB.findDatabasePath()
 
+        if ziliaDbPath is None:
+            raise RuntimeError("Unable to find database")
+
         if root is None:
             root = ZiliaDB.findDataFilesRoot()
+
 
         super().__init__(ziliaDbPath, writePermission=False)
 
