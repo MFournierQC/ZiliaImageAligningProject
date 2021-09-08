@@ -72,15 +72,11 @@ def getRosaImages(eye,monkey):
     for number in rlp:
         loadedImages = db.getRGBImages(monkey=monkey, rlp = number ,  timeline='baseline 3', region='onh', content='rosa', eye=eye)
         if loadedImages is not None:
-            rosaImages.append(loadedImages)
+            rosaImages=rosaImages+loadedImages
     print('number of rosa : ' , len(rosaImages))
     return rosaImages
 
 ################## for Comparing image numbers and spec ##########
-# from scipy import stats
-# OSbresil=getSO2ForAllRlp(eye = 'od' , monkey = 'Bresil')
-# OSkenya=getSO2ForAllRlp(eye = 'od' , monkey = 'Kenya')
-# OSbrwanda=getSO2ForAllRlp(eye = 'od' , monkey = 'Rwanda')
 OSsomalie = getSO2ForAllRlp(eye = 'od' , monkey = 'Somalie')
 print(len(OSsomalie))
 
@@ -125,57 +121,3 @@ print(len(rosaImages))
 # n, bins, patches = plt.hist(OD, 50, range= (30,55), facecolor='g', alpha=0.75)
 # plt.savefig('SomalieOD.png')
 # plt.show()
-
-
-
-# rlp2BresilOS=
-# rlp4BresilOS=analyzeSpectrums(monkey=monkey,eye=eye,rlp=4)
-# rlp6BresilOS=analyzeSpectrums(monkey=monkey,eye=eye,rlp=6)
-# # rlp24BresilOS=analyzeSpectrums(monkey=monkey,eye=eye,rlp=24)
-# # rlp34BresilOS=analyzeSpectrums(monkey=monkey,eye=eye,rlp=34)
-# print(len(rlp2BresilOS))
-# print(len(rlp4BresilOS))
-# print(len(np.concatenate((rlp2BresilOS,rlp4BresilOS,rlp6BresilOS),axis=0)))
-# resultsToPlot=np.concatenate((rlp2BresilOS,rlp4BresilOS,rlp6BresilOS),axis=0)
-# print('plot')
-# n, bins, patches = plt.hist(resultsToPlot, 50, range= (30,55), facecolor='g', alpha=0.75)
-# plt.savefig('KenyaOS.png')
-# plt.show()
-#
-#
-# eye = 'od'
-#
-# rlp2BresilOD=analyzeSpectrums(monkey=monkey,eye=eye,rlp=2)
-# rlp4BresilOD=analyzeSpectrums(monkey=monkey,eye=eye,rlp=4)
-# rlp6BresilOD=analyzeSpectrums(monkey=monkey,eye=eye,rlp=6)
-# # rlp24BresilOS=analyzeSpectrums(monkey=monkey,eye=eye,rlp=24)
-# # rlp34BresilOS=analyzeSpectrums(monkey=monkey,eye=eye,rlp=34)
-# print(len(rlp2BresilOD))
-# print(len(rlp6BresilOD))
-# print(len(np.concatenate((rlp2BresilOD,rlp4BresilOD,rlp6BresilOD),axis=0)))
-# resultsToPlot=np.concatenate((rlp2BresilOD,rlp4BresilOD,rlp6BresilOD),axis=0)
-# print('plot')
-# n, bins, patches = plt.hist(resultsToPlot,50, range= (30,55), facecolor='g', alpha=0.75)
-# plt.savefig('KenyaOD.png')
-# plt.show()
-#
-#
-#
-#
-# # print(len(ONHInfo))
-# #
-# # totalNum=0
-# # ValueNum=0
-# # for num in range(len(ONHInfo)):
-# #     # print(ONHInfo[num])
-# #     totalNum=totalNum+1
-# #     print(ONHInfo[num]['properties'])
-# #     print(ONHInfo[num]['floatValues'])
-# #     if ONHInfo[num]['properties'] is not None:
-# #         ValueNum=ValueNum+1
-# #
-# #     print((ValueNum/2)/(totalNum/3))
-# # print(totalNum/3)
-# # print(print((ValueNum/2)/(totalNum/3)))
-# #
-# #
