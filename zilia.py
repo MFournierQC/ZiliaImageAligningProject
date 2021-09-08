@@ -113,6 +113,12 @@ class ZiliaDB(Database):
 
         return wavelengths
 
+    def getCountSpectralFiles(self):
+        self.execute(r"select count(*) as count from spectralfiles")
+        rows = self.fetchAll()
+        if rows is None:
+            return 0
+        return rows[0]["count"]
 
     def getBloodWavelengths(self, range=(None,None)):
         if range[0] is None:
@@ -348,6 +354,10 @@ class ZiliaDB(Database):
 
         self.execute(stmnt)
         rows = list(self.fetchAll())
+
+        if rows is None:
+            return None
+            
         nSamples = len(rows)//nWavelengths
         if nSamples == 0:
             return None
@@ -437,6 +447,7 @@ class ZiliaDB(Database):
         
         if iteration == total: 
             self.progressStart = None
+
 
 class ZiliaComputeEngine(DBComputeEngine):
     def __init__(self, database=ZiliaDB(), maxTaskCount=None, useThreads=True):

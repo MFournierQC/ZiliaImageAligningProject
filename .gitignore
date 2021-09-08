@@ -160,3 +160,5 @@ zilia/*
 *.json
 March2021
 tests/.DS_Store
+zilia.db-bak.db
+zilia.db-bak2
