@@ -384,7 +384,6 @@ class ZiliaDB(Database):
 
         spectra = np.zeros(shape=(nWavelengths, nSamples))
         for i,row in enumerate(rows):
-            print(float(row['path']))
             spectra[i%nWavelengths, i//nWavelengths] = float(row['intensity'])
 
         return spectra
