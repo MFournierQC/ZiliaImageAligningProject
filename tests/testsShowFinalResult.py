@@ -19,15 +19,15 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         self.whiteRefPath = "../int75_WHITEREFERENCE.csv"
         self.whiteRefBackground = "../int75_LEDON_nothingInFront.csv"
 
-    # @envtest.skip("long test")
+    @envtest.skip("long test")
     def testGetMainAnalysisOnRetinaImagesForBresil(self):
         monkey = 'Bresil'
         region = 'onh'
-        rlp = None
-        # rlp = 24
-        timeline = None
-        # timeline = 'baseline 3'
-        limit = 10
+        # rlp = None
+        rlp = 6
+        # timeline = None
+        timeline = 'baseline 3'
+        limit = 50
         gridsize = (10,10)
         mirrorLeftEye = True
 
@@ -60,8 +60,7 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
 
         ### Spectral analysis ###
         print('Starting spectral analysis.')
-        # rawSpectra = self.db.getRawIntensities(monkey=monkey, rlp=rlp, timeline=timeline, limit=limit, region=region, eye=eye)
-        rawSpectra = self.db.getRawIntensities(monkey=monkey, rlp=rlp, timeline=timeline, limit=limit)
+        rawSpectra = self.db.getRawIntensities(monkey=monkey, rlp=rlp, timeline=timeline, limit=limit, region=region, eye=eye)
         if rawSpectra is None:
             raise ImportError("No raw spectra was found in the database for theses input parameters.")
         wavelengths = self.db.getWavelengths()

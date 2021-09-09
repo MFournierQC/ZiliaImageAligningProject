@@ -113,7 +113,6 @@ def getRosaLabels(gridParameters, rosaLocationOnRefImage, gridsize=(10,10)):
     length = length//(stepsize//10)
 
     xLabel = np.array([i for i in range(gridsize[0])])
-    print('xLabel =', xLabel)
     yLabel = xLabel.copy()
     # xLabel = np.array(['1','2','3','4','5','6','7','8','9','10'])
     # yLabel = np.array(['A','B','C','D','E','F','J','K','L','M'])
@@ -129,12 +128,10 @@ def getRosaLabels(gridParameters, rosaLocationOnRefImage, gridsize=(10,10)):
 
     xHalfGrid = int(gridsize[0]/2)
     xGrid = np.array(range(-xHalfGrid*length, xHalfGrid*length))
-    print("xGrid =", xGrid)
     # xlabel = np.array( ["" for x in range(xGrid.shape[0])])
     xlabel = np.zeros(xGrid.shape[0], dtype=int)
     for x in range(xLabel.shape[0]):
         xlabel[x*length:(x+1)*length] = xLabel[x]
-    print('xlabel =', xlabel)
 
     yGrid = xGrid.copy()
     ylabel = xlabel.copy()
