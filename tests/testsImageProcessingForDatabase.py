@@ -14,19 +14,19 @@ class TestImageProcessingForDatabase(envtest.ZiliaTestCase):
     def testInit(self):
         self.assertTrue(True)
 
-    def testImportRosaImages(self):
-        rosaImages = self.db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
-                                     ,content='rosa',eye='os', limit=10)
-        self.assertIsNotNone(rosaImages)
-        self.assertTrue(isinstance(rosaImages, list))
-        self.assertEqual(len(rosaImages), 10)
-        for image in rosaImages:
-            self.assertTrue(isinstance(image, np.ndarray))
-            self.assertTrue(len(image.squeeze().shape) == 3)
-            self.assertTrue((image.squeeze().shape[0]) > 100)
-            self.assertTrue((image.squeeze().shape[1]) > 100)
-            self.assertTrue((image.squeeze().shape[2]) == 3)
-        
+    # def testImportRosaImages(self):
+    #     rosaImages = self.db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+    #                                  ,content='rosa',eye='os', limit=10)
+    #     self.assertIsNotNone(rosaImages)
+    #     self.assertTrue(isinstance(rosaImages, list))
+    #     self.assertEqual(len(rosaImages), 10)
+    #     for image in rosaImages:
+    #         self.assertTrue(isinstance(image, np.ndarray))
+    #         self.assertTrue(len(image.squeeze().shape) == 3)
+    #         self.assertTrue((image.squeeze().shape[0]) > 100)
+    #         self.assertTrue((image.squeeze().shape[1]) > 100)
+    #         self.assertTrue((image.squeeze().shape[2]) == 3)
+
     def testGetRosaProperties(self):
         rosaImages = self.db.getRGBImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
                                      , content='rosa', eye='os', limit=10)

@@ -88,7 +88,7 @@ class ZiliaDB(Database):
         return self._wavelengths
 
     def getWavelengths(self):
-        self.execute(r"select distinct(wavelength) from spectra where path not like '%background%' order by wavelength")
+        self.execute(r"select distinct(wavelength) from spectra where path not like '%background%' and path not like '%reference%' order by wavelength")
         rows = self.fetchAll()
         nTotal = len(rows)
 
@@ -326,7 +326,7 @@ class ZiliaDB(Database):
             stmnt += " and f.region = '{0}'".format(region)
 
         if timeline is not None:
-            stmnt += " and f.timeline = '{0}'".format(timeline)
+            stmnt += " and f.timeline like '%{0}%'".format(timeline)
 
         if rlp is not None:
             stmnt += " and f.rlp = '{0}'".format(rlp)
