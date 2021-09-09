@@ -19,13 +19,19 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         self.rlpValues = [2, 4, 6, 14, 24, 34] # rlp14 only for bresil mac in baseline 3
 
     # @envtest.skip("don't run systematically")
-    def testGetAllSaturationValuesForSetRLP(self):
+    def test1_GetAllSaturationValuesFor10Spectra(self):
         monkey = 'Bresil'
         rlp = 6
         timeline = 'baseline 3'
         limit = 10
         region = 'onh'
         eye = 'os'
+
+        self.assertEqual(len(oxygenSat), limit)
+        self.assertEqual(len(oxygenSat), len(saturationFlags))
+        oxygenSat, saturationFlags = self.computeSaturationValues(monkey=monkey, rlp=rlp, timeline=timeline, limit=limit, region=region, eye=eye)
+        print(oxygenSat)
+        print(saturationFlags)
 
     def computeSaturationValues(self, monkey='Bresil', rlp=6, timeline='baseline 3', limit=10, region='onh', eye='os'):
         print('Starting spectral analysis.')
