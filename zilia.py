@@ -189,13 +189,13 @@ class ZiliaDB(Database):
             paths.append( str(absolutePath) )
         return paths
 
-    def getSpectraPaths(self):
-        self.execute("select path from spectralfiles order by path")
-        rows = self.fetchAll()
-        paths = []
-        for row in rows:
-            paths.append(row['path'])
-        return paths
+    # def getSpectraPaths(self):
+    #     self.execute("select path from spectralfiles order by path")
+    #     rows = self.fetchAll()
+    #     paths = []
+    #     for row in rows:
+    #         paths.append(row['path'])
+    #     return paths
 
     def getRGBImages(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None, mirrorLeftEye=True):
         images = self.getRGBImagesWithPaths(monkey=monkey, timeline=timeline, rlp=rlp, region=region, content=content, eye=eye, limit=limit, mirrorLeftEye=mirrorLeftEye)
@@ -315,6 +315,38 @@ class ZiliaDB(Database):
             stmnt += " limit {0}".format(limit)
 
         return stmnt
+
+    def getSpectraPaths(self, monkey=None, timeline=None, rlp=None, region=None, eye=None, limit=None):
+        # "from spectra as s, spectralfiles as f, monkeys as m where s.md5 = f.md5 and f.monkeyId = m.monkeyId"
+        stmnt = r"select s.wavelength, s.intensity, s.md5, s.column {0} and s.column like '%raw%' ".format(self.statementFromAllJoin)
+
+        if monkey is not None:
+            stmnt += " and (m.monkeyId = '{0}' or m.name = '{0}')".format(monkey)
+
+        if region is not None:
+            stmnt += " and f.region = '{0}'".format(region)
+
+        if timeline is not None:
+            stmnt += " and f.timeline like '%{0}%'".format(timeline)
+
+        if rlp is not None:
+            stmnt += " and f.rlp = '{0}'".format(rlp)
+
+        if eye is not None:
+            stmnt += " and f.eye = '{0}'".format(eye)
+
+        stmnt += " order by s.path"
+
+        if limit is not None:
+            stmnt += " limit {0}".format(limit)
+
+        self.execute(stmnt)
+        rows = list(self.fetchAll())
+
+        paths = []
+        for row in rows:
+            paths.append(row['path'])
+        return paths
 
     def getRawIntensities(self, monkey=None, timeline=None, rlp=None, region=None, eye=None, limit=None):
         stmnt = r"select s.wavelength, s.intensity, s.md5, s.column {0} and s.column like '%raw%' ".format(self.statementFromAllJoin)

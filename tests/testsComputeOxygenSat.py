@@ -16,16 +16,20 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         self.componentsSpectra = '../_components_spectra.csv'
         self.whiteRefPath = "../int75_WHITEREFERENCE.csv"
         self.whiteRefBackground = "../int75_LEDON_nothingInFront.csv"
+        self.rlpValues = [2, 4, 6, 14, 24, 34] # rlp14 only for bresil mac in baseline 3
 
-    @envtest.skip("don't run systematically")
+    # @envtest.skip("don't run systematically")
     def testGetAllSaturationValuesForSetRLP(self):
-        pass
+        monkey = 'Bresil'
+        rlp = 6
+        timeline = 'baseline 3'
+        limit = 10
+        region = 'onh'
+        eye = 'os'
 
-    def computeSaturationValues():
-        ### Spectral analysis ###
+    def computeSaturationValues(self, monkey='Bresil', rlp=6, timeline='baseline 3', limit=10, region='onh', eye='os'):
         print('Starting spectral analysis.')
-        # rawSpectra = self.db.getRawIntensities(monkey=monkey, rlp=rlp, timeline=timeline, limit=limit, region=region, eye=eye)
-        rawSpectra = self.db.getRawIntensities(monkey=monkey, rlp=rlp, timeline=timeline, limit=limit)
+        rawSpectra = self.db.getRawIntensities(monkey=monkey, rlp=rlp, timeline=timeline, limit=limit, region=region, eye=eye)
         if rawSpectra is None:
             raise ImportError("No raw spectra was found in the database for theses input parameters.")
         wavelengths = self.db.getWavelengths()
@@ -34,6 +38,7 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         darkRefData = wavelengths, darkRefData[1]
         oxygenSat, saturationFlags = mainAnalysis(darkRefData, rawSpectraData, self.componentsSpectra,
                 self.whiteRefPath, self.whiteRefBackground)
+        return oxygenSat, saturationFlags
 
 if __name__ == "__main__":
     envtest.main()
