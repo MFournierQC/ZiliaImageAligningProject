@@ -32,17 +32,84 @@ class TestZilia(env.DCCLabTestCase):
         self.assertEmptySelect(r"select * from spectralfiles where path not like '%.csv' and path not like '%log' and path not like '%yaml'")
         self.assertEmptySelect(r"select * from spectralfiles where path not like '%March%'")
 
+    def fixEmptyDates(self):
+        dbWrite=ZiliaDB(writePermission=True)
+        dbWrite.execute("update spectralfiles set date = '2021-02-23 12:25:40' where date is null")        
+        dbWrite.commit()
+
     def testSpectralFilesValidDates(self):
-        self.assertEmptySelect(r"select * from spectralfiles where date is null")
-        # fixed with update spectralfiles set date = '2021-02-23 12:25:40' where date is null;
+        self.assertEmptySelect(r"select * from spectralfiles where date is null")        
+        # self.fixEmptyDates()
+
         self.assertEmptySelect(r"select * from spectralfiles where strftime('%Y', date) != '2021'")
         self.assertEmptySelect(r"select * from spectralfiles where cast(strftime('%m', date) as integer) < 2 or cast(strftime('%m', date) as integer) > 4")
         self.assertEmptySelect(r"select * from spectralfiles where cast(strftime('%d', date) as integer) < 1 or cast(strftime('%d', date) as integer) > 31")
 
+    def fixMonkeys(self):
+        dbWrite=ZiliaDB(writePermission=True)
+        dbWrite.execute("update spectralfiles set timeline='reference' where monkeyId is null and path like '%referen%'")        
+        dbWrite.commit()
+
+    def testSpectralFilesValidMonkeys(self):
+        self.assertEmptySelect(r"select * from spectralfiles where monkeyId is null and timeline like 'baseline%'")
+        # fixed with 
+        self.assertEmptySelect(r"select * from spectralfiles where monkeyId is not null and timeline not like 'baseline%' and timeline not like 'background'")
 
     def testGetMonkeyNames(self):
         names = self.db.getMonkeyNames()
         self.assertEqual(names, ['Bresil', 'Kenya', 'Rwanda', 'Somalie'])
+
+    def fixImageFilesAcquisition(self):
+        dbWrite=ZiliaDB(writePermission=True)
+        dbWrite.execute("select path from imagefiles")
+        rows = dbWrite.fetchAll()
+        for row in rows:
+            path = row['path']
+            match = re.search(r"(.+)/(\d+)-[eye|rosa].*jpg", path)
+            if match is not None:
+                acquisition = match.group(1)
+                idx = int(match.group(2))
+                statement = "update imagefiles set acquisition='{0}' where path='{1}'".format(acquisition, path)
+                dbWrite.execute(statement)
+                dbWrite.commit()      
+
+        # update spectra set acquisition = (select acquisition from imagefiles where spectra.path = imagefiles.path );
+
+    def fixSpectralFilesAcquisition(self):
+        dbWrite=ZiliaDB(writePermission=True)
+        dbWrite.execute("select path from spectralfiles")
+        rows = dbWrite.fetchAll()
+        for row in rows:
+            path = row['path']
+            match = re.search(r"(.+)/spectro_data.csv", path)
+            if match is not None:
+                acquisition = match.group(1)
+                statement = "update spectralfiles set acquisition='{0}' where path='{1}'".format(acquisition, path)
+                dbWrite.execute(statement)
+                dbWrite.commit()      
+
+    def fixImageIndexes(self):
+        dbWrite=ZiliaDB(writePermission=True)
+        dbWrite.execute("select path from imagefiles")
+        rows = dbWrite.fetchAll()
+        for row in rows:
+            path = row['path']
+            match = re.search(r"/(\d+)-[eye|rosa].*jpg", path)
+            if match is not None:
+                idx = int(match.group(1))
+                statement = "update imagefiles set idx={0} where path='{1}'".format(idx, path)
+                dbWrite.execute(statement)        
+
+    def fixSpectraIndexes(self):
+        dbWrite=ZiliaDB(writePermission=True)
+        dbWrite.execute("update spectra set idx = cast(substr(column,5) as int)+1")
+
+
+    # def testValidatePaths(self):
+    #     imgPaths = self.db.getImagePaths(timeline="baseline")
+    #     spectraPaths = self.db.getSpectraPaths(timeline="baseline")
+    #     self.assertEqual(len(imgPaths), len(spectraPaths))
+
 
     # def testGetWavelengths(self):
     #     wavelengths = self.db.getWavelengths()

@@ -60,7 +60,7 @@ class ZiliaDB(Database):
         except:
             return False # cyberduck not installed or available
 
-    def __init__(self, ziliaDbPath=None, root=None):  
+    def __init__(self, ziliaDbPath=None, root=None, writePermission=False):  
         """
         Creates the database object for the Zilia experiments.
 
@@ -78,7 +78,7 @@ class ZiliaDB(Database):
             root = ZiliaDB.findDataFilesRoot()
 
 
-        super().__init__(ziliaDbPath, writePermission=False)
+        super().__init__(ziliaDbPath, writePermission=writePermission)
 
         self.root = root
         self._wavelengths = None
@@ -112,6 +112,18 @@ class ZiliaDB(Database):
             wavelengths[i] = row['wavelength']
 
         return wavelengths
+
+    def getAcquisitions(self):
+        self.execute(r"select acquisition, count(idx)/3 as count from imagefiles group by acquisition")
+        rows = self.fetchAll()
+
+        types = set()
+        for row in rows:
+            acquisition = row['acquisition']
+            count = row['count']
+            types.add( (acquisition, count) )
+
+        return sorted(types)
 
     def getCountSpectralFiles(self):
         self.execute(r"select count(*) as count from spectralfiles")
@@ -153,13 +165,15 @@ class ZiliaDB(Database):
         self.execute(r"select distinct(column) from spectra order by column")
         rows = self.fetchAll()
         nTotal = len(rows)
-
         types = set()
         for row in rows:
-            type = row['column']
-            if re.match('raw', type) is not None:
-                type = 'raw'
-            types.add(type)
+            col = row['column']
+            
+            if col is None:
+                continue
+            if re.match('raw', col) is not None:
+                col = 'raw'
+            types.add(col)
 
         return sorted(types)
 
