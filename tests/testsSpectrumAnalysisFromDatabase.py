@@ -274,5 +274,51 @@ class TestSpectrumAnalysisFromDatabase(envtest.ZiliaTestCase):
         self.assertEqual(len(concentration.squeeze().shape), 1)
         self.assertEqual(concentration.shape[0], coefficients.shape[0])
 
+    def testMainAnalysis(self):
+        rawSpectra = self.db.getRawIntensities(rlp=6, limit=10)
+        wavelengths = self.db.getWavelengths()
+        rawSpectraData = wavelengths, rawSpectra
+        darkRefData = self.db.getBackgroundIntensities(rlp=6)
+        darkRefData = wavelengths, darkRefData[1]
+        concentration, saturationFlags = mainAnalysis(darkRefData, rawSpectraData, self.componentsSpectra,
+                self.whiteRefPath, self.whiteRefBackground)
+
+        self.assertIsNotNone(concentration)
+        self.assertEqual(len(concentration.squeeze().shape), 1)
+        self.assertEqual(concentration.shape[0], 10)
+
+        self.assertIsNotNone(saturationFlags)
+        self.assertEqual(len(saturationFlags.squeeze().shape), 1)
+        self.assertEqual(saturationFlags.shape[0], concentration.shape[0])
+        saturationFlags = saturationFlags.squeeze()
+        for value in saturationFlags:
+            try:
+                self.assertEqual(value, 1)
+            except:
+                self.assertEqual(value, 0)
+
+    def testGetMelaninValues(self):
+        rawSpectra = self.db.getRawIntensities(rlp=6, limit=10)
+        wavelengths = self.db.getWavelengths()
+        rawSpectraData = wavelengths, rawSpectra
+        darkRefData = self.db.getBackgroundIntensities(rlp=6)
+        darkRefData = wavelengths, darkRefData[1]
+        melaninValues, saturationFlags = getMelaninValues(darkRefData, rawSpectraData, self.componentsSpectra,
+                self.whiteRefPath, self.whiteRefBackground)
+
+        self.assertIsNotNone(melaninValues)
+        self.assertEqual(len(melaninValues.squeeze().shape), 1)
+        self.assertEqual(melaninValues.shape[0], 10)
+
+        self.assertIsNotNone(saturationFlags)
+        self.assertEqual(len(saturationFlags.squeeze().shape), 1)
+        self.assertEqual(saturationFlags.shape[0], melaninValues.shape[0])
+        saturationFlags = saturationFlags.squeeze()
+        for value in saturationFlags:
+            try:
+                self.assertEqual(value, 1)
+            except:
+                self.assertEqual(value, 0)
+
 if __name__ == '__main__':
     envtest.main()

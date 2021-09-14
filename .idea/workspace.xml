@@ -60,7 +60,7 @@
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.testDatabaseZilia">
+  <component name="RunManager" selected="Python.main">
     <configuration name="displayResult" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -127,14 +127,14 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="spectrumAnalysis" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="testDatabaseZilia" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="$PROJECT_DIR$/venv/bin/python" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/tests" />
       <option name="IS_MODULE_SDK" value="false" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
@@ -149,7 +149,8 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="testDatabaseZilia" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+    <configuration name="testsImageProcessingForDatabase" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
+      <module name="ZiliaImageAligningProject" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -174,17 +175,17 @@
     <list>
       <item itemvalue="Python.displayResult" />
       <item itemvalue="Python.main" />
-      <item itemvalue="Python.spectrumAnalysis" />
       <item itemvalue="Python.processImages" />
       <item itemvalue="Python.testDatabaseZilia" />
+      <item itemvalue="Python.testsImageProcessingForDatabase" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.testDatabaseZilia" />
         <item itemvalue="Python.main" />
+        <item itemvalue="Python.testsImageProcessingForDatabase" />
+        <item itemvalue="Python.testDatabaseZilia" />
         <item itemvalue="Python.processImages" />
         <item itemvalue="Python.displayResult" />
-        <item itemvalue="Python.spectrumAnalysis" />
       </list>
     </recent_temporary>
   </component>

@@ -240,3 +240,26 @@ def mainAnalysis(darkRefData, spectraData, componentsSpectra=r'_components_spect
     concentration = getConcentration(coefficients)
 
     return concentration, saturationFlags
+
+def getMelaninValues(darkRefData, spectraData, componentsSpectra=r'_components_spectra.csv',
+                whiteRefPath=r"int75_WHITEREFERENCE.csv", whiteRefBackground=r"int75_LEDON_nothingInFront.csv"):
+    """
+    Load data, do all the analysis, get coefs as concentration
+    WARNING: For blood sample, another white reference and white ref background
+    are needed.
+    Return concentration, absorbance if blood samples???
+    """
+    whiteRefData = loadWhiteRef(whiteRefPath, whiteRefBackground)
+    whiteRef = formatWhiteRef(whiteRefData)
+    darkRef = formatDarkRef(darkRefData)
+    spectra = formatSpectra(spectraData)
+
+    saturationFlags = setSaturationFlag(spectra)
+    normalizedSpectrum = normalizeSpectrum(spectra, darkRef)
+    absorbance = absorbanceSpectrum(whiteRef, normalizedSpectrum)
+    croppedComponents = cropComponents(absorbance, componentsSpectra)
+    features = componentsToArray(croppedComponents)
+    coefficients = getCoefficients(absorbance, features)
+    melaninValues = coefficients[:,3]
+
+    return melaninValues, saturationFlags
