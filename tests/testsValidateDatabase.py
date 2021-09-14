@@ -104,7 +104,12 @@ class TestZilia(env.DCCLabTestCase):
         dbWrite=ZiliaDB(writePermission=True)
         dbWrite.execute("update spectra set idx = cast(substr(column,5) as int)+1")
 
-
+    def testGetAcquisitions(self):
+        acquisitions = self.db.getAcquisitions()
+        for acquisition, count in acquisitions:
+            for i in range(count):
+                images, spectra = self.db.getMeasurementGroups( (acquisition, i+1) )
+                print(dict(images).keys(), spectra.shape)
     # def testValidatePaths(self):
     #     imgPaths = self.db.getImagePaths(timeline="baseline")
     #     spectraPaths = self.db.getSpectraPaths(timeline="baseline")
