@@ -347,7 +347,7 @@ class ZiliaDB(Database):
         return records
 
     def buildImageSelectStatement(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
-        stmnt = r"""select ('{0}/' || f.path) as abspath, f.content as content, f.*, m.*, group_concat(c.property) as properties, group_concat(c.value) as floatValues, group_concat(c.stringValue) as stringValues
+        stmnt = r"""select ('{0}/' || f.path) as abspath, f.content as content, f.acquisition as acquisition, f.idx as idx, f.eye as eye, f.*, m.*, group_concat(c.property) as properties, group_concat(c.value) as floatValues, group_concat(c.stringValue) as stringValues
         from imagefiles as f left join monkeys as m on m.monkeyId = f.monkeyId left join calculations as c on c.path = f.path where 1 = 1 """.format(self.root)
 
         if monkey is not None:
@@ -372,7 +372,7 @@ class ZiliaDB(Database):
             stmnt += " and f.eye like '%{0}%'".format(eye)
 
         stmnt += " group by f.path"
-        stmnt += " order by f.path"
+        stmnt += " order by f.acquisition, f.content, f.idx"
 
         if limit is not None:
             stmnt += " limit {0}".format(limit)
@@ -380,7 +380,7 @@ class ZiliaDB(Database):
         return stmnt
 
     def getRawIntensities(self, monkey=None, timeline=None, rlp=None, region=None, eye=None, limit=None):
-        stmnt = r"select s.wavelength, s.intensity, s.md5, s.column {0} and s.column like '%raw%' ".format(self.statementFromAllJoin)
+        stmnt = r"select s.wavelength, s.intensity, s.md5, s.column, s.idx {0} and s.column like '%raw%' ".format(self.statementFromAllJoin)
 
         if monkey is not None:
             stmnt += " and (m.monkeyId = '{0}' or m.name = '{0}')".format(monkey)
@@ -397,7 +397,7 @@ class ZiliaDB(Database):
         if eye is not None:
             stmnt += " and f.eye = '{0}'".format(eye)
 
-        stmnt += " order by s.path, s.idx, s.wavelength "
+        stmnt += " order by s.acquisition, s.idx, s.wavelength "
 
         wavelengths = self.getWavelengths()
         nWavelengths = len(wavelengths)
