@@ -3,6 +3,7 @@ from spectrumAnalysisFromDatabase import *
 from displayResult import *
 from processImagesFromDatabase import *
 from zilia import *
+import pickle
 import matplotlib.pyplot as plt
 db = ZiliaDB()
 componentsSpectra = '_components_spectra.csv'
@@ -33,7 +34,7 @@ whiteRefBackground = "int75_LEDON_nothingInFront.csv"
 
 
 def analyzeSpectrums(monkey, eye, rlp):
-    rawSpectra = db.getRawIntensities(monkey=monkey, eye=eye,rlp=rlp , timeline = 'baseline', region = 'onh')
+    rawSpectra = db.getRawIntensities(monkey=monkey, eye=eye,rlp=rlp , timeline = 'baseline 3', region = 'onh')
     if rawSpectra is not None:
         wavelengths = db.getWavelengths()
         rawSpectraData = wavelengths, rawSpectra
@@ -55,8 +56,9 @@ def analyzeSpectrums(monkey, eye, rlp):
     else:
         return None
 
-def getSO2ForAllRlp(eye,monkey):
-    rlp=[2,4,6,14,24,34]
+def getSO2ForAllRlp(eye,monkey , rlp):
+
+    # rlp = [4]
     O2=[]
     for number in rlp:
         print(number)
@@ -67,22 +69,199 @@ def getSO2ForAllRlp(eye,monkey):
     return O2
 
 def getRosaImages(eye,monkey):
-    rlp = [2, 4, 6, 14, 24, 34]
+    rlp = [2, 4, 6, 14]
+    # rlp = [4]
     rosaImages=[]
+    retinaImages=[]
     for number in rlp:
-        loadedImages = db.getRGBImages(monkey=monkey, rlp = number ,  timeline='baseline 3', region='onh', content='rosa', eye=eye)
-        if loadedImages is not None:
-            rosaImages=rosaImages+loadedImages
+        print('image , rlp ' , number)
+        loadedRosaImages = db.getRGBImages(monkey=monkey, rlp = number ,  timeline='baseline 3', region='onh',
+                                           content='rosa', eye=eye)
+        loadedRetinaImages = db.getRGBImages(monkey=monkey, rlp=number, timeline='baseline 3', region='onh',
+                                             content = 'eye' ,eye=eye)
+
+        if loadedRosaImages:
+            rosaImages=rosaImages+loadedRosaImages
+            retinaImages=retinaImages+loadedRetinaImages
+    rosaInfo = getRosaProperties(rosaImages)
+    brightnessEye = [None] * len(rosaImages)
+    for image in range(len(rosaImages)):
+        if rosaInfo[image]['found']:
+
+            # retinaImages[image][:,:,0]=256*((retinaImages[image][:,:,0]-np.min(retinaImages[image][:,:,0]))/
+            #                      (np.max(retinaImages[image][:,:,0])-np.min(retinaImages[image][:,:,0])))
+            # retinaImages[image][:,:,1] = 256 * ((retinaImages[image][:,:,1] - np.min(retinaImages[image][:,:,1])) /
+            #                              (np.max(retinaImages[image][:,:,1]) - np.min(retinaImages[image][:,:,1])))
+            # retinaImages[image][:,:,2] = 256 * ((retinaImages[image][:,:,2] - np.min(retinaImages[image][:,:,2])) /
+            #                              (np.max(retinaImages[image][:,:,2]) - np.min(retinaImages[image][:,:,2])))
+            brightnessEye[image] = np.mean(retinaImages[image][int(rosaInfo[image]['center']['x']) ,
+                                                        int(rosaInfo[image]['center']['y'])])
     print('number of rosa : ' , len(rosaImages))
-    return rosaImages
+    print('size of brightness array' , len(brightnessEye))
+    return brightnessEye
+
+def getRosaCoordinates(eye,monkey,rlp):
+    # rlp = [2, 4, 6, 14]
+
+    # rosaImages=[]
+    # retinaImages=[]
+    rosaCoord=[]
+    for number in rlp:
+        print('image , rlp ' , number)
+        rosaImages = db.getRGBImages(monkey=monkey, rlp = number ,  timeline='baseline 3', region='onh',
+                                           content='rosa', eye=eye)
+        retinaImages = db.getGrayscaleEyeImages(monkey=monkey, rlp=number, timeline='baseline 3', region='onh',
+                                             eye=eye)
+
+        if rosaImages :
+            print(len(rosaImages))
+            rosaAbsoluteXY = getRosaProperties(rosaImages)
+            print(rosaAbsoluteXY)
+            shiftValueFromReferenceImage, imageIsValid = calculateValidShiftsInOneAcquisition(retinaImages)
+            rosaLocationOnRefImage = applyShiftOnRosaCenter(rosaAbsoluteXY, shiftValueFromReferenceImage)
+            refImage = findRefImage(imageIsValid, retinaImages)
+            xONH, yONH, length = findOHNParamsInRefImage(refImage)
+            absoluteRosaValue = calculateRosaDistanceFromOnhInRefImage(xONH, yONH, rosaLocationOnRefImage)
+            rosaCoord = rosaCoord + absoluteRosaValue
+
+
+    return rosaCoord
+
+
+########## save data
+rlp=[2, 4, 6, 14]
+monkey = 'Bresil'
+eye = 'os'
+rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
+O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+with open("rosaBresilOS.txt", "wb") as fp:  # Pickling
+    pickle.dump(rosas, fp)
+with open("O2BresilOS.txt", "wb") as fp:  # Pickling
+    pickle.dump(O2, fp)
+
+eye = 'od'
+rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
+O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+with open("rosaBresilOD.txt", "wb") as fp:  # Pickling
+    pickle.dump(rosas, fp)
+with open("O2BresilOD.txt", "wb") as fp:  # Pickling
+    pickle.dump(O2, fp)
+
+#kenya
+
+rlp=[2, 4, 6, 14,24,34]
+monkey = 'Kenya'
+eye = 'os'
+rosas = getRosaCoordinates(eye = eye , monkey = monkey , rlp=rlp)
+O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+with open("rosaKenyaOS.txt", "wb") as fp:  # Pickling
+    pickle.dump(rosas, fp)
+with open("O2KenyaOS.txt", "wb") as fp:  # Pickling
+    pickle.dump(O2, fp)
+
+eye = 'od'
+rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
+O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+with open("rosaKenyaOD.txt", "wb") as fp:  # Pickling
+    pickle.dump(rosas, fp)
+with open("O2KenyaOD.txt", "wb") as fp:  # Pickling
+    pickle.dump(O2, fp)
+
+# Rwanda
+
+rlp=[2, 4, 6, 14,24,34]
+monkey = 'Rwanda'
+eye = 'os'
+rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
+O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+with open("rosaRwandaOS.txt", "wb") as fp:  # Pickling
+    pickle.dump(rosas, fp)
+with open("O2RwandaOS.txt", "wb") as fp:  # Pickling
+    pickle.dump(O2, fp)
+
+eye = 'od'
+rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
+O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+with open("rosaRwandaOD.txt", "wb") as fp:  # Pickling
+    pickle.dump(rosas, fp)
+with open("O2RwandaOD.txt", "wb") as fp:  # Pickling
+    pickle.dump(O2, fp)
+
+# somalie
+
+rlp=[2, 4, 6, 14,24,34]
+monkey = 'Somalie'
+eye = 'os'
+rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
+O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+with open("rosaSomalieOS.txt", "wb") as fp:  # Pickling
+    pickle.dump(rosas, fp)
+with open("O2SomalieOS.txt", "wb") as fp:  # Pickling
+    pickle.dump(O2, fp)
+
+eye = 'od'
+rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
+O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+with open("rosaSomalieOD.txt", "wb") as fp:  # Pickling
+    pickle.dump(rosas, fp)
+with open("O2SomalieOD.txt", "wb") as fp:  # Pickling
+    pickle.dump(O2, fp)
+
+# import imageio
+# imageRef = imageio.imread('../referenceONH.png')
+#
+# def deleteFromList(rosa,O2):
+#     l=[i for i,v in enumerate(rosa) if v is not None]
+#     newRosa = [rosa[j] for j in l]
+#     newO2 = [O2[j] for j in l]
+#     return newRosa,newO2
+#
+# with open("rosaBresilOD.txt", "rb") as fp:   # Unpickling
+#     rosaBresilOD = pickle.load(fp)
+# with open("O2BresilOD.txt", "rb") as fp:   # Unpickling
+#     O2BresilOD = pickle.load(fp)
+#
+#
+#
+#
+# with open("rosaBresilOS.txt", "rb") as fp:   # Unpickling
+#     rosaBresilOS = pickle.load(fp)
+# with open("O2BresilOS.txt", "rb") as fp:   # Unpickling
+#     O2BresilOS = pickle.load(fp)
+#
+# print(rosaBresilOS)
+#
+# with open("rosaKenyaOD.txt", "rb") as fp:   # Unpickling
+#     rosaKenyaOD = pickle.load(fp)
+# with open("O2KenyaOD.txt", "rb") as fp:   # Unpickling
+#     O2KenyaOD = pickle.load(fp)
+#
+#
+# rosaKenyaOD,O2KenyaOD = deleteFromList(rosaKenyaOD,O2KenyaOD)
+# print(rosaKenyaOD)
+# print(np.asarray(rosaKenyaOD)+1000)
+
+
+
 
 ################## for Comparing image numbers and spec ##########
-OSsomalie = getSO2ForAllRlp(eye = 'od' , monkey = 'Somalie')
-print(len(OSsomalie))
+# monkey = 'Bresil'
+# eye = 'os'
+# O2 = getSO2ForAllRlp(eye = eye , monkey = monkey)
+# brightnessarray = getRosaImages(eye = eye , monkey = monkey)
 
-rosaImages = getRosaImages(eye = 'od' , monkey = 'Somalie')
-print(len(rosaImages))
+# print(O2)
+# print(brightnessarray)
 
+# n = [i for i in range(len(brightnessarray)) if brightnessarray[i] =! None]
+# del brightnessarray[int(n)]
+# print(brightnessarray)
+# newBright=brightnessarray.pop(n)
+# newO2=O2.pop(n)
+# plt.plot(O2,brightnessarray, 'ro')
+# plt.ylabel('brightness')
+# plt.xlabel('O2')
+# plt.show()
 
 
 # ################## for Comparing all right eye and all left eyes ##########
