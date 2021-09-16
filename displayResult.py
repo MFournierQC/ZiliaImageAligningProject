@@ -224,6 +224,8 @@ def drawRosaCircles(rescaledImage, shiftParameters, lowSliceX, lowSliceY, satura
     return rescaledImage
 
 def rescaleImage(imageRGB, gridParameters, gridsize=(8,6)):
+    # plt.imshow(imageRGB)
+    # plt.show()
     xCenterGrid = gridParameters[0]
     yCenterGrid = gridParameters[1]
     onhWidth = gridParameters[2]
@@ -252,7 +254,7 @@ def rescaleImage(imageRGB, gridParameters, gridsize=(8,6)):
 def drawGrid(imageRGB, gridParameters, gridsize=(10,10)):
     onhWidth = gridParameters[2]
     onhHeight = gridParameters[3]
-    dx, dy = onhWidth, onhHeight
+    dx, dy = onhWidth//2, onhHeight//2
     gridColor = 1 # Custom (rgb) grid color
     imageRGB[:,::dx,:] = gridColor
     imageRGB[::dy,:,:] = gridColor

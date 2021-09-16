@@ -26,7 +26,7 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         rlp = 24
         timeline = 'baseline 3'
         limit = 10
-        gridsize = (8,6)
+        gridsize = (10,12)
         mirrorLeftEye = True
 
         eye = 'os'
@@ -61,7 +61,7 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
 
         print('Preparing rescaled image with grid.')
         imageRGB = makeImageRGB(refImage)
-        rescaledImage, lowSliceX, lowSliceY = rescaleImage(imageRGB, gridParameters)
+        rescaledImage, lowSliceX, lowSliceY = rescaleImage(imageRGB, gridParameters, gridsize=gridsize)
         resultImageWithGrid = drawGrid(rescaledImage, gridParameters, gridsize=gridsize)
         plt.imshow(resultImageWithGrid)
         plt.show()
