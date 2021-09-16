@@ -99,23 +99,14 @@ def testPlot():
     SO2 = np.random.rand(10, 10)
     display(eye1, eye2, SO1, SO2)
 
-
-
-################  OLD FUNCTIONS (DONT REMOVE THEM SVP)  ######################
-def getRosaLabels(gridParameters, rosaLocationOnRefImage, gridsize=(10,10)):
-    assert gridsize[0] == gridsize[1], "The gridsize has to be the same on both axis."
-    # assert gridsize[0] % 2 == 0, "The gridsize has to be an even number."
-    assert gridsize[0] % 10 == 0, "The gridsize has to be a multiple of 10."
+def getRosaLabels(gridParameters, rosaLocationOnRefImage, gridsize=(8,6)):
     xCenterGrid = gridParameters[0]
     yCenterGrid = gridParameters[1]
-    length = gridParameters[2]
-    stepsize = gridsize[0]
-    length = length//(stepsize//10)
+    onhWidth = gridParameters[2]
+    onhHeight = gridParameters[3]
 
-    xLabel = np.array([i for i in range(gridsize[0])])
-    yLabel = xLabel.copy()
-    # xLabel = np.array(['1','2','3','4','5','6','7','8','9','10'])
-    # yLabel = np.array(['A','B','C','D','E','F','J','K','L','M'])
+    xLabels = [i for i in range(gridsize[0])]
+    yLabels = [i for i in range(gridsize[1])]
     xRosa = []
     yRosa = []
     for i in rosaLocationOnRefImage:
@@ -126,15 +117,17 @@ def getRosaLabels(gridParameters, rosaLocationOnRefImage, gridsize=(10,10)):
             xRosa.append(None)
             yRosa.append(None)
 
-    xHalfGrid = int(gridsize[0]/2)
-    xGrid = np.array(range(-xHalfGrid*length, xHalfGrid*length))
-    # xlabel = np.array( ["" for x in range(xGrid.shape[0])])
-    xlabel = np.zeros(xGrid.shape[0], dtype=int)
-    for x in range(xLabel.shape[0]):
-        xlabel[x*length:(x+1)*length] = xLabel[x]
+    maxX = int((gridsize[0]/2)*(onhWidth/2))
+    xGrid = np.array(range(-maxX, maxX))
+    arrangedXLabels = np.zeros(xGrid.shape[0], dtype=int)
+    for x, label in enumerate(xLabels):
+        arrangedXLabels[x*onhWidth//2:(x+1)*onhWidth//2] = label
 
-    yGrid = xGrid.copy()
-    ylabel = xlabel.copy()
+    maxY = int((gridsize[1]/2)*(onhHeight/2))
+    yGrid = np.array(range(-maxY, maxY))
+    arrangedYLabels = np.zeros(yGrid.shape[0], dtype=int)
+    for y, label in enumerate(yLabels):
+        arrangedYLabels[y*onhHeight//2:(y+1)*onhHeight//2] = label
 
     outputLabels = []
 
@@ -142,10 +135,12 @@ def getRosaLabels(gridParameters, rosaLocationOnRefImage, gridsize=(10,10)):
         if xRosa[j] == None or yRosa[j] == None:
             outputLabels.append(None)
         else:
-            xTemporaryLabel = xlabel[ np.where(xGrid == xRosa[j] - xCenterGrid)[0] ]
-            yTemporaryLabel = ylabel[ np.where(yGrid == yRosa[j] - yCenterGrid)[0] ]
-            label = (int(xTemporaryLabel[0]), int(yTemporaryLabel[0]))
+            xLabel = arrangedXLabels[ np.where(xGrid == xRosa[j] - xCenterGrid)[0] ]
+            yLabel = arrangedYLabels[ np.where(yGrid == yRosa[j] - yCenterGrid)[0] ]
+            label = (int(xLabel[0]), int(yLabel[0]))
             outputLabels.append(label)
+
+    print('outputLabels', outputLabels)
 
     return outputLabels
 

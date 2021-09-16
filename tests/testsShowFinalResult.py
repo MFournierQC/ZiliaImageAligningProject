@@ -19,7 +19,7 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         self.whiteRefPath = "../int75_WHITEREFERENCE.csv"
         self.whiteRefBackground = "../int75_LEDON_nothingInFront.csv"
 
-    @envtest.skip("long test")
+    # @envtest.skip("long test")
     def testGetMainAnalysisOnRetinaImagesForBresil(self):
         monkey = 'Bresil'
         region = 'onh'
@@ -27,16 +27,18 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         rlp = 6
         # timeline = None
         timeline = 'baseline 3'
-        limit = 50
-        gridsize = (10,10)
+        limit = 10
+        gridsize = (8,6)
         mirrorLeftEye = True
 
         eye = 'os'
+        print('Starting left eye analysis.')
         resultImageOS, oxygenSatOS, rosaLabelsOS, _, xCoordinatesOS, yCoordinatesOS, cleanMelaninOS = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize, mirrorLeftEye=mirrorLeftEye, region=region)
         osOxygenSatMatrix = getOxygenSatMatrix(rosaLabelsOS, oxygenSatOS, gridsize=gridsize)
         print("First eye analysis done.")
 
         eye = 'od'
+        print('Starting right eye analysis.')
         resultImageOD, oxygenSatOD, rosaLabelsOD, _, xCoordinatesOD, yCoordinatesOD, cleanMelaninOD = self.computeResultImageForOneEye(monkey=monkey, rlp=rlp, timeline=timeline, eye=eye, limit=limit, gridsize=gridsize, mirrorLeftEye=mirrorLeftEye, region=region)
         odOxygenSatMatrix = getOxygenSatMatrix(rosaLabelsOD, oxygenSatOD, gridsize=gridsize)
         print("Second eye analysis done.")
@@ -54,12 +56,14 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         shiftValueFromReferenceImage, imageIsValid = calculateValidShiftsInOneAcquisition(retinaImages)
         rosaLocationOnRefImage = applyShiftOnRosaCenter(rosaAbsoluteXY, shiftValueFromReferenceImage)
         refImage = findRefImage(imageIsValid, retinaImages)
-        xONH, yONH, length = findOHNParamsInRefImage(refImage)
+        xONH, yONH, onhWidth, onhHeight = findOHNParamsInRefImage(refImage)
+        # length is now onhWidth, onhHeight
+        gridParameters = (xONH, yONH, onhWidth, onhHeight)
         absoluteRosaValue = calculateRosaDistanceFromOnhInRefImage(xONH, yONH, rosaLocationOnRefImage)
-        rosaLabels = getRosaLabels((xONH, yONH, length), rosaLocationOnRefImage, gridsize=gridsize)
+        rosaLabels = getRosaLabels(gridParameters, rosaLocationOnRefImage, gridsize=gridsize)
 
         ### Spectral analysis ###
-        print('Starting spectral analysis.')
+        print('Importing spectra.')
         rawSpectra = self.db.getRawIntensities(monkey=monkey, rlp=rlp, timeline=timeline, limit=limit, region=region, eye=eye)
         if rawSpectra is None:
             raise ImportError("No raw spectra was found in the database for theses input parameters.")
@@ -67,11 +71,11 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         rawSpectraData = wavelengths, rawSpectra
         darkRefData = self.db.getBackgroundIntensities(rlp=rlp)
         darkRefData = wavelengths, darkRefData[1]
+        print('Starting spectral analysis.')
         oxygenSat, saturationFlags = mainAnalysis(darkRefData, rawSpectraData, self.componentsSpectra,
                 self.whiteRefPath, self.whiteRefBackground)
 
         print('Preparing rescaled image with grid.')
-        gridParameters = (xONH, yONH, length)
         imageRGB = makeImageRGB(refImage)
         rescaledImage, lowSliceX, lowSliceY = rescaleImage(imageRGB, gridParameters)
         resultImageWithGrid = drawGrid(rescaledImage, gridParameters, gridsize=gridsize)

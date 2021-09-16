@@ -168,8 +168,9 @@ def findOHNParamsInRefImage (refImage):
     onhHeight = np.max(np.where(normalizeColumns > np.min([meanValueOfRefImage * 4, 0.50]))
                        ) - np.min(np.where(normalizeColumns > meanValueOfRefImage * 2))
     onhCenterYCoords = int((np.min(np.where(normalizeColumns > meanValueOfRefImage * 2)) + onhHeight / 2))
-    length = int((np.min([onhHeight, onhWidth])) / 2)
-    return  onhCenterXCoords,onhCenterYCoords,length
+    # width = int((np.min([onhHeight, onhWidth])) / 2)
+    # height = int((np.max([onhHeight, onhWidth])) / 2)
+    return  onhCenterXCoords, onhCenterYCoords, int(onhWidth), int(onhHeight)
 
 def calculateRosaDistanceFromOnhInRefImage (onhXCenter, onhYCenter , rosaLocationOnRefImage):
     rosaDistanceFromOnh = [None] * len(rosaLocationOnRefImage)
