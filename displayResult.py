@@ -74,7 +74,6 @@ def getOxygenSatMatrix(labels, saturationValues, gridsize=(10,10)):
 def cleanResultValuesAndLocation(shiftParameters, lowSliceX, lowSliceY, saturationO2, gridParameters):
     xCenterGrid = gridParameters[0]# int
     yCenterGrid = gridParameters[1]# int
-    length = gridParameters[2]# int
     shiftParameters = np.array(shiftParameters)
     indexes = np.where(shiftParameters != None)
     shiftParameters = shiftParameters[indexes]
@@ -224,39 +223,37 @@ def drawRosaCircles(rescaledImage, shiftParameters, lowSliceX, lowSliceY, satura
         image = cv2.circle(rescaledImage, centerCoordinates, rosaRadius, color, thickness)
     return rescaledImage
 
-def rescaleImage(imageRGB, gridParameters):
-    xCenterGrid = gridParameters[0]# int
-    yCenterGrid = gridParameters[1]# int
-    length = gridParameters[2]# int
-    left = np.max([xCenterGrid - (length*5), 0])
-    up = np.max([yCenterGrid - (length*5), 0])
-    right = np.min([(5*length), (imageRGB.shape[0] - xCenterGrid)]) + xCenterGrid
-    down  = np.min([(5*length), (imageRGB.shape[1] - yCenterGrid)]) + yCenterGrid
+def rescaleImage(imageRGB, gridParameters, gridsize=(8,6)):
+    xCenterGrid = gridParameters[0]
+    yCenterGrid = gridParameters[1]
+    onhWidth = gridParameters[2]
+    onhHeight = gridParameters[3]
+    left = int(np.max([xCenterGrid - ((gridsize[0]/2)*(onhWidth/2)), 0]))
+    right = int(np.min([((gridsize[0]/2)*(onhWidth/2)), (imageRGB.shape[0] - xCenterGrid)]) + xCenterGrid)
+    up = int(np.max([yCenterGrid - ((gridsize[1]/2)*(onhHeight/2)), 0]))
+    down  = int(np.min([(gridsize[1]/2)*(onhHeight/2), (imageRGB.shape[1] - yCenterGrid)]) + yCenterGrid)
 
     temp = imageRGB[up:down, left:right,:]
-    xNewCenter = xCenterGrid - left
-    yNewCenter = yCenterGrid - up
-    gridImage = np.zeros([length*10, length*10, 3])
+    xNewCenter = int(xCenterGrid - left)
+    yNewCenter = int(yCenterGrid - up)
+
+    xSizeHalf = int((onhWidth/2)*(gridsize[0]/2))
+    ySizeHalf = int((onhHeight/2)*(gridsize[1]/2))
+    gridImage = np.zeros([ySizeHalf*2, xSizeHalf*2, 3])
     # Set slicing limits:
-    LOW_SLICE_Y = ((5*length) - yNewCenter)
-    HIGH_SLICE_Y = ((5*length) + (temp.shape[0] - yNewCenter))
-    LOW_SLICE_X = ((5*length) - xNewCenter)
-    HIGH_SLICE_X = ((5*length) + (temp.shape[1] - xNewCenter))
+    LOW_SLICE_Y = ySizeHalf - yNewCenter
+    HIGH_SLICE_Y = ySizeHalf + (temp.shape[0] - yNewCenter)
+    LOW_SLICE_X = xSizeHalf - xNewCenter
+    HIGH_SLICE_X = xSizeHalf + (temp.shape[1] - xNewCenter)
     # Slicing:
     gridImage[LOW_SLICE_Y:HIGH_SLICE_Y, LOW_SLICE_X:HIGH_SLICE_X, :] = temp
     return gridImage, LOW_SLICE_X, LOW_SLICE_Y
 
 def drawGrid(imageRGB, gridParameters, gridsize=(10,10)):
-    assert gridsize[0] == gridsize[1], "The gridsize has to be the same on both axis."
-    # assert gridsize[0] % 2 == 0, "The gridsize has to be an even number."
-    assert gridsize[0] % 10 == 0, "The gridsize has to be a multiple of 10."
-    length = gridParameters[2]
-    stepsize = gridsize[0]
-    length = length//(stepsize//10)
-    dx, dy = length, length
-    # Custom (rgb) grid color:
-    gridColor = 1
-    # Modify the image to include the grid
+    onhWidth = gridParameters[2]
+    onhHeight = gridParameters[3]
+    dx, dy = onhWidth, onhHeight
+    gridColor = 1 # Custom (rgb) grid color
     imageRGB[:,::dx,:] = gridColor
     imageRGB[::dy,:,:] = gridColor
     return imageRGB
