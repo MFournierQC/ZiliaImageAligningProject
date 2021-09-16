@@ -129,119 +129,202 @@ def getRosaCoordinates(eye,monkey,rlp):
 
 
 ########## save data
-rlp=[2, 4, 6, 14]
-monkey = 'Bresil'
-eye = 'os'
-rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
-O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
-with open("rosaBresilOS.txt", "wb") as fp:  # Pickling
-    pickle.dump(rosas, fp)
-with open("O2BresilOS.txt", "wb") as fp:  # Pickling
-    pickle.dump(O2, fp)
-
-eye = 'od'
-rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
-O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
-with open("rosaBresilOD.txt", "wb") as fp:  # Pickling
-    pickle.dump(rosas, fp)
-with open("O2BresilOD.txt", "wb") as fp:  # Pickling
-    pickle.dump(O2, fp)
-
-#kenya
-
-rlp=[2, 4, 6, 14,24,34]
-monkey = 'Kenya'
-eye = 'os'
-rosas = getRosaCoordinates(eye = eye , monkey = monkey , rlp=rlp)
-O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
-with open("rosaKenyaOS.txt", "wb") as fp:  # Pickling
-    pickle.dump(rosas, fp)
-with open("O2KenyaOS.txt", "wb") as fp:  # Pickling
-    pickle.dump(O2, fp)
-
-eye = 'od'
-rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
-O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
-with open("rosaKenyaOD.txt", "wb") as fp:  # Pickling
-    pickle.dump(rosas, fp)
-with open("O2KenyaOD.txt", "wb") as fp:  # Pickling
-    pickle.dump(O2, fp)
-
-# Rwanda
-
-rlp=[2, 4, 6, 14,24,34]
-monkey = 'Rwanda'
-eye = 'os'
-rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
-O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
-with open("rosaRwandaOS.txt", "wb") as fp:  # Pickling
-    pickle.dump(rosas, fp)
-with open("O2RwandaOS.txt", "wb") as fp:  # Pickling
-    pickle.dump(O2, fp)
-
-eye = 'od'
-rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
-O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
-with open("rosaRwandaOD.txt", "wb") as fp:  # Pickling
-    pickle.dump(rosas, fp)
-with open("O2RwandaOD.txt", "wb") as fp:  # Pickling
-    pickle.dump(O2, fp)
-
-# somalie
-
-rlp=[2, 4, 6, 14,24,34]
-monkey = 'Somalie'
-eye = 'os'
-rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
-O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
-with open("rosaSomalieOS.txt", "wb") as fp:  # Pickling
-    pickle.dump(rosas, fp)
-with open("O2SomalieOS.txt", "wb") as fp:  # Pickling
-    pickle.dump(O2, fp)
-
-eye = 'od'
-rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
-O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
-with open("rosaSomalieOD.txt", "wb") as fp:  # Pickling
-    pickle.dump(rosas, fp)
-with open("O2SomalieOD.txt", "wb") as fp:  # Pickling
-    pickle.dump(O2, fp)
-
-# import imageio
-# imageRef = imageio.imread('../referenceONH.png')
+# rlp=[2, 4, 6, 14]
+# monkey = 'Bresil'
+# eye = 'os'
+# rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
+# O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+# with open("rosaBresilOS.txt", "wb") as fp:  # Pickling
+#     pickle.dump(rosas, fp)
+# with open("O2BresilOS.txt", "wb") as fp:  # Pickling
+#     pickle.dump(O2, fp)
 #
-# def deleteFromList(rosa,O2):
-#     l=[i for i,v in enumerate(rosa) if v is not None]
-#     newRosa = [rosa[j] for j in l]
-#     newO2 = [O2[j] for j in l]
-#     return newRosa,newO2
+# eye = 'od'
+# rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
+# O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+# with open("rosaBresilOD.txt", "wb") as fp:  # Pickling
+#     pickle.dump(rosas, fp)
+# with open("O2BresilOD.txt", "wb") as fp:  # Pickling
+#     pickle.dump(O2, fp)
 #
-# with open("rosaBresilOD.txt", "rb") as fp:   # Unpickling
-#     rosaBresilOD = pickle.load(fp)
-# with open("O2BresilOD.txt", "rb") as fp:   # Unpickling
-#     O2BresilOD = pickle.load(fp)
+# #kenya
 #
+# rlp=[2, 4, 6, 14,24,34]
+# monkey = 'Kenya'
+# eye = 'os'
+# rosas = getRosaCoordinates(eye = eye , monkey = monkey , rlp=rlp)
+# O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+# with open("rosaKenyaOS.txt", "wb") as fp:  # Pickling
+#     pickle.dump(rosas, fp)
+# with open("O2KenyaOS.txt", "wb") as fp:  # Pickling
+#     pickle.dump(O2, fp)
 #
+# eye = 'od'
+# rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
+# O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+# with open("rosaKenyaOD.txt", "wb") as fp:  # Pickling
+#     pickle.dump(rosas, fp)
+# with open("O2KenyaOD.txt", "wb") as fp:  # Pickling
+#     pickle.dump(O2, fp)
 #
+# # Rwanda
 #
-# with open("rosaBresilOS.txt", "rb") as fp:   # Unpickling
-#     rosaBresilOS = pickle.load(fp)
-# with open("O2BresilOS.txt", "rb") as fp:   # Unpickling
-#     O2BresilOS = pickle.load(fp)
+# rlp=[2, 4, 6, 14,24,34]
+# monkey = 'Rwanda'
+# eye = 'os'
+# rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
+# O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+# with open("rosaRwandaOS.txt", "wb") as fp:  # Pickling
+#     pickle.dump(rosas, fp)
+# with open("O2RwandaOS.txt", "wb") as fp:  # Pickling
+#     pickle.dump(O2, fp)
 #
-# print(rosaBresilOS)
+# eye = 'od'
+# rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
+# O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+# with open("rosaRwandaOD.txt", "wb") as fp:  # Pickling
+#     pickle.dump(rosas, fp)
+# with open("O2RwandaOD.txt", "wb") as fp:  # Pickling
+#     pickle.dump(O2, fp)
 #
-# with open("rosaKenyaOD.txt", "rb") as fp:   # Unpickling
-#     rosaKenyaOD = pickle.load(fp)
-# with open("O2KenyaOD.txt", "rb") as fp:   # Unpickling
-#     O2KenyaOD = pickle.load(fp)
+# # somalie
 #
+# rlp=[2, 4, 6, 14,24,34]
+# monkey = 'Somalie'
+# eye = 'os'
+# rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
+# O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+# with open("rosaSomalieOS.txt", "wb") as fp:  # Pickling
+#     pickle.dump(rosas, fp)
+# with open("O2SomalieOS.txt", "wb") as fp:  # Pickling
+#     pickle.dump(O2, fp)
 #
-# rosaKenyaOD,O2KenyaOD = deleteFromList(rosaKenyaOD,O2KenyaOD)
-# print(rosaKenyaOD)
-# print(np.asarray(rosaKenyaOD)+1000)
+# eye = 'od'
+# rosas = getRosaCoordinates(eye = eye , monkey = monkey, rlp=rlp)
+# O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+# with open("rosaSomalieOD.txt", "wb") as fp:  # Pickling
+#     pickle.dump(rosas, fp)
+# with open("O2SomalieOD.txt", "wb") as fp:  # Pickling
+#     pickle.dump(O2, fp)
+
+# ######### use
+import imageio
+from scipy import stats
+imageRef = imageio.imread('../referenceONH.png')
+
+def deleteFromList(rosa,O2):
+    l=[i for i,v in enumerate(rosa) if v is not None]
+    newRosa = [rosa[j] for j in l]
+    newRosa=np.asarray(newRosa)+3000
+    newO2 = [O2[j] for j in l]
+    return newRosa,newO2
+
+def findRegion(index):
+    region = []
+    for i in range(len(index)):
+        if (imageRef[index[i][0], index[i][1]] == 0):
+            region.append('bg')
+        if (imageRef[index[i][0], index[i][1]] == 255):
+            region.append('onh')
+    return region
 
 
+with open("../savedData2/rosaBresilOD.txt", "rb") as fp:   # Unpickling
+    rosaBresilOD = pickle.load(fp)
+with open("../savedData2/O2BresilOD.txt", "rb") as fp:   # Unpickling
+    O2BresilOD = pickle.load(fp)
+rosaBresilOD,O2BresilOD = deleteFromList(rosaBresilOD,O2BresilOD)
+regionBresilOD= findRegion(rosaBresilOD)
+
+bgOD=[i for i,v in enumerate(regionBresilOD) if v == 'bg']
+onhOD=[i for i,v in enumerate(regionBresilOD) if v == 'onh']
+
+
+
+with open("rosaBresilOS.txt", "rb") as fp:   # Unpickling
+    rosaBresilOS = pickle.load(fp)
+with open("O2BresilOS.txt", "rb") as fp:   # Unpickling
+    O2BresilOS = pickle.load(fp)
+rosaBresilOS,O2BresilOS = deleteFromList(rosaBresilOS,O2BresilOS)
+regionBresilOS= findRegion(rosaBresilOS)
+
+bgOS=[i for i,v in enumerate(regionBresilOS) if v == 'bg']
+onhOS=[i for i,v in enumerate(regionBresilOS) if v == 'onh']
+
+
+
+with open("rosaKenyaOD.txt", "rb") as fp:   # Unpickling
+    rosaKenyaOD = pickle.load(fp)
+with open("O2KenyaOD.txt", "rb") as fp:   # Unpickling
+    O2KenyaOD = pickle.load(fp)
+rosaKenyaOD,O2KenyaOD = deleteFromList(rosaKenyaOD,O2KenyaOD)
+regionKenyaOD= findRegion(rosaKenyaOD)
+
+bgOD=[i for i,v in enumerate(regionKenyaOD) if v == 'bg']
+onhOD=[i for i,v in enumerate(regionKenyaOD) if v == 'onh']
+
+
+with open("rosaKenyaOS.txt", "rb") as fp:   # Unpickling
+    rosaKenyaOS = pickle.load(fp)
+with open("O2KenyaOS.txt", "rb") as fp:   # Unpickling
+    O2KenyaOS = pickle.load(fp)
+rosaKenyaOS,O2KenyaOS = deleteFromList(rosaKenyaOS,O2KenyaOS)
+regionKenyaOS= findRegion(rosaKenyaOS)
+
+bgOS=[i for i,v in enumerate(regionKenyaOS) if v == 'bg']
+onhOS=[i for i,v in enumerate(regionKenyaOS) if v == 'onh']
+
+
+
+with open("rosaRwandaOD.txt", "rb") as fp:   # Unpickling
+    rosaRwandaOD = pickle.load(fp)
+with open("O2RwandaOD.txt", "rb") as fp:   # Unpickling
+    O2RwandaOD = pickle.load(fp)
+rosaRwandaOD,O2RwandaOD = deleteFromList(rosaRwandaOD,O2RwandaOD)
+regionRwandaOD= findRegion(rosaRwandaOD)
+
+bgOD=[i for i,v in enumerate(regionRwandaOD) if v == 'bg']
+onhOD=[i for i,v in enumerate(regionRwandaOD) if v == 'onh']
+
+with open("rosaRwandaOS.txt", "rb") as fp:   # Unpickling
+    rosaRwandaOS = pickle.load(fp)
+with open("O2RwandaOS.txt", "rb") as fp:   # Unpickling
+    O2RwandaOS = pickle.load(fp)
+rosaRwandaOS,O2RwandaOS = deleteFromList(rosaRwandaOS,O2RwandaOS)
+regionRwandaOS= findRegion(rosaRwandaOS)
+
+
+
+bgOS=[i for i,v in enumerate(regionRwandaOS) if v == 'bg']
+onhOS=[i for i,v in enumerate(regionRwandaOS) if v == 'onh']
+
+
+
+
+with open("rosaSomalieOD.txt", "rb") as fp:   # Unpickling
+    rosaSomalieOD = pickle.load(fp)
+with open("O2SomalieOD.txt", "rb") as fp:   # Unpickling
+    O2SomalieOD = pickle.load(fp)
+rosaSomalieOD,O2SomalieOD = deleteFromList(rosaSomalieOD,O2SomalieOD)
+regionSomalieOD= findRegion(rosaSomalieOD)
+
+bgOD=[i for i,v in enumerate(regionSomalieOD) if v == 'bg']
+onhOD=[i for i,v in enumerate(regionSomalieOD) if v == 'onh']
+
+with open("rosaSomalieOS.txt", "rb") as fp:   # Unpickling
+    rosaSomalieOS = pickle.load(fp)
+with open("O2SomalieOS.txt", "rb") as fp:   # Unpickling
+    O2SomalieOS = pickle.load(fp)
+rosaSomalieOS,O2SomalieOS = deleteFromList(rosaSomalieOS,O2SomalieOS)
+regionSomalieOS= findRegion(rosaSomalieOS)
+
+bgOS=[i for i,v in enumerate(regionSomalieOS) if v == 'bg']
+onhOS=[i for i,v in enumerate(regionSomalieOS) if v == 'onh']
+
+
+# print('ttest : ' , stats.ttest_ind(bgOD, onhOD, equal_var=False))
+
+print('ttest : ' , stats.ttest_ind(bgOS, bgOD, equal_var=False))
 
 
 ################## for Comparing image numbers and spec ##########

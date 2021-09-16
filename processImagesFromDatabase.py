@@ -82,7 +82,7 @@ def calculateSkeletonImage (image , margin = 250 , n=100 ):
 def findGoodImagesIndex (blurryFlag):
     return np.where(np.array(blurryFlag) != 'True')[0]
 
-def calculateValidShiftsInOneAcquisition(images: np.ndarray, margin=250, n=100 , maxValidShift = 500):
+def calculateValidShiftsInOneAcquisition(images: np.ndarray, margin=250, n=100 , maxValidShift = 100):
     """Calculated the shift in x and y direction in two consecutive images
         Input: list of 2D numpy arrays (series of retina images)
         The shift in the first image is considered to be zero
