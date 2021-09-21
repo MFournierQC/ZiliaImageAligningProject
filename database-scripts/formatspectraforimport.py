@@ -26,12 +26,12 @@ lines = text_file.read().splitlines()
 for line in lines:
     if re.match(r'^(\d+),', line):
         values = line.split(',')
-        wavelength = values[1]
+        wavelength = values[0]
 
-        values.pop(0) # Index
+        # values.pop(0) # Index
         values.pop(0) # wavelength
-        values.pop(0) # dark
         values.pop(0) # ref
+        values.pop(0) # bg
 
         for col, intensity in enumerate(values):
             print(f'{wavelength},{intensity},null,{filepath},raw {col},{hash}')

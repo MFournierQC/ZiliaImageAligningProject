@@ -73,11 +73,10 @@ class TestZilia(env.DCCLabTestCase):
 
     def testGetTimelines(self):
         types = self.db.getTimelines()
-        self.assertEqual(types, ['background','baseline'])
+        self.assertEqual(types, ['background','baseline 1','baseline 2','baseline 3'])
 
     def testGetColumns(self):
         cols = self.db.getColumns()
-        # self.assertEqual(cols, ['bg','raw','ref'])
         self.assertEqual(cols, ['raw'])
 
     def testGetRegions(self):
