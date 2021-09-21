@@ -237,7 +237,9 @@ rosaBresilOD,O2BresilOD = deleteFromList(rosaBresilOD,O2BresilOD)
 regionBresilOD= findRegion(rosaBresilOD)
 
 bgOD=[i for i,v in enumerate(regionBresilOD) if v == 'bg']
+O2bgOD=[O2BresilOD[j] for j in bgOD]
 onhOD=[i for i,v in enumerate(regionBresilOD) if v == 'onh']
+O2onhOD=[O2BresilOD[j] for j in onhOD]
 
 
 
@@ -249,7 +251,10 @@ rosaBresilOS,O2BresilOS = deleteFromList(rosaBresilOS,O2BresilOS)
 regionBresilOS= findRegion(rosaBresilOS)
 
 bgOS=[i for i,v in enumerate(regionBresilOS) if v == 'bg']
+O2bgOS=[O2BresilOS[j] for j in bgOS]
 onhOS=[i for i,v in enumerate(regionBresilOS) if v == 'onh']
+O2onhOS=[O2BresilOD[j] for j in onhOS]
+
 
 
 
@@ -260,8 +265,14 @@ with open("O2KenyaOD.txt", "rb") as fp:   # Unpickling
 rosaKenyaOD,O2KenyaOD = deleteFromList(rosaKenyaOD,O2KenyaOD)
 regionKenyaOD= findRegion(rosaKenyaOD)
 
+
+
 bgOD=[i for i,v in enumerate(regionKenyaOD) if v == 'bg']
+O2bgOD=[O2KenyaOD[j] for j in bgOD]
 onhOD=[i for i,v in enumerate(regionKenyaOD) if v == 'onh']
+O2onhOD=[O2KenyaOD[j] for j in onhOD]
+
+
 
 
 with open("rosaKenyaOS.txt", "rb") as fp:   # Unpickling
@@ -272,7 +283,9 @@ rosaKenyaOS,O2KenyaOS = deleteFromList(rosaKenyaOS,O2KenyaOS)
 regionKenyaOS= findRegion(rosaKenyaOS)
 
 bgOS=[i for i,v in enumerate(regionKenyaOS) if v == 'bg']
+O2bgOS=[O2KenyaOS[j] for j in bgOS]
 onhOS=[i for i,v in enumerate(regionKenyaOS) if v == 'onh']
+O2onhOS=[O2KenyaOS[j] for j in onhOS]
 
 
 
@@ -284,7 +297,12 @@ rosaRwandaOD,O2RwandaOD = deleteFromList(rosaRwandaOD,O2RwandaOD)
 regionRwandaOD= findRegion(rosaRwandaOD)
 
 bgOD=[i for i,v in enumerate(regionRwandaOD) if v == 'bg']
+O2bgOD=[O2RwandaOD[j] for j in bgOD]
 onhOD=[i for i,v in enumerate(regionRwandaOD) if v == 'onh']
+O2onhOD=[O2RwandaOD[j] for j in onhOD]
+
+
+
 
 with open("rosaRwandaOS.txt", "rb") as fp:   # Unpickling
     rosaRwandaOS = pickle.load(fp)
@@ -296,7 +314,9 @@ regionRwandaOS= findRegion(rosaRwandaOS)
 
 
 bgOS=[i for i,v in enumerate(regionRwandaOS) if v == 'bg']
+O2bgOS=[O2RwandaOS[j] for j in bgOS]
 onhOS=[i for i,v in enumerate(regionRwandaOS) if v == 'onh']
+O2onhOS=[O2RwandaOS[j] for j in onhOS]
 
 
 
@@ -309,7 +329,11 @@ rosaSomalieOD,O2SomalieOD = deleteFromList(rosaSomalieOD,O2SomalieOD)
 regionSomalieOD= findRegion(rosaSomalieOD)
 
 bgOD=[i for i,v in enumerate(regionSomalieOD) if v == 'bg']
+O2bgOD=[O2SomalieOD[j] for j in bgOD]
 onhOD=[i for i,v in enumerate(regionSomalieOD) if v == 'onh']
+O2onhOD=[O2SomalieOD[j] for j in onhOD]
+
+
 
 with open("rosaSomalieOS.txt", "rb") as fp:   # Unpickling
     rosaSomalieOS = pickle.load(fp)
@@ -319,12 +343,25 @@ rosaSomalieOS,O2SomalieOS = deleteFromList(rosaSomalieOS,O2SomalieOS)
 regionSomalieOS= findRegion(rosaSomalieOS)
 
 bgOS=[i for i,v in enumerate(regionSomalieOS) if v == 'bg']
+O2bgOS=[O2SomalieOS[j] for j in bgOS]
 onhOS=[i for i,v in enumerate(regionSomalieOS) if v == 'onh']
+O2onhOD=[O2SomalieOS[j] for j in onhOD]
+
+print('now plot hist')
+n, bins, patches = plt.hist(O2bgOS, 50, range= (30,55), facecolor='g', alpha=0.75)
+# plt.savefig('SomalieOS.png')
+plt.show()
+
+# print('ttest : ' , stats.ttest_ind(O2bgOD, O2bgOS, equal_var=False))
+# print('ttest : ' , stats.ttest_ind(O2bgOS, O2onhOS, equal_var=False))
 
 
 # print('ttest : ' , stats.ttest_ind(bgOD, onhOD, equal_var=False))
 
-print('ttest : ' , stats.ttest_ind(bgOS, bgOD, equal_var=False))
+# print(np.mean(O2bgOD),np.std(O2bgOD))
+# print(np.mean(O2onhOD),np.std(O2onhOD))
+# print(np.mean(O2bgOS),np.std(O2bgOS))
+# print(np.mean(O2onhOS),np.std(O2onhOS))
 
 
 ################## for Comparing image numbers and spec ##########
