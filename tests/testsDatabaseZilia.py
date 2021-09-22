@@ -209,5 +209,10 @@ class TestZilia(env.DCCLabTestCase):
         for path, imageData in images.items():
             result = self.computeSomething(imageData)
 
+    def testNumberOfRetinaImages(self):
+        retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
+                                                     , eye='os', limit=10)
+        self.assertEqual(len(retinaImages), 10)
+
 if __name__ == '__main__':
     unittest.main()
