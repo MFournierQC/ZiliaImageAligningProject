@@ -281,8 +281,6 @@ class ZiliaDB(Database):
             if row['eye'] == 'os' and mirrorLeftEye:
                 image = self.mirrorImageHorizontally(image)
 
-            content = row['content']
-            images[content] = image
             images[relativePath] = image
             self.showProgressBar(i+1, nTotal)
 

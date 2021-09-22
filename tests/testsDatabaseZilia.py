@@ -87,7 +87,7 @@ class TestZilia(env.DCCLabTestCase):
         spectra = self.db.getRawIntensities(limit=10)
         self.assertIsNotNone(spectra)
         self.assertTrue(len(spectra) > 0)
-        wavelengths = self.db.getWavelengths() 
+        wavelengths = self.db.getWavelengths()
         nPoints = len(wavelengths)
         self.assertEqual(spectra.shape[0], nPoints)
         self.assertEqual(spectra.shape[1], 10)
@@ -96,7 +96,7 @@ class TestZilia(env.DCCLabTestCase):
         spectra = self.db.getRawIntensities(limit=10, region='onh')
         self.assertIsNotNone(spectra)
         self.assertTrue(len(spectra) > 0)
-        wavelengths = self.db.getWavelengths() 
+        wavelengths = self.db.getWavelengths()
         nPoints = len(wavelengths)
         self.assertEqual(spectra.shape[0], nPoints)
         self.assertEqual(spectra.shape[1], 10)
@@ -105,7 +105,7 @@ class TestZilia(env.DCCLabTestCase):
         spectra = self.db.getRawIntensities(limit=10, timeline='baseline')
         self.assertIsNotNone(spectra)
         self.assertTrue(len(spectra) > 0)
-        wavelengths = self.db.getWavelengths() 
+        wavelengths = self.db.getWavelengths()
         nPoints = len(wavelengths)
         self.assertEqual(spectra.shape[0], nPoints)
         self.assertEqual(spectra.shape[1], 10)
@@ -114,7 +114,7 @@ class TestZilia(env.DCCLabTestCase):
         spectra = self.db.getRawIntensities(limit=10, eye='os')
         self.assertIsNotNone(spectra)
         self.assertTrue(len(spectra) > 0)
-        wavelengths = self.db.getWavelengths() 
+        wavelengths = self.db.getWavelengths()
         nPoints = len(wavelengths)
         self.assertEqual(spectra.shape[0], nPoints)
         self.assertEqual(spectra.shape[1], 10)
@@ -132,7 +132,7 @@ class TestZilia(env.DCCLabTestCase):
         spectra = self.db.getRawIntensities(monkey='Daniel')
         endTime = time.time()
         self.assertIsNone(spectra)
-        
+
         if endTime-startTime < 5:
             print("Warning: Simple spectrum request was more than 5s. Consider copying database to local folder")
 
@@ -187,8 +187,8 @@ class TestZilia(env.DCCLabTestCase):
         records = self.db.getCalculatedImageProperties(rlp=34, timeline='baseline 3', region='onh', content='eye')
         self.assertTrue(len(records) > 0)
         for record in records:
-            self.assertTrue('path' in record)    
-            self.assertTrue('timeline' in record)    
+            self.assertTrue('path' in record)
+            self.assertTrue('timeline' in record)
 
     def testGetAcquisitionIdList(self):
         acqIds = self.db.getAcquisitionIdList()
@@ -213,6 +213,16 @@ class TestZilia(env.DCCLabTestCase):
         retinaImages = self.db.getGrayscaleEyeImages(monkey='Bresil', rlp=6, timeline='baseline 3', region='onh'
                                                      , eye='os', limit=10)
         self.assertEqual(len(retinaImages), 10)
+
+    def testExternalStatement(self):
+        statement = "select f.eye as eye, c.path as path, c.property, c.value from imagefiles as f left join calculations as c on c.path = f.path where c.algorithm='manual'"
+        self.db.execute(statement)
+        rows = self.db.fetchAll()
+        images = self.db.getImagesFromRows(rows)
+        print(len(images))
+
+        for row in rows:
+            print(row['property'], row['value'])
 
 if __name__ == '__main__':
     unittest.main()
