@@ -268,7 +268,7 @@ class ZiliaDB(Database):
 
         return self.getImagesFromRows(rows)
 
-    def getImagesFromRows(self, rows):
+    def getImagesFromRows(self, rows, mirrorLeftEye=True):
         images = {}
         nTotal = len(rows)
         for i,row in enumerate(rows):
