@@ -3,17 +3,15 @@ import matplotlib as mpl
 import numpy as np
 import cv2
 
-def getOxygenSatMatrix(labels, saturationValues, gridsize=(10,10)):
+def getOxygenSatMatrix(labels, saturationValues, gridsize=(6,8)):
     assert len(labels) == len(saturationValues), "The number of labels must be the same as the number of oxygen saturation values."
-    assert gridsize[0] == gridsize[1], "The gridsize has to be the same on both axis."
     xLabel = np.array([i for i in range(gridsize[0])])
     yLabel = np.array([i for i in range(gridsize[1])])
-    # yLabel = np.array(['A', 'B', 'C', 'D', 'E', 'F', 'J', 'K', 'L', 'M'])
-    # xLabel = np.array(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])
-    concentrationMatrix = np.zeros(gridsize)
+    concentrationMatrix = np.zeros((gridsize[1], gridsize[0]))
     saturationLocation = {}
 
     for i, oxygenSat in enumerate(saturationValues):
+        print(oxygenSat)
         if labels[i] == None or oxygenSat == None:
             continue
         yIndex = np.where(np.array(labels[i][1]) == yLabel)[0]
@@ -22,8 +20,7 @@ def getOxygenSatMatrix(labels, saturationValues, gridsize=(10,10)):
         if index in saturationLocation.keys():
             saturationLocation[index].append(oxygenSat)
         else:
-            saturationLocation[index] = list([oxygenSat])
-        currentValue = concentrationMatrix[yIndex, xIndex][0]
+            saturationLocation[index] = [oxygenSat]
 
     for index, sat in saturationLocation.items():
         concentrationMatrix[index] = np.mean(sat)
