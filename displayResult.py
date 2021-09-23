@@ -28,17 +28,19 @@ def getOxygenSatMatrix(labels, saturationValues, gridsize=(6,8)):
     return concentrationMatrix
 
 def display(firstEyeImage, secondEyeImage, firstSO2Matrix, secondSO2Matrix, xCoordinatesOS, yCoordinatesOS, xCoordinatesOD, yCoordinatesOD, saturationValuesOS, saturationValuesOD):
+    minValue, maxValue = colorMapRange(firstSO2Matrix, secondSO2Matrix)
+    minSat = np.amin([np.amin(saturationValuesOS), np.amin(saturationValuesOD)])
+    maxSat = np.amax([np.amax(saturationValuesOS), np.amax(saturationValuesOD)])
+
     fig, axs = plt.subplots(2, 2, constrained_layout=True)
     axs[0, 0].imshow(firstEyeImage)
-    axs[0, 0].scatter(xCoordinatesOS, yCoordinatesOS, c=saturationValuesOS, cmap=plt.cm.coolwarm)
+    axs[0, 0].scatter(xCoordinatesOS, yCoordinatesOS, c=saturationValuesOS, cmap=plt.cm.coolwarm, vmin=minSat, vmax=maxSat)
     axs[0, 0].set_title('First eye')
     axs[0, 0].axis('off')
     axs[0, 1].imshow(secondEyeImage)
-    axs[0, 1].scatter(xCoordinatesOD, yCoordinatesOD, c=saturationValuesOD, cmap=plt.cm.coolwarm)
+    axs[0, 1].scatter(xCoordinatesOD, yCoordinatesOD, c=saturationValuesOD, cmap=plt.cm.coolwarm, vmin=minSat, vmax=maxSat)
     axs[0, 1].set_title('Second eye')
     axs[0, 1].axis('off')
-
-    minValue, maxValue = colorMapRange(firstSO2Matrix, secondSO2Matrix)
 
     axs[1, 0].imshow(firstSO2Matrix, cmap=plt.cm.coolwarm, vmin=minValue, vmax=maxValue)
     axs[1, 0].set_title('Oxygen saturation (1st eye)')
@@ -46,6 +48,7 @@ def display(firstEyeImage, secondEyeImage, firstSO2Matrix, secondSO2Matrix, xCoo
     cmp = axs[1, 1].imshow(secondSO2Matrix, cmap=plt.cm.coolwarm, vmin=minValue, vmax=maxValue)
     axs[1, 1].set_title('Oxygen saturation (2nd eye)')
     axs[1, 1].axis('off')
+
     fig.colorbar(cmp, ax=axs[1,:], location='bottom', shrink=0.6)
     plt.show()
 

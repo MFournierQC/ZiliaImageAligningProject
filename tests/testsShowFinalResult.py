@@ -42,14 +42,6 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         odOxygenSatMatrix = getOxygenSatMatrix(rosaLabelsOD, oxygenSatOD, gridsize=gridsize)
         print("Second eye analysis done.")
 
-        plt.figure()
-        plt.subplot(1,2,1)
-        plt.imshow(osOxygenSatMatrix)
-        plt.subplot(1,2,2)
-        plt.imshow(odOxygenSatMatrix)
-        plt.show()
-        assert True == False, "Arbitrary stop, temporary."
-
         display(resultImageOS, resultImageOD, osOxygenSatMatrix, odOxygenSatMatrix, xCoordinatesOS, yCoordinatesOS, xCoordinatesOD, yCoordinatesOD, cleanOxygenSatOS, cleanOxygenSatOD)
 
     def computeResultImageForOneEye(self, monkey='Bresil', rlp=6, timeline=None, eye='os', limit=10, gridsize=(10,10), mirrorLeftEye=True, region='onh'):
@@ -72,9 +64,6 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         imageRGB = makeImageRGB(refImage)
         rescaledImage, lowSliceX, lowSliceY = rescaleImage(imageRGB, gridParameters, gridsize=gridsize)
         resultImageWithGrid = drawGrid(rescaledImage, gridParameters, gridsize=gridsize)
-        # plt.imshow(resultImageWithGrid)
-        # plt.show()
-        # raise ImportError
 
         ### Spectral analysis ###
 
