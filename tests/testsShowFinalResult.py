@@ -20,7 +20,7 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         self.whiteRefBackground = "../int75_LEDON_nothingInFront.csv"
 
     # @envtest.skip("long test")
-    def testGetMainAnalysisOnRetinaImagesForBresil(self):
+    def testGetMainAnalysisOnRetinaImagesFor1Monkey(self):
         monkey = 'Rwanda'
         region = 'onh'
         rlp = 24
@@ -63,9 +63,9 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         imageRGB = makeImageRGB(refImage)
         rescaledImage, lowSliceX, lowSliceY = rescaleImage(imageRGB, gridParameters, gridsize=gridsize)
         resultImageWithGrid = drawGrid(rescaledImage, gridParameters, gridsize=gridsize)
-        plt.imshow(resultImageWithGrid)
-        plt.show()
-        raise ImportError
+        # plt.imshow(resultImageWithGrid)
+        # plt.show()
+        # raise ImportError
 
         ### Spectral analysis ###
         print('Importing spectra.')
@@ -81,7 +81,6 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
                 self.whiteRefPath, self.whiteRefBackground)
 
         xCoordinates, yCoordinates, cleanSaturationO2, _ = cleanResultValuesAndLocation(absoluteRosaValue, lowSliceX, lowSliceY, oxygenSat, gridParameters)
-
 
         return resultImageWithGrid, oxygenSat, rosaLabels, saturationFlags, xCoordinates, yCoordinates, cleanSaturationO2
 

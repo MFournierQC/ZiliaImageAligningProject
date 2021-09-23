@@ -71,19 +71,19 @@ def getOxygenSatMatrix(labels, saturationValues, gridsize=(10,10)):
 
     return concentrationMatrix
 
-def cleanResultValuesAndLocation(shiftParameters, lowSliceX, lowSliceY, saturationO2, gridParameters):
+def cleanResultValuesAndLocation(rosaPositions, lowSliceX, lowSliceY, saturationO2, gridParameters):
     xCenterGrid = gridParameters[0]# int
     yCenterGrid = gridParameters[1]# int
-    shiftParameters = np.array(shiftParameters)
-    indexes = np.where(shiftParameters != None)
-    shiftParameters = shiftParameters[indexes]
+    rosaPositions = np.array(rosaPositions)
+    indexes = np.where(rosaPositions != None)
+    rosaPositions = rosaPositions[indexes]
     saturationO2 = saturationO2[indexes]
     normalizedSaturation = (saturationO2-np.min(saturationO2))/(np.max(saturationO2)-np.min(saturationO2))
 
     xCoordinates = []
     yCoordinates = []
 
-    for j, coords in enumerate(list(shiftParameters)):
+    for j, coords in enumerate(list(rosaPositions)):
         x = int(coords[0]) + lowSliceX + xCenterGrid
         y = int(coords[1]) + lowSliceY + yCenterGrid
         xCoordinates.append(x)
