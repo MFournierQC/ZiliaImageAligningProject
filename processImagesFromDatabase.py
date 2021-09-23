@@ -17,15 +17,17 @@ import os
 
 def getRosaProperties (rosaImages):
     """get a list of rosa images, returns the properties in a dictionary, if no rosa found, it will raise an error"""
-    rosaProperties=[]
+    rosaProperties=[None]*len(rosaImages)
     numberOfRosaFound=0
     for image in range(len(rosaImages)):
         rosaInfo = analyzeRosa(rosaImages[image])
-        rosaProperties.append(rosaInfo)
+
         if rosaInfo['found']:
             numberOfRosaFound +=1
+            rosaProperties[image] = rosaInfo
     if numberOfRosaFound == 0:
-        raise ImportError("No laser spot was found. Try with different data.")
+        # raise ImportError("No laser spot was found. Try with different data.")
+        print("No laser spot was found. Try with different data.")
     return rosaProperties
 
 # def findDarkImages (retinaImages):
@@ -80,7 +82,7 @@ def calculateSkeletonImage (image , margin = 250 , n=100 ):
 def findGoodImagesIndex (blurryFlag):
     return np.where(np.array(blurryFlag) != 'True')[0]
 
-def calculateValidShiftsInOneAcquisition(images: np.ndarray, margin=250, n=100 , maxValidShift = 200):
+def calculateValidShiftsInOneAcquisition(images: np.ndarray, margin=250, n=100 , maxValidShift = 100):
     """Calculated the shift in x and y direction in two consecutive images
         Input: list of 2D numpy arrays (series of retina images)
         The shift in the first image is considered to be zero
@@ -97,6 +99,7 @@ def calculateValidShiftsInOneAcquisition(images: np.ndarray, margin=250, n=100 ,
 
     if (len(goodImagesNumber) > 1):
         for firstImage in range(len(goodImagesNumber) - 1):
+
             shiftValue = np.array([1000,1000])
             firstSkeletonImage = calculateSkeletonImage(images[goodImagesNumber[firstImage+1]],margin=margin , n=n)
             for secondImage in range(firstImage+1):
@@ -110,10 +113,10 @@ def calculateValidShiftsInOneAcquisition(images: np.ndarray, margin=250, n=100 ,
                         halfImageSize = np.array([firstSkeletonImage.shape[0] / 2, firstSkeletonImage.shape[1] / 2])
                         shiftValue = np.array(maxValueIndex2D) - halfImageSize
     
-            if(shiftValue[0] < maxValidShift and shiftValue[1] < maxValidShift):
-                imageIsValid[goodImagesNumber[firstImage+1]] = True
-                tempShiftVariable += shiftValue.astype(np.int)
-                shiftValueFromReferenceImage[goodImagesNumber[firstImage + 1]] = tempShiftVariable
+                        if(shiftValue[0] < maxValidShift and shiftValue[1] < maxValidShift):
+                            imageIsValid[goodImagesNumber[firstImage+1]] = True
+                            tempShiftVariable += shiftValue.astype(int)
+                            shiftValueFromReferenceImage[goodImagesNumber[firstImage+1]] = np.copy(tempShiftVariable)
 
     return shiftValueFromReferenceImage , imageIsValid
 
@@ -124,10 +127,11 @@ def applyShiftOnRosaCenter ( rosaInfoAbsolute , shiftValuesFromReferenceImage):
     """
     rosaOnRefImage = [None] * len(shiftValuesFromReferenceImage)
     for i in range(len(shiftValuesFromReferenceImage)):
-        if rosaInfoAbsolute[i]['found']:
-            if shiftValuesFromReferenceImage[i] is not None :
-                rosaOnRefImage [i] = [int(rosaInfoAbsolute[i]['center']['x']-shiftValuesFromReferenceImage[i][1]) ,
-                                  int(rosaInfoAbsolute[i]['center']['y']-shiftValuesFromReferenceImage[i][0])]
+        if rosaInfoAbsolute[i] is not None:
+            if rosaInfoAbsolute[i]['found']:
+                if shiftValuesFromReferenceImage[i] is not None :
+                    rosaOnRefImage [i] = [int(rosaInfoAbsolute[i]['center']['x']-shiftValuesFromReferenceImage[i][1]) ,
+                                      int(rosaInfoAbsolute[i]['center']['y']-shiftValuesFromReferenceImage[i][0])]
     return  rosaOnRefImage
 
 def crossImage(firstImage, secondImage) -> np.ndarray:
@@ -172,7 +176,7 @@ def findOHNParamsInRefImage (refImage):
     # height = int((np.max([onhHeight, onhWidth])) / 2)
     return  onhCenterXCoords, onhCenterYCoords, int(onhWidth), int(onhHeight)
 
-def calculateRosaDistanceFromOnhInRefImage (onhXCenter, onhYCenter , rosaLocationOnRefImage):
+def calculateRosaDistanceFromOnhInRefImage (onhXCenter, onhYCenter,rosaLocationOnRefImage):
     rosaDistanceFromOnh = [None] * len(rosaLocationOnRefImage)
     for rosa in range(len(rosaLocationOnRefImage)):
         if rosaLocationOnRefImage[rosa] is not None:

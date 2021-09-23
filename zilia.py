@@ -60,7 +60,7 @@ class ZiliaDB(Database):
         except:
             return False # cyberduck not installed or available
 
-    def __init__(self, ziliaDbPath=None, root=None):  
+    def __init__(self, ziliaDbPath=None, root=None, writePermission=False):  
         """
         Creates the database object for the Zilia experiments.
 
@@ -71,10 +71,14 @@ class ZiliaDB(Database):
         if ziliaDbPath is None:
             ziliaDbPath = ZiliaDB.findDatabasePath()
 
+        if ziliaDbPath is None:
+            raise RuntimeError("Unable to find database")
+
         if root is None:
             root = ZiliaDB.findDataFilesRoot()
 
-        super().__init__(ziliaDbPath, writePermission=False)
+
+        super().__init__(ziliaDbPath, writePermission=writePermission)
 
         self.root = root
         self._wavelengths = None
@@ -109,6 +113,57 @@ class ZiliaDB(Database):
 
         return wavelengths
 
+    def getAcquisitions(self):
+        self.execute(r"select acquisition, count(idx)/3 as count from imagefiles group by acquisition order by acquisition")
+        rows = self.fetchAll()
+
+        types = []
+        for row in rows:
+            acquisition = row['acquisition']
+            count = row['count']
+            types.append( (acquisition, count) )
+
+        return types
+
+    def getMeasurementGroups(self, group=None):
+        acquisition, idx = group
+        self.execute(r"select path, eye, content from imagefiles where acquisition='{0}' and idx={1} order by path, idx".format(acquisition, idx))
+        rows = self.fetchAll()
+        images = self.getImagesFromRows(rows)
+
+        wavelengths = self.getWavelengths()
+        nWavelengths = len(wavelengths)
+
+        self.execute(r"select path, wavelength, intensity from spectra where acquisition='{0}' and idx={1} order by path, idx, wavelength ".format(acquisition, idx))
+        rows = list(self.fetchAll())
+
+        if rows is None:
+            return None
+            
+        nSamples = len(rows)//nWavelengths
+        if nSamples == 0:
+            return None
+
+        spectra = np.zeros(shape=(nWavelengths, nSamples))
+        for i,row in enumerate(rows):
+            spectra[i%nWavelengths, i//nWavelengths] = float(row['intensity'])
+
+        return images, spectra
+
+
+
+    def getMeasurements(self, group ):
+        groups = []
+
+        image, spectrum
+        return groups
+
+    def getCountSpectralFiles(self):
+        self.execute(r"select count(*) as count from spectralfiles")
+        rows = self.fetchAll()
+        if rows is None:
+            return 0
+        return rows[0]["count"]
 
     def getBloodWavelengths(self, range=(None,None)):
         if range[0] is None:
@@ -143,13 +198,15 @@ class ZiliaDB(Database):
         self.execute(r"select distinct(column) from spectra order by column")
         rows = self.fetchAll()
         nTotal = len(rows)
-
         types = set()
         for row in rows:
-            type = row['column']
-            if re.match('raw', type) is not None:
-                type = 'raw'
-            types.add(type)
+            col = row['column']
+            
+            if col is None:
+                continue
+            if re.match('raw', col) is not None:
+                col = 'raw'
+            types.add(col)
 
         return sorted(types)
 
@@ -209,6 +266,9 @@ class ZiliaDB(Database):
         self.execute(stmnt)
         rows = self.fetchAll()
 
+        return self.getImagesFromRows(rows)
+
+    def getImagesFromRows(self, rows, mirrorLeftEye=True):
         images = {}
         nTotal = len(rows)
         for i,row in enumerate(rows):
@@ -219,7 +279,8 @@ class ZiliaDB(Database):
 
             image = imread(absolutePath)
             if row['eye'] == 'os' and mirrorLeftEye:
-                image = self.mirrorImageHorizontally(image) 
+                image = self.mirrorImageHorizontally(image)
+
             images[relativePath] = image
             self.showProgressBar(i+1, nTotal)
 
@@ -284,7 +345,7 @@ class ZiliaDB(Database):
         return records
 
     def buildImageSelectStatement(self, monkey=None, timeline=None, rlp=None, region=None, content=None, eye=None, limit=None):
-        stmnt = r"""select ('{0}/' || f.path) as abspath, f.*, m.*, group_concat(c.property) as properties, group_concat(c.value) as floatValues, group_concat(c.stringValue) as stringValues
+        stmnt = r"""select ('{0}/' || f.path) as abspath, f.content as content, f.acquisition as acquisition, f.idx as idx, f.eye as eye, f.*, m.*, group_concat(c.property) as properties, group_concat(c.value) as floatValues, group_concat(c.stringValue) as stringValues
         from imagefiles as f left join monkeys as m on m.monkeyId = f.monkeyId left join calculations as c on c.path = f.path where 1 = 1 """.format(self.root)
 
         if monkey is not None:
@@ -309,7 +370,7 @@ class ZiliaDB(Database):
             stmnt += " and f.eye like '%{0}%'".format(eye)
 
         stmnt += " group by f.path"
-        stmnt += " order by f.path"
+        stmnt += " order by f.acquisition, f.content, f.idx"
 
         if limit is not None:
             stmnt += " limit {0}".format(limit)
@@ -317,7 +378,7 @@ class ZiliaDB(Database):
         return stmnt
 
     def getRawIntensities(self, monkey=None, timeline=None, rlp=None, region=None, eye=None, limit=None):
-        stmnt = r"select s.wavelength, s.intensity, s.md5, s.column {0} and s.column like '%raw%' ".format(self.statementFromAllJoin)
+        stmnt = r"select s.wavelength, s.intensity, s.md5, s.column, s.idx {0} and s.column like '%raw%' ".format(self.statementFromAllJoin)
 
         if monkey is not None:
             stmnt += " and (m.monkeyId = '{0}' or m.name = '{0}')".format(monkey)
@@ -334,7 +395,7 @@ class ZiliaDB(Database):
         if eye is not None:
             stmnt += " and f.eye = '{0}'".format(eye)
 
-        stmnt += " order by s.path, s.column, s.wavelength "
+        stmnt += " order by s.acquisition, s.idx, s.wavelength "
 
         wavelengths = self.getWavelengths()
         nWavelengths = len(wavelengths)
@@ -344,6 +405,10 @@ class ZiliaDB(Database):
 
         self.execute(stmnt)
         rows = list(self.fetchAll())
+
+        if rows is None:
+            return None
+            
         nSamples = len(rows)//nWavelengths
         if nSamples == 0:
             return None
@@ -433,6 +498,7 @@ class ZiliaDB(Database):
         
         if iteration == total: 
             self.progressStart = None
+
 
 class ZiliaComputeEngine(DBComputeEngine):
     def __init__(self, database=ZiliaDB(), maxTaskCount=None, useThreads=True):
