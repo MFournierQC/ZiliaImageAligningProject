@@ -28,17 +28,16 @@ def getOxygenSatMatrix(labels, saturationValues, gridsize=(6,8)):
     return concentrationMatrix
 
 def display(firstEyeImage, secondEyeImage, firstSO2Matrix, secondSO2Matrix, xCoordinatesOS, yCoordinatesOS, xCoordinatesOD, yCoordinatesOD, saturationValuesOS, saturationValuesOD):
-    minValue, maxValue = colorMapRange(firstSO2Matrix, secondSO2Matrix)
-    minSat = np.amin([np.amin(saturationValuesOS), np.amin(saturationValuesOD)])
-    maxSat = np.amax([np.amax(saturationValuesOS), np.amax(saturationValuesOD)])
+    minValue = np.amin([np.amin(saturationValuesOS), np.amin(saturationValuesOD)])
+    maxValue = np.amax([np.amax(saturationValuesOS), np.amax(saturationValuesOD)])
 
     fig, axs = plt.subplots(2, 2, constrained_layout=True)
     axs[0, 0].imshow(firstEyeImage)
-    axs[0, 0].scatter(xCoordinatesOS, yCoordinatesOS, c=saturationValuesOS, cmap=plt.cm.coolwarm, vmin=minSat, vmax=maxSat)
+    axs[0, 0].scatter(xCoordinatesOS, yCoordinatesOS, c=saturationValuesOS, cmap=plt.cm.coolwarm, vmin=minValue, vmax=maxValue)
     axs[0, 0].set_title('First eye')
     axs[0, 0].axis('off')
     axs[0, 1].imshow(secondEyeImage)
-    axs[0, 1].scatter(xCoordinatesOD, yCoordinatesOD, c=saturationValuesOD, cmap=plt.cm.coolwarm, vmin=minSat, vmax=maxSat)
+    axs[0, 1].scatter(xCoordinatesOD, yCoordinatesOD, c=saturationValuesOD, cmap=plt.cm.coolwarm, vmin=minValue, vmax=maxValue)
     axs[0, 1].set_title('Second eye')
     axs[0, 1].axis('off')
 
@@ -237,7 +236,7 @@ def rescaleImage(imageRGB, gridParameters, gridsize=(8,6)):
     gridImage[LOW_SLICE_Y:HIGH_SLICE_Y, LOW_SLICE_X:HIGH_SLICE_X, :] = temp
     return gridImage, LOW_SLICE_X, LOW_SLICE_Y
 
-def drawGrid(imageRGB, gridParameters, gridsize=(10,10)):
+def drawGrid(imageRGB, gridParameters, gridsize=(8,6)):
     onhWidth = gridParameters[2]
     onhHeight = gridParameters[3]
     dx, dy = onhWidth//2, onhHeight//2

@@ -27,7 +27,7 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         rlp = 24
         timeline = 'baseline 3'
         limit = 10
-        gridsize = (10,12)
+        gridsize = (10,10)
         mirrorLeftEye = True
 
         eye = 'os'
@@ -64,26 +64,29 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         imageRGB = makeImageRGB(refImage)
         rescaledImage, lowSliceX, lowSliceY = rescaleImage(imageRGB, gridParameters, gridsize=gridsize)
         resultImageWithGrid = drawGrid(rescaledImage, gridParameters, gridsize=gridsize)
+        # plt.imshow(resultImageWithGrid)
+        # plt.show()
+        # assert True == False, "Temporary code break in test file."
 
         ### Spectral analysis ###
 
         print('Importing spectra.')
         time0 = time.time()
         rawSpectra = self.db.getRawIntensities(monkey=monkey, rlp=rlp, timeline=timeline, limit=limit, region=region, eye=eye)
-        print(f"Finished importing spectra. Took {time.time()- time0}")
+        print(f"Finished importing spectra. Took {time.time() - time0}")
         if rawSpectra is None:
             raise ImportError("No raw spectra was found in the database for theses input parameters.")
 
         print('Importing wavelengths.')
         time0 = time.time()
         wavelengths = self.db.getWavelengths()
-        print(f'Finished importing wavelengths. Took {time.time()- time0}')
+        print(f'Finished importing wavelengths. Took {time.time() - time0}')
         rawSpectraData = wavelengths, rawSpectra
 
         print('Importing background.')
         time0 = time.time()
         darkRefData = self.db.getBackgroundIntensities(rlp=rlp)
-        print(f'Finished importing background. Took {time.time()- time0}')
+        print(f'Finished importing background. Took {time.time() - time0}')
         darkRefData = wavelengths, darkRefData[1]
 
         print('Starting spectral analysis.')
