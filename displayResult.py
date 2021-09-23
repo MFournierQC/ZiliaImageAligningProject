@@ -3,19 +3,32 @@ import matplotlib as mpl
 import numpy as np
 import cv2
 
-### what variables i can have as input:
-# 1. ref image
-# 2. absolute X,Y rosa regarding the location of ONH center
-# 3. size of ONH (width, length) and its center
-# 4. what is the size of the grid?
+def getOxygenSatMatrix(labels, saturationValues, gridsize=(10,10)):
+    assert len(labels) == len(saturationValues), "The number of labels must be the same as the number of oxygen saturation values."
+    assert gridsize[0] == gridsize[1], "The gridsize has to be the same on both axis."
+    xLabel = np.array([i for i in range(gridsize[0])])
+    yLabel = np.array([i for i in range(gridsize[1])])
+    # yLabel = np.array(['A', 'B', 'C', 'D', 'E', 'F', 'J', 'K', 'L', 'M'])
+    # xLabel = np.array(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])
+    concentrationMatrix = np.zeros(gridsize)
+    saturationLocation = {}
 
-### what functions do i need?
-# 1. the gray to rgb for plotting
-# 2. adding grid to the images
-# 3. adding rosa circles to the image
-# 4. giving a label to the rosa circles so they can be averaged to plot a map
-# 5. relating StO2 values to the rosa locations
+    for i, oxygenSat in enumerate(saturationValues):
+        if labels[i] == None or oxygenSat == None:
+            continue
+        yIndex = np.where(np.array(labels[i][1]) == yLabel)[0]
+        xIndex = np.where(np.array(labels[i][0]) == xLabel)[0]
+        index = (int(yIndex), int(xIndex))
+        if index in saturationLocation.keys():
+            saturationLocation[index].append(oxygenSat)
+        else:
+            saturationLocation[index] = list([oxygenSat])
+        currentValue = concentrationMatrix[yIndex, xIndex][0]
 
+    for index, sat in saturationLocation.items():
+        concentrationMatrix[index] = np.mean(sat)
+
+    return concentrationMatrix
 
 def display(firstEyeImage, secondEyeImage, firstSO2Matrix, secondSO2Matrix, xCoordinatesOS, yCoordinatesOS, xCoordinatesOD, yCoordinatesOD, saturationValuesOS, saturationValuesOD):
     fig, axs = plt.subplots(2, 2, constrained_layout=True)
@@ -43,33 +56,6 @@ def colorMapRange(firstImage, secondImage):
     minValue = np.min(np.array([np.min(firstImage), np.min(secondImage)]))
     maxValue = np.max(np.array([np.max(firstImage), np.max(secondImage)]))
     return minValue, maxValue
-
-def getOxygenSatMatrix(labels, saturationValues, gridsize=(10,10)):
-    assert len(labels) == len(saturationValues), "The number of labels must be the same as the number of oxygen saturation values."
-    assert gridsize[0] == gridsize[1], "The gridsize has to be the same on both axis."
-    xLabel = np.array([i for i in range(gridsize[0])])
-    yLabel = np.array([i for i in range(gridsize[1])])
-    # yLabel = np.array(['A', 'B', 'C', 'D', 'E', 'F', 'J', 'K', 'L', 'M'])
-    # xLabel = np.array(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'])
-    concentrationMatrix = np.zeros(gridsize)
-    saturationLocation = {}
-
-    for i, oxygenSat in enumerate(saturationValues):
-        if labels[i] == None or oxygenSat == None:
-            continue
-        yIndex = np.where(np.array(labels[i][1]) == yLabel)[0]
-        xIndex = np.where(np.array(labels[i][0]) == xLabel)[0]
-        index = (int(yIndex), int(xIndex))
-        if index in saturationLocation.keys():
-            saturationLocation[index].append(oxygenSat)
-        else:
-            saturationLocation[index] = list([oxygenSat])
-        currentValue = concentrationMatrix[yIndex, xIndex][0]
-
-    for index, sat in saturationLocation.items():
-        concentrationMatrix[index] = np.mean(sat)
-
-    return concentrationMatrix
 
 def cleanResultValuesAndLocation(rosaPositions, lowSliceX, lowSliceY, saturationO2, gridParameters):
     xCenterGrid = gridParameters[0]# int
