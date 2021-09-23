@@ -5,6 +5,7 @@ from processImagesFromDatabase import *
 from zilia import *
 import matplotlib.pyplot as plt
 import numpy as np
+import time
 
 class TestShowFinalResult(envtest.ZiliaTestCase):
 
@@ -76,15 +77,26 @@ class TestShowFinalResult(envtest.ZiliaTestCase):
         # raise ImportError
 
         ### Spectral analysis ###
+
         print('Importing spectra.')
+        time0 = time.time()
         rawSpectra = self.db.getRawIntensities(monkey=monkey, rlp=rlp, timeline=timeline, limit=limit, region=region, eye=eye)
-        print('Finished importing the spectra.')
+        print(f"Finished importing spectra. Took {time.time()- time0}")
         if rawSpectra is None:
             raise ImportError("No raw spectra was found in the database for theses input parameters.")
+
+        print('Importing wavelengths.')
+        time0 = time.time()
         wavelengths = self.db.getWavelengths()
+        print(f'Finished importing wavelengths. Took {time.time()- time0}')
         rawSpectraData = wavelengths, rawSpectra
+
+        print('Importing background.')
+        time0 = time.time()
         darkRefData = self.db.getBackgroundIntensities(rlp=rlp)
+        print(f'Finished importing background. Took {time.time()- time0}')
         darkRefData = wavelengths, darkRefData[1]
+
         print('Starting spectral analysis.')
         oxygenSat, saturationFlags = mainAnalysis(darkRefData, rawSpectraData, self.componentsSpectra,
                 self.whiteRefPath, self.whiteRefBackground)
