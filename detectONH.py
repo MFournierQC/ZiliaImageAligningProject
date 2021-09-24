@@ -27,7 +27,7 @@ def ExternalStatement():
 
 
 
-def getRosaProp (img):
+def getONHProp (img):
     img[:, :, 2] = 0
     img = rgb2gray(img)
     img = img_as_float(np.squeeze(img))
@@ -92,25 +92,29 @@ def plotReg(real,pred):
 
     plt.show()
     print('regression slope' , m)
-    print('RMSE :' (np.sqrt(mean_squared_error(real, pred))))
+    print('RMSE :', (np.sqrt(mean_squared_error(real, pred))))
 
 
+
+
+###### Main function:
+def getPropertiesForImages(images):
+    xFound = []
+    yFound = []
+    widthFound = []
+    heightFound = []
+    for img in images:
+        center,length=getONHProp(img)
+        xFound.append(center [0]*5)
+        yFound.append(center[1]*5)
+        widthFound.append(length[0]*10)
+        heightFound.append(length[1]*10)
+    return xFound, yFound, widthFound, heightFound
+
+
+########## This part i to do the comparison with manuall data
 images,properties = ExternalStatement()
-
-###### used for ONH calculations
-# XFound = []
-# YFound = []
-# WidthFound = []
-# HeightFound = []
-# for img in images:
-#     center,length=getRosaProp(img)
-#     XFound.append(center [0]*5)
-#     YFound.append(center[1]*5)
-#     WidthFound.append(length[0]*10)
-#     HeightFound.append(length[1]*10)
-#
-
-
+xFound, yFound, widthFound, heightFound = getPropertiesForImages(images)
 ####### save data
 # with open("Xcenter.txt", "wb") as fp:  # Pickling
 #     pickle.dump(XFound, fp)
@@ -122,44 +126,44 @@ images,properties = ExternalStatement()
 #     pickle.dump(HeightFound, fp)
 
 ###### load data
-with open("Xcenter.txt", "rb") as fp:   # Unpickling
-    XFound = pickle.load(fp)
-with open("Ycenter.txt", "rb") as fp:  # Unpickling
-    YFound = pickle.load(fp)
-with open("Width.txt", "rb") as fp:   # Unpickling
-    WidthFound = pickle.load(fp)
-with open("Height.txt", "rb") as fp:  # Unpickling
-    HeightFound = pickle.load(fp)
-
-
-for i in range(len(WidthFound)):
-    print(WidthFound[i])
-    print(properties[126+i])
-
-
-def deleteNotDefined(realVal,predictedVal):
-    l=[i for i,v in enumerate(realVal) if v != '']
-    newReal = [realVal[j] for j in l]
-    newPred = [predictedVal[j] for j in l]
-    l1 = [i for i, v in enumerate(newPred) if v != []]
-    newReal2 = [newReal[j] for j in l1]
-    newPred2 = [newPred[j] for j in l1]
-
-    return  newReal2,newPred2
-
+# with open("Xcenter.txt", "rb") as fp:   # Unpickling
+#     XFound = pickle.load(fp)
+# with open("Ycenter.txt", "rb") as fp:  # Unpickling
+#     YFound = pickle.load(fp)
+# with open("Width.txt", "rb") as fp:   # Unpickling
+#     WidthFound = pickle.load(fp)
+# with open("Height.txt", "rb") as fp:  # Unpickling
+#     HeightFound = pickle.load(fp)
 #
-temp=np.copy(properties[126:252])
-realWidth,predWidth = deleteNotDefined(temp,WidthFound)
-
-temp=np.copy(properties[0:126])
-realHeight,predHeight = deleteNotDefined(temp,HeightFound)
-
-temp=np.copy(properties[252:378])
-realX,predX = deleteNotDefined(temp,XFound)
-
-temp=np.copy(properties[378:504])
-realY,predY = deleteNotDefined(temp,YFound)
-
-
-
-
+#
+# for i in range(len(WidthFound)):
+#     print(WidthFound[i])
+#     print(properties[126+i])
+#
+#
+# def deleteNotDefined(realVal,predictedVal):
+#     l=[i for i,v in enumerate(realVal) if v != '']
+#     newReal = [realVal[j] for j in l]
+#     newPred = [predictedVal[j] for j in l]
+#     l1 = [i for i, v in enumerate(newPred) if v != []]
+#     newReal2 = [newReal[j] for j in l1]
+#     newPred2 = [newPred[j] for j in l1]
+#
+#     return  newReal2,newPred2
+#
+# #
+# temp=np.copy(properties[126:252])
+# realWidth,predWidth = deleteNotDefined(temp,WidthFound)
+#
+# temp=np.copy(properties[0:126])
+# realHeight,predHeight = deleteNotDefined(temp,HeightFound)
+#
+# temp=np.copy(properties[252:378])
+# realX,predX = deleteNotDefined(temp,XFound)
+#
+# temp=np.copy(properties[378:504])
+# realY,predY = deleteNotDefined(temp,YFound)
+#
+#
+#
+#
