@@ -111,10 +111,22 @@ def getPropertiesForImages(images):
         heightFound.append(length[1]*10)
     return xFound, yFound, widthFound, heightFound
 
+def getPropertiesForImage(image):
+    xFound = []
+    yFound = []
+    widthFound = []
+    heightFound = []
+    center,length=getONHProp(image)
+    xFound.append(center [0]*5)
+    yFound.append(center[1]*5)
+    widthFound.append(length[0]*10)
+    heightFound.append(length[1]*10)
+    return xFound, yFound, widthFound, heightFound
+
 
 ########## This part i to do the comparison with manuall data
-images,properties = ExternalStatement()
-xFound, yFound, widthFound, heightFound = getPropertiesForImages(images)
+# images,properties = ExternalStatement()
+# xFound, yFound, widthFound, heightFound = getPropertiesForImages(images)
 ####### save data
 # with open("Xcenter.txt", "wb") as fp:  # Pickling
 #     pickle.dump(XFound, fp)

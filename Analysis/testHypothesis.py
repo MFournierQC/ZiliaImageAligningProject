@@ -57,8 +57,6 @@ def analyzeSpectrums(monkey, eye, rlp):
         return None
 
 def getSO2ForAllRlp(eye,monkey , rlp):
-
-    # rlp = [4]
     O2=[]
     for number in rlp:
         print(number)
