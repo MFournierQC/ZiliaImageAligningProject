@@ -5,9 +5,9 @@ from zilia import *
 import pickle
 import matplotlib.pyplot as plt
 db = ZiliaDB()
-componentsSpectra = '.\_components_spectra.csv'
-whiteRefPath = ".\int75_WHITEREFERENCE.csv"
-whiteRefBackground = ".\int75_LEDON_nothingInFront.csv"
+componentsSpectra = '_components_spectra.csv'
+whiteRefPath = "int75_WHITEREFERENCE.csv"
+whiteRefBackground = "int75_LEDON_nothingInFront.csv"
 
 
 def analyzeSpectrums(monkey, eye, rlp):
@@ -52,11 +52,9 @@ def getRosaPosition (eye, monkey, rlp):
                                            content='rosa', eye=eye)
         loadedRetinaImages = db.getRGBImages(monkey=monkey, rlp=number, timeline='baseline 3', region='onh',
                                              content = 'eye' ,eye=eye)
-        print(len(loadedRetinaImages))
         if loadedRosaImages:
             rosaImages=rosaImages+loadedRosaImages
             retinaImages=retinaImages+loadedRetinaImages
-        print(len(retinaImages))
 
     rosaInfo = getRosaProperties(rosaImages)
     xONHFound = [None] * len(rosaImages)
@@ -72,11 +70,17 @@ def getRosaPosition (eye, monkey, rlp):
                 if xONHFound[image][0] !=  []:
                     xROSAFound[image] = int(rosaInfo[image]['center']['rx'] - xONHFound[image][0])
                     yROSAFound[image] = int(rosaInfo[image]['center']['ry'] - widthFound[image][0])
+        print(image)
     return xROSAFound, yROSAFound, widthFound, heightFound
 
-rlp=[2,4]
+rlp=[4]
 monkey = 'Bresil'
 eye = 'os'
 xROSAFound, yROSAFound, widthFound, heightFound = getRosaPosition(eye = eye , monkey = monkey, rlp=rlp)
 print(xROSAFound)
+print('done')
+
+O2 = getSO2ForAllRlp(eye = eye , monkey = monkey, rlp=rlp)
+
+print(O2)
 
